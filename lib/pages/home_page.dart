@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../screens/tournament_details_page.dart'; // For navigasjon til turnering
+import '/pages/tour_detail_page.dart'; // For navigasjon til turnering
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
