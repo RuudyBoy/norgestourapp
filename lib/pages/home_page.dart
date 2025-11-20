@@ -171,9 +171,9 @@ class HomePage extends StatelessWidget {
                              Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => TournamentDetailsPage(
+                                  builder: (context) => TourDetailPage(
                                     tournamentId: doc.id,
-                                    data: data,
+                                    data: data, // match TourDetailPage constructor
                                   ),
                                 ),
                               );
