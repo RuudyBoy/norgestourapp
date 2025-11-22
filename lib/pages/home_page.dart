@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '/pages/tour_detail_page.dart'; // For navigasjon til turnering
+import 'tour_detail_page.dart'; // For navigasjon til turnering
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -9,7 +9,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        // Bakgrunnsbilde
+        // Background image
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/4.png'),
@@ -171,9 +171,9 @@ class HomePage extends StatelessWidget {
                              Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => TourDetailPage(
+                                  builder: (context) => TournamentDetailsPage(
                                     tournamentId: doc.id,
-                                    data: data, // match TourDetailPage constructor
+                                    data: data,
                                   ),
                                 ),
                               );

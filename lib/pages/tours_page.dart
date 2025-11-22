@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // 1. For å hente data
-import '/pages/tour_detail_page.dart'; // 2. For å navigere (sjekk mappenavnet ditt!)
+import 'tour_detail_page.dart'; // 2. For å navigere (sjekk mappenavnet ditt!)
 
 class ToursPage extends StatelessWidget {
   const ToursPage({super.key});

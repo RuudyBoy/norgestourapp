@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '/pages/teams_page.dart'; // Sjekk at stien er riktig
-import '/pages/matches_page.dart'; // Sjekk at stien er riktig
+import 'teams_page.dart'; // Sjekk at stien er riktig
+import 'matches_page.dart'; // Sjekk at stien er riktig
 
 class TournamentDetailsPage extends StatelessWidget {
   // We request two things: The Database ID and the Data Map for display
