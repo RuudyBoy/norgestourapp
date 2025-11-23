@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'tour_detail_page.dart'; // For navigasjon til turnering
+import 'player_detail_page.dart'; // For navigasjon til spiller
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -76,29 +77,42 @@ class HomePage extends StatelessWidget {
                           margin: EdgeInsets.only(left: 16, right: index == players.length - 1 ? 16 : 0),
                           child: Card(
                             elevation: 3,
-                            child: Column(
-                              children: [
-                                const SizedBox(height: 12),
-                                CircleAvatar(
-                                  radius: 40,
-                                  backgroundColor: Colors.grey[200],
-                                  backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-                                  child: imageUrl.isEmpty ? const Icon(Icons.person, size: 40) : null,
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  name,
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  position,
-                                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                                ),
-                              ],
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PlayerDetailPage(
+                                      playerId: players[index].id,
+                                      playerData: data,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 12),
+                                  CircleAvatar(
+                                    radius: 40,
+                                    backgroundColor: Colors.grey[200],
+                                    backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                                    child: imageUrl.isEmpty ? const Icon(Icons.person, size: 40) : null,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    name,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    position,
+                                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -188,7 +202,95 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 40),
 
               // 
-              // --- SEKSJON 3: SISTE NYTT (Valgfritt, krever 'news' collection) ---
+              // --- SEKSJON 3: ALLE SPILLERE (Vertikal) ---
+              // 
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  'Alle spillere',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('players').orderBy('last_name').snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+
+                  final allPlayers = snapshot.data!.docs;
+
+                  if (allPlayers.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text(
+                        "Ingen spillere funnet.",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: allPlayers.map((doc) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      final name = "${data['first_name']} ${data['last_name']}";
+                      final position = data['position'] ?? '';
+                      final imageUrl = data['image_url'] ?? '';
+                      final team = data['team'] ?? '';
+
+                      return Card(
+                        elevation: 2,
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            radius: 25,
+                            backgroundColor: Colors.grey[200],
+                            backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                            child: imageUrl.isEmpty ? const Icon(Icons.person) : null,
+                          ),
+                          title: Text(
+                            name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (position.isNotEmpty) Text(position),
+                              if (team.isNotEmpty)
+                                Text(
+                                  team,
+                                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                ),
+                            ],
+                          ),
+                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PlayerDetailPage(
+                                  playerId: doc.id,
+                                  playerData: data,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 40),
+
+              // 
+              // --- SEKSJON 4: SISTE NYTT (Valgfritt, krever 'news' collection) ---
               // 
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),

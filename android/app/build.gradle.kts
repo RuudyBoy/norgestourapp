@@ -23,17 +23,17 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // VIKTIG: Sjekk at denne ID-en er lik den du har i google-services.json
         applicationId = "com.example.norges_tour_app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdkVersion 23
         
-        targetSdkVersion flutter.targetSdkVersion
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        minSdk = flutter.minSdkVersion
+        targetSdk = 34
+        
+        // HER ER ENDRINGEN: Vi setter tall direkte i stedet for variabler
+        versionCode = 1 
+        versionName = "1.0.0"
 
-        multiDexEnabled true
+        multiDexEnabled = true
     }
 
     buildTypes {
