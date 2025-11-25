@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'match_stats_page.dart'; // <--- VIKTIG: Husk denne importen!
 
 class MatchesPage extends StatelessWidget {
   final String tournamentId;
@@ -52,18 +53,38 @@ class MatchesPage extends StatelessWidget {
               final awayScore = data['away_score'] ?? 0;
               final court = data['court'] ?? 'Bane ?';
               
-              // NB: Her viser vi bare ID-ene foreløpig. 
-              // Senere skal vi lære å hente de ekte lagnavnene!
-              final homeTeamId = data['team_a_id'] ?? 'Lag A';
-              final awayTeamId = data['team_b_id'] ?? 'Lag B';
+              // Vi henter navnene slik at vi kan sende dem til Stats-siden
+              final teamAName = data['team_a_name'] ?? 'Lag A';
+              final teamBName = data['team_b_name'] ?? 'Lag B';
 
               return Card(
                 elevation: 2,
                 margin: const EdgeInsets.only(bottom: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
+                child: ListTile(
+                  // --- HER ER NAVIGASJONEN TIL STATS ---
+                  onTap: () {
+                    if (status == 'scheduled') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Kampen har ikke startet enda."))
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MatchStatsPage(
+                            matchId: matches[index].id,
+                            teamAName: teamAName,
+                            teamBName: teamBName,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  // -------------------------------------
+
+                  contentPadding: const EdgeInsets.all(16.0),
+                  title: Column(
                     children: [
                       // Topprad: Status og Bane
                       Row(
@@ -84,7 +105,7 @@ class MatchesPage extends StatelessWidget {
                               ),
                             ),
                           ),
-                          Text(court, style: TextStyle(color: Colors.grey[600])),
+                          Text(court, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                         ],
                       ),
                       const Divider(height: 24),
@@ -95,9 +116,10 @@ class MatchesPage extends StatelessWidget {
                           // Hjemmelag
                           Expanded(
                             child: Text(
-                              "Hjemmelag ($homeTeamId)", // Viser ID midlertidig
+                              teamAName, // Viser nå navnet
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                               textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           
@@ -122,13 +144,24 @@ class MatchesPage extends StatelessWidget {
                           // Bortelag
                           Expanded(
                             child: Text(
-                              "Bortelag ($awayTeamId)", 
+                              teamBName, 
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                               textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
+                      
+                      // Liten tekst i bunn som hinter om at man kan trykke
+                      if (status != 'scheduled')
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12.0),
+                          child: Text(
+                            "Trykk for kampfakta", 
+                            style: TextStyle(fontSize: 12, color: Colors.blue[700], fontStyle: FontStyle.italic)
+                          ),
+                        ),
                     ],
                   ),
                 ),
