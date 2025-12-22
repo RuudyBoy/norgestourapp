@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'teams_page.dart'; // Sjekk at stien er riktig
 import 'matches_page.dart'; // Sjekk at stien er riktig
+import 'tournament_stats_page.dart'; // Sjekk at stien er riktig
 
 class TournamentDetailsPage extends StatelessWidget {
   // We request two things: The Database ID and the Data Map for display
@@ -136,13 +137,24 @@ class TournamentDetailsPage extends StatelessWidget {
                     },
                   ),
                   _buildMenuButton(
-                    title: 'Stats',
-                    icon: Icons.bar_chart,
-                    color: Colors.orangeAccent,
-                    onTap: () {
-                      // Future: Navigate to Stats page
-                    },
-                  ),
+  title: 'Stats',
+  icon: Icons.bar_chart,
+  color: Colors.orangeAccent,
+  onTap: () {
+    // NAVIGER TIL STATS PAGE
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TournamentStatsPage(
+          tournamentId: tournamentId, // Sender ID-en videre, akkurat som på Teams
+          tournamentName: data['name'] ?? 'Turnering',
+        ),
+      ),
+    );
+  },
+),
+                  
+                  
                   _buildMenuButton(
                     title: 'Results',
                     icon: Icons.emoji_events,
