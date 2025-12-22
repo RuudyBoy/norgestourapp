@@ -25,6 +25,38 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
     _sortPlayers(widget.initialSort);
   }
 
+  void _showPlayerDrilldown(PlayerMatchStats p) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text("${p.playerName} - Detaljer"),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (p.killDetails.isNotEmpty) ...[
+              const Text("ANGREPSFORDELING", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+              ...p.killDetails.entries.map((e) => Text("${e.key}: ${e.value}")),
+              const SizedBox(height: 15),
+            ],
+            if (p.aceDetails.isNotEmpty) ...[
+              const Text("SERVEFORDELING", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+              ...p.aceDetails.entries.map((e) => Text("${e.key}: ${e.value}")),
+              const SizedBox(height: 15),
+            ],
+            if (p.attackErrorDetails.isNotEmpty) ...[
+              const Text("FEILFORDELING", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+              ...p.attackErrorDetails.entries.map((e) => Text("${e.key}: ${e.value}")),
+            ],
+          ],
+        ),
+      ),
+      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("Lukk"))],
+    ),
+  );
+}
+
   void _sortPlayers(String criteria) {
     setState(() {
       if (criteria == "Toppscorer") {
@@ -118,17 +150,20 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
             ],
           ),
           ...players.map((p) => TableRow(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(p.playerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text(p.teamName, style: TextStyle(fontSize: 9, color: Colors.grey[600])),
-                  ],
-                ),
-              ),
+           children: [
+    GestureDetector(
+      onTap: () => _showPlayerDrilldown(p), // <--- Kaller detalj-visningen!
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(p.playerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.blue)),
+            Text(p.teamName, style: TextStyle(fontSize: 9, color: Colors.grey[600])),
+          ],
+        ),
+      ),
+    ),
               _DataCell(p.totalPoints.toString(), isBold: true, color: Colors.blue[800]),
               _DataCell("${p.sideoutPoints}", color: Colors.blue[600]), // Sideout
               _DataCell("${p.blocks}", color: Colors.red[700], isBold: true), // Blokk

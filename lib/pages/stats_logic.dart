@@ -4,28 +4,25 @@ class PlayerMatchStats {
   String playerName;
   String teamName;
   
-  // Poeng-stats
   int kills = 0;
   int attackErrors = 0;
   int blocks = 0;
   int aces = 0;
   int serviceErrors = 0;
-  
-  // Mottak
   int receptionErrors = 0;
-
-  // Legging
-  int setAssists = 0; // Bra legg (førte til kill)
-  int setAttempts = 0; // Totale legg
-
-  // Sideout (Poeng tatt på mottak)
+  int setAssists = 0;
+  int setAttempts = 0;
   int sideoutPoints = 0; 
+
+  // NYTT: Kart for å lagre detaljer (f.eks. {"Hardtangrep: Linje": 3, "Blokk ut": 2})
+  Map<String, int> killDetails = {};
+  Map<String, int> aceDetails = {};
+  Map<String, int> attackErrorDetails = {};
   
   PlayerMatchStats({required this.playerName, required this.teamName});
 
   int get totalPoints => kills + blocks + aces;
   
-  // Beregn legge-effektivitet i prosent
   String get settingEfficiency {
     if (setAttempts == 0) return "-";
     int pct = ((setAssists / setAttempts) * 100).round();
@@ -40,7 +37,8 @@ Map<String, PlayerMatchStats> calculateMatchStats(List<Map<String, dynamic>> eve
     String pKey = event['player_name'] ?? 'Ukjent';
     String team = event['team'] ?? '';
     String action = event['action'];
-    String phase = event['phase'] ?? ''; // Sideout eller Break Point
+    String phase = event['phase'] ?? '';
+    String? subType = event['sub_type']; // Henter den nye detaljen
 
     if (!statsMap.containsKey(pKey)) {
       statsMap[pKey] = PlayerMatchStats(playerName: pKey, teamName: team);
@@ -48,44 +46,35 @@ Map<String, PlayerMatchStats> calculateMatchStats(List<Map<String, dynamic>> eve
 
     final stats = statsMap[pKey]!;
 
-    // --- 1. TELL HANDLINGER ---
     switch (action) {
       case 'Kill':
         stats.kills++;
-        // Hvis dette var i Sideout-fasen, tell det som et Sideout-poeng
         if (phase == 'Sideout') stats.sideoutPoints++;
+        // Lagre detalj
+        if (subType != null) {
+          stats.killDetails[subType] = (stats.killDetails[subType] ?? 0) + 1;
+        }
         break;
         
       case 'Attack Error':
         stats.attackErrors++;
-        break;
-        
-      case 'Block':
-        stats.blocks++;
-        // Blokker i sideout-fase er sjeldne (da må motstander ha kontret), men vi teller dem
-        if (phase == 'Sideout') stats.sideoutPoints++; 
+        if (subType != null) {
+          stats.attackErrorDetails[subType] = (stats.attackErrorDetails[subType] ?? 0) + 1;
+        }
         break;
         
       case 'Ace':
         stats.aces++;
-        // Ess skjer alltid i Break Point-fase (egen serve)
-        break;
-        
-      case 'Service Error':
-        stats.serviceErrors++;
-        break;
-        
-      case 'Reception Error':
-        stats.receptionErrors++;
+        if (subType != null) {
+          stats.aceDetails[subType] = (stats.aceDetails[subType] ?? 0) + 1;
+        }
         break;
 
-      // NYTT: Legging
-      case 'Set Assist':
-        stats.setAssists++;
-        break;
-      case 'Set Attempt':
-        stats.setAttempts++;
-        break;
+      case 'Block': stats.blocks++; break;
+      case 'Service Error': stats.serviceErrors++; break;
+      case 'Reception Error': stats.receptionErrors++; break;
+      case 'Set Assist': stats.setAssists++; break;
+      case 'Set Attempt': stats.setAttempts++; break;
     }
   }
   return statsMap;
