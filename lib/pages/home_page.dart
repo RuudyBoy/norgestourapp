@@ -23,35 +23,58 @@ class HomePage extends StatelessWidget {
             children: [
               
               // 1. HEADER / LOGO
-              Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 250),
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    height: 200,
-                    fit: BoxFit.cover,
+              Padding(
+                padding: const EdgeInsets.only(top: 40.0),
+                child: Center(
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOut,
+                    builder: (context, value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: Transform.scale(
+                          scale: 0.8 + (0.2 * value),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 250),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              height: 200,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
               // 
               // --- SEKSJON 1: POPULÆRE SPILLERE (Horisontal) ---
               // 
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
                   'Mest populære spillere',
                   style: TextStyle(
-                    fontSize: 22, 
-                    fontWeight: FontWeight.bold, 
+                    fontSize: 24, 
+                    fontWeight: FontWeight.w700, 
                     color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 8.0,
+                        color: Colors.black.withOpacity(0.3),
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                 ),
               ),
               
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
 
               // StreamBuilder for spillere
               StreamBuilder<QuerySnapshot>(
@@ -72,49 +95,106 @@ class HomePage extends StatelessWidget {
                         final position = data['position'] ?? '';
                         final imageUrl = data['image_url'] ?? '';
 
-                        return Container(
-                          width: 140,
-                          margin: EdgeInsets.only(left: 16, right: index == players.length - 1 ? 16 : 0),
-                          child: Card(
-                            elevation: 3,
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => PlayerDetailPage(
-                                      playerId: players[index].id,
-                                      playerData: data,
+                        return TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          duration: Duration(milliseconds: 300 + (index * 100)),
+                          curve: Curves.easeOut,
+                          builder: (context, value, child) {
+                            return Opacity(
+                              opacity: value,
+                              child: Transform.translate(
+                                offset: Offset(0, 20 * (1 - value)),
+                                child: Container(
+                                  width: 150,
+                                  margin: EdgeInsets.only(left: 20, right: index == players.length - 1 ? 20 : 0),
+                                  child: Card(
+                                    elevation: 4,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => PlayerDetailPage(
+                                              playerId: players[index].id,
+                                              playerData: data,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(20),
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              Colors.white,
+                                              Colors.grey[50]!,
+                                            ],
+                                          ),
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const SizedBox(height: 16),
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: const Color(0xFF0A1931).withOpacity(0.2),
+                                                    blurRadius: 10,
+                                                    offset: const Offset(0, 4),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: CircleAvatar(
+                                                radius: 45,
+                                                backgroundColor: Colors.grey[200],
+                                                backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                                                child: imageUrl.isEmpty ? const Icon(Icons.person, size: 45, color: Colors.grey) : null,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 12),
+                                            Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                              child: Text(
+                                                name,
+                                                textAlign: TextAlign.center,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                              child: Text(
+                                                position,
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  color: Colors.grey[600],
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 16),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                );
-                              },
-                              child: Column(
-                                children: [
-                                  const SizedBox(height: 12),
-                                  CircleAvatar(
-                                    radius: 40,
-                                    backgroundColor: Colors.grey[200],
-                                    backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-                                    child: imageUrl.isEmpty ? const Icon(Icons.person, size: 40) : null,
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    name,
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    position,
-                                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         );
                       },
                     ),
@@ -122,24 +202,31 @@ class HomePage extends StatelessWidget {
                 },
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 48),
 
               // 
               // --- SEKSJON 2: TURNERINGER (Vertikal) ---
               // 
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
                   'Turneringer for sesongen',
                   style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white, 
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 8.0,
+                        color: Colors.black.withOpacity(0.3),
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance.collection('tournaments').orderBy('start_date').snapshots(),
@@ -160,38 +247,101 @@ class HomePage extends StatelessWidget {
                       final location = data['location'] ?? '';
 
                       return Card(
-                        elevation: 2,
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                             backgroundColor: Colors.blue[50],
-                             child: const Icon(Icons.emoji_events, color: Colors.blue),
-                          ),
-                          title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                                Text(date.toString()),
-                                if (location.isNotEmpty) 
-                                  Row(children: [
-                                     const Icon(Icons.location_on, size: 14, color: Colors.grey), 
-                                     const SizedBox(width: 4),
-                                     Text(location, style: const TextStyle(fontSize: 12))
-                                  ]),
-                            ],
-                          ),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        elevation: 3,
+                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: InkWell(
                           onTap: () {
-                             Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => TournamentDetailsPage(
-                                    tournamentId: doc.id,
-                                    data: data,
-                                  ),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TournamentDetailsPage(
+                                  tournamentId: doc.id,
+                                  data: data,
                                 ),
-                              );
+                              ),
+                            );
                           },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.white,
+                                  Colors.grey[50]!,
+                                ],
+                              ),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              leading: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0A1931).withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.emoji_events,
+                                  color: Color(0xFF0A1931),
+                                  size: 24,
+                                ),
+                              ),
+                              title: Text(
+                                name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 6.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          date.toString(),
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.grey[700],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (location.isNotEmpty) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            location,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              trailing: Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ),
                         ),
                       );
                     }).toList(),
@@ -199,24 +349,31 @@ class HomePage extends StatelessWidget {
                 },
               ),    
               
-              const SizedBox(height: 40),
+              const SizedBox(height: 48),
 
               // 
               // --- SEKSJON 3: ALLE SPILLERE (Vertikal) ---
               // 
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
                   'Alle spillere',
                   style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
                     color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 8.0,
+                        color: Colors.black.withOpacity(0.3),
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
 
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance.collection('players').orderBy('last_name').snapshots(),
@@ -244,31 +401,12 @@ class HomePage extends StatelessWidget {
                       final team = data['team'] ?? '';
 
                       return Card(
-                        elevation: 2,
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            radius: 25,
-                            backgroundColor: Colors.grey[200],
-                            backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-                            child: imageUrl.isEmpty ? const Icon(Icons.person) : null,
-                          ),
-                          title: Text(
-                            name,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (position.isNotEmpty) Text(position),
-                              if (team.isNotEmpty)
-                                Text(
-                                  team,
-                                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                ),
-                            ],
-                          ),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        elevation: 3,
+                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: InkWell(
                           onTap: () {
                             Navigator.push(
                               context,
@@ -280,6 +418,85 @@ class HomePage extends StatelessWidget {
                               ),
                             );
                           },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.white,
+                                  Colors.grey[50]!,
+                                ],
+                              ),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              leading: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: CircleAvatar(
+                                  radius: 28,
+                                  backgroundColor: Colors.grey[200],
+                                  backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                                  child: imageUrl.isEmpty ? const Icon(Icons.person, color: Colors.grey) : null,
+                                ),
+                              ),
+                              title: Text(
+                                name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 6.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (position.isNotEmpty)
+                                      Text(
+                                        position,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    if (team.isNotEmpty) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.group, size: 14, color: Colors.grey[600]),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            team,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              trailing: Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ),
                         ),
                       );
                     }).toList(),
@@ -311,17 +528,65 @@ class HomePage extends StatelessWidget {
                      children: snapshot.data!.docs.map((doc) {
                         final data = doc.data() as Map<String, dynamic>;
                         return Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                          child: ListTile(
-                             contentPadding: const EdgeInsets.all(10),
-                             leading: Container(
-                               width: 60, height: 60, color: Colors.grey[300],
-                               child: data['image_url'] != null 
-                                  ? Image.network(data['image_url'], fit: BoxFit.cover)
-                                  : const Icon(Icons.article),
-                             ),
-                             title: Text(data['title'] ?? 'Nyhet', style: const TextStyle(fontWeight: FontWeight.bold)),
-                             subtitle: Text(data['summary'] ?? 'Les mer...', maxLines: 2, overflow: TextOverflow.ellipsis),
+                          elevation: 3,
+                          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Colors.white,
+                                    Colors.grey[50]!,
+                                  ],
+                                ),
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(16),
+                                leading: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    width: 70,
+                                    height: 70,
+                                    color: Colors.grey[300],
+                                    child: data['image_url'] != null 
+                                      ? Image.network(
+                                          data['image_url'],
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return const Icon(Icons.article, color: Colors.grey);
+                                          },
+                                        )
+                                      : const Icon(Icons.article, color: Colors.grey),
+                                  ),
+                                ),
+                                title: Text(
+                                  data['title'] ?? 'Nyhet',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 6.0),
+                                  child: Text(
+                                    data['summary'] ?? 'Les mer...',
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         );
                      }).toList(),
@@ -329,7 +594,7 @@ class HomePage extends StatelessWidget {
                 },
               ),
 
-              const SizedBox(height: 40), // Bunn-padding
+              const SizedBox(height: 60), // Bunn-padding
             ], 
           ),
         ),

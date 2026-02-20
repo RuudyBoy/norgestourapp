@@ -36,8 +36,29 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: const Color(0xFF0A1931),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0A1931),
+          primary: const Color(0xFF0A1931),
+          secondary: const Color(0xFF185ADB),
+          surface: Colors.white,
+          onSurface: Colors.black87,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF0A1931),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+        ),
+        cardTheme: CardThemeData(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        ),
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        useMaterial3: true,
       ),
       home: const MainPage(),
     );
@@ -71,31 +92,45 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.sports_esports),
-            label: 'Fantasy',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Tours',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF0A1931),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white70,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.sports_esports),
+              label: 'Fantasy',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.map),
+              label: 'Tours',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings),
+              label: 'Settings',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: const Color(0xFF0A1931),
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.white70,
+          selectedFontSize: 12,
+          unselectedFontSize: 12,
+          elevation: 8,
+        ),
       ),
     );
   }

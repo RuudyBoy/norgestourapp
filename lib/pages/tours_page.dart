@@ -36,7 +36,14 @@ class ToursPage extends StatelessWidget {
               Container(
                 height: 200,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.6),
+                    ],
+                  ),
                 ),
               ),
               const Text(
@@ -112,78 +119,153 @@ class ToursPage extends StatelessWidget {
     String date, 
     String imageUrl
   ) {
-    // Vi fjerner GestureDetector og bruker Card som ytterste element
-    return Card(
-      margin: const EdgeInsets.only(bottom: 20.0),
-      elevation: 4,
-      // VIKTIG: Dette gjør at klikk-effekten (ripple) holder seg inni de runde hjørnene
-      clipBehavior: Clip.antiAlias, 
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      
-      // InkWell gir deg automatisk Hover-effekt (på web) og Splash (på mobil)
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TournamentDetailsPage(
-                tournamentId: id,
-                data: data,
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOut,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.scale(
+            scale: 0.95 + (0.05 * value),
+            child: Card(
+              margin: const EdgeInsets.only(bottom: 24.0),
+              elevation: 6,
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0),
               ),
-            ),
-          );
-        },
-        // Valgfritt: Du kan velge farge på hover/klikk her
-        hoverColor: Colors.blue.withOpacity(0.1), 
-        splashColor: Colors.blue.withOpacity(0.2),
-        
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Bildet (Vi trenger ikke ClipRRect lenger fordi Card clipper for oss!)
-            Image.network(
-              imageUrl,
-              height: 150,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 150,
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.broken_image, color: Colors.grey, size: 50),
-                );
-              },
-            ),
-            Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8.0),
-                  Row(
-                    children: [
-                      const Icon(Icons.calendar_today, size: 16.0, color: Colors.grey),
-                      const SizedBox(width: 8.0),
-                      Text(
-                        date,
-                        style: const TextStyle(fontSize: 16.0, color: Colors.grey),
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TournamentDetailsPage(
+                        tournamentId: id,
+                        data: data,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  );
+                },
+                hoverColor: const Color(0xFF0A1931).withOpacity(0.05),
+                splashColor: const Color(0xFF0A1931).withOpacity(0.1),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Bildet med overlay gradient
+                    Stack(
+                      children: [
+                        Image.network(
+                          imageUrl,
+                          height: 180,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 180,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Colors.grey[300]!,
+                                    Colors.grey[400]!,
+                                  ],
+                                ),
+                              ),
+                              child: const Icon(Icons.golf_course, color: Colors.grey, size: 60),
+                            );
+                          },
+                        ),
+                        // Subtle gradient overlay
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            height: 60,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.1),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white,
+                            Colors.grey[50]!,
+                          ],
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 22.0,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF0A1931),
+                              ),
+                            ),
+                            const SizedBox(height: 12.0),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF0A1931).withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.calendar_today,
+                                    size: 18.0,
+                                    color: Color(0xFF0A1931),
+                                  ),
+                                ),
+                                const SizedBox(width: 12.0),
+                                Expanded(
+                                  child: Text(
+                                    date,
+                                    style: TextStyle(
+                                      fontSize: 15.0,
+                                      color: Colors.grey[700],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 16,
+                                  color: Colors.grey[600],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

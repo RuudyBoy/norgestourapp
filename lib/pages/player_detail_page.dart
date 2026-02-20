@@ -28,8 +28,9 @@ class PlayerDetailPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(fullName),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF0A1931),
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -38,38 +39,76 @@ class PlayerDetailPage extends StatelessWidget {
             // Player Image Header
             Container(
               width: double.infinity,
-              height: 250,
+              height: 280,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.blue[700]!, Colors.blue[400]!],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFF0A1931),
+                    const Color(0xFF185ADB),
+                  ],
                 ),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircleAvatar(
-                    radius: 70,
-                    backgroundColor: Colors.white,
-                    backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-                    child: imageUrl.isEmpty ? const Icon(Icons.person, size: 70, color: Colors.grey) : null,
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOut,
+                    builder: (context, value, child) {
+                      return Transform.scale(
+                        scale: 0.7 + (0.3 * value),
+                        child: Opacity(
+                          opacity: value,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              radius: 75,
+                              backgroundColor: Colors.white,
+                              backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                              child: imageUrl.isEmpty
+                                  ? const Icon(Icons.person, size: 75, color: Colors.grey)
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Text(
                     fullName,
                     style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w700,
                       color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          blurRadius: 8.0,
+                          color: Colors.black26,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     position,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
-                      color: Colors.white70,
+                      color: Colors.white.withOpacity(0.9),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -78,19 +117,20 @@ class PlayerDetailPage extends StatelessWidget {
 
             // Player Information
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Basic Info Section
-                  const Text(
+                  Text(
                     'Grunnleggende informasjon',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF0A1931),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   if (team.isNotEmpty)
                     _buildInfoRow(Icons.shield, 'Lag', team),
@@ -104,17 +144,18 @@ class PlayerDetailPage extends StatelessWidget {
                   if (birthDate.isNotEmpty)
                     _buildInfoRow(Icons.cake, 'Fødselsdato', birthDate.toString()),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
                   // Physical Stats Section
-                  const Text(
+                  Text(
                     'Fysiske egenskaper',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF0A1931),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   if (height.isNotEmpty)
                     _buildInfoRow(Icons.height, 'Høyde', '$height cm'),
@@ -157,11 +198,27 @@ class PlayerDetailPage extends StatelessWidget {
   }
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.grey[200]!,
+          width: 1,
+        ),
+      ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.blue, size: 24),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0A1931).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: const Color(0xFF0A1931), size: 24),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -172,14 +229,16 @@ class PlayerDetailPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   value,
                   style: const TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0A1931),
                   ),
                 ),
               ],
@@ -192,22 +251,31 @@ class PlayerDetailPage extends StatelessWidget {
 
   Widget _buildStatRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[700],
             ),
           ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0A1931).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF0A1931),
+              ),
             ),
           ),
         ],
