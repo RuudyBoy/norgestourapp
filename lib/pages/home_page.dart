@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'tour_detail_page.dart'; // For navigasjon til turnering
-import 'player_detail_page.dart'; // For navigasjon til spiller
+import 'package:google_fonts/google_fonts.dart';
+import 'fantasy_page.dart';
+import 'tours_page.dart';
+import 'tournament_stats_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -9,595 +10,267 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // The vibrant global background gradient matching the design
       body: Container(
-        // Background image
         decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/4.png'),
-            fit: BoxFit.cover,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFEFE9E5), // Light beige at top matching the header
+              Color(0xFFFF66C4), // Vibrant pink
+              Color(0xFF3B82F6), // Bright blue
+            ],
+            stops: [0.3, 0.6, 1.0],
           ),
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              
-              // 1. HEADER / LOGO
-              Padding(
-                padding: const EdgeInsets.only(top: 40.0),
-                child: Center(
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 600),
-                    curve: Curves.easeOut,
-                    builder: (context, value, child) {
-                      return Opacity(
-                        opacity: value,
-                        child: Transform.scale(
-                          scale: 0.8 + (0.2 * value),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 250),
-                            child: Image.asset(
-                              'assets/images/logo.png',
-                              height: 200,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 10),
+                _buildCards(context),
+                const SizedBox(height: 30),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return SizedBox(
+      height: 200,
+      width: double.infinity,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // If there's a background texture or pattern for the header, it goes here
+          // We use the logo in the center
+          Positioned(
+            top: 20,
+            child: Image.asset(
+              'assets/images/logo.png',
+              height: 140,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => Text(
+                'NORGES TOUR',
+                style: GoogleFonts.bangers(fontSize: 48, color: const Color(0xFF185ADB)),
+              ),
+            ),
+          ),
+          // We can add placeholders for player cutouts on left/right if needed
+          // For now, the logo is the main focus as in the reference.
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCards(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        children: [
+          _buildActionCard(
+            context: context,
+            title: "FANTASY",
+            subtitle: "VELKOMMEN TIL FANTASY",
+            description:
+                "Premier League Fantasy er et populært online spill som lar fotballfans over hele verden sette sammen sine egne drømmelag basert på spillere fra den engelske Premier League. Deltakerne får et budsjett og bruker det til å 'kjøpe' spillere til sine lag...",
+            buttonText: "go to fantasy",
+            gradientColors: [
+              const Color(0xFFA7F3D0), // Light green
+              const Color(0xFF93C5FD), // Light blue
+            ],
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FantasyPage()),
+              );
+            },
+          ),
+          const SizedBox(height: 20),
+          _buildActionCard(
+            context: context,
+            title: "SE STATISTIKK FOR ÅRETS NT SESONG",
+            subtitle: "",
+            description:
+                "Premier League Fantasy er et populært online spill som lar fotballfans over hele verden sette sammen sine egne drømmelag basert på spillere fra den engelske Premier League. Deltakerne får et budsjett og bruker det til å 'kjøpe' spillere til sine lag...",
+            buttonText: "go to Stats",
+            gradientColors: [
+              const Color(0xFFBAE6FD), // Light sky blue
+              const Color(0xFF7DD3FC), // Cyan
+            ],
+            titleStyle: GoogleFonts.bangers(fontSize: 22, color: const Color(0xFFE04036), letterSpacing: 1.2),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TournamentStatsPage(
+                    tournamentId: 'nt-season',
+                    tournamentName: 'Årets NT sesong',
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 20),
+          _buildActionCard(
+            context: context,
+            title: "Norges tour 26/27",
+            subtitle: "TURNERING OG RESULTATER",
+            description:
+                "Premier League Fantasy er et populært online spill som lar fotballfans over hele verden sette sammen sine egne drømmelag basert på spillere fra den engelske Premier League. Deltakerne får et budsjett og bruker det til å 'kjøpe' spillere til sine lag...",
+            buttonText: "go to fantasy", // Using text from the mockup image for tours
+            gradientColors: [
+              const Color(0xFFBFDBFE), // Blue 200
+              const Color(0xFFC4B5FD), // Purple 300
+            ],
+            titleStyle: GoogleFonts.caveat(fontSize: 32, fontWeight: FontWeight.bold, color: const Color(0xFF1D4ED8)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ToursPage()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionCard({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required String description,
+    required String buttonText,
+    required List<Color> gradientColors,
+    required VoidCallback onTap,
+    TextStyle? titleStyle,
+  }) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradientColors,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Background shapes or phone mockups can be added here
+          // We leave some padding on the left to simulate the space for the phone image
+          Padding(
+            padding: const EdgeInsets.only(left: 120.0, top: 24, bottom: 24, right: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (title.isNotEmpty)
+                  Text(
+                    title,
+                    style: titleStyle ??
+                        GoogleFonts.bangers(
+                          fontSize: 32,
+                          color: const Color(0xFF1D4ED8), // Deep blue
+                          letterSpacing: 1.5,
                         ),
-                      );
-                    },
                   ),
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // 
-              // --- SEKSJON 1: POPULÆRE SPILLERE (Horisontal) ---
-              // 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text(
-                  'Mest populære spillere',
-                  style: TextStyle(
-                    fontSize: 24, 
-                    fontWeight: FontWeight.w700, 
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 8.0,
-                        color: Colors.black.withOpacity(0.3),
-                        offset: const Offset(0, 2),
+                if (subtitle.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
+                    child: Text(
+                      subtitle,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFFE04036), // Vibrant red/orange
+                        letterSpacing: 0.5,
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-
-              // StreamBuilder for spillere
-              StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('players').limit(5).snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
-
-                  final players = snapshot.data!.docs;
-
-                  return SizedBox(
-                    height: 180, // Høyde på spillerkort-listen
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: players.length,
-                      itemBuilder: (context, index) {
-                        final data = players[index].data() as Map<String, dynamic>;
-                        final name = "${data['first_name']} ${data['last_name']}";
-                        final position = data['position'] ?? '';
-                        final imageUrl = data['image_url'] ?? '';
-
-                        return TweenAnimationBuilder<double>(
-                          tween: Tween(begin: 0.0, end: 1.0),
-                          duration: Duration(milliseconds: 300 + (index * 100)),
-                          curve: Curves.easeOut,
-                          builder: (context, value, child) {
-                            return Opacity(
-                              opacity: value,
-                              child: Transform.translate(
-                                offset: Offset(0, 20 * (1 - value)),
-                                child: Container(
-                                  width: 150,
-                                  margin: EdgeInsets.only(left: 20, right: index == players.length - 1 ? 20 : 0),
-                                  child: Card(
-                                    elevation: 4,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => PlayerDetailPage(
-                                              playerId: players[index].id,
-                                              playerData: data,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      borderRadius: BorderRadius.circular(20),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(20),
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                            colors: [
-                                              Colors.white,
-                                              Colors.grey[50]!,
-                                            ],
-                                          ),
-                                        ),
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            const SizedBox(height: 16),
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: const Color(0xFF0A1931).withOpacity(0.2),
-                                                    blurRadius: 10,
-                                                    offset: const Offset(0, 4),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: CircleAvatar(
-                                                radius: 45,
-                                                backgroundColor: Colors.grey[200],
-                                                backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-                                                child: imageUrl.isEmpty ? const Icon(Icons.person, size: 45, color: Colors.grey) : null,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 12),
-                                            Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                              child: Text(
-                                                name,
-                                                textAlign: TextAlign.center,
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                              child: Text(
-                                                position,
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  color: Colors.grey[600],
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 16),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
                     ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 48),
-
-              // 
-              // --- SEKSJON 2: TURNERINGER (Vertikal) ---
-              // 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text(
-                  'Turneringer for sesongen',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 8.0,
-                        color: Colors.black.withOpacity(0.3),
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                  ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  maxLines: 6,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                    height: 1.4,
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 16),
-              
-              StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('tournaments').orderBy('start_date').snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                  
-                  final tournaments = snapshot.data!.docs;
-
-                  if (tournaments.isEmpty) {
-                     return const Padding(padding: EdgeInsets.all(16), child: Text("Ingen turneringer funnet.", style: TextStyle(color: Colors.white)));
-                  }
-
-                  return Column(
-                    children: tournaments.map((doc) {
-                      final data = doc.data() as Map<String, dynamic>;
-                      final name = data['name'] ?? 'Ukjent navn';
-                      final date = data['start_date'] ?? 'Dato kommer'; 
-                      final location = data['location'] ?? '';
-
-                      return Card(
-                        elevation: 3,
-                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                const SizedBox(height: 16),
+                InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(30),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF04A22), // Vibrant orange button
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFF04A22).withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
                         ),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => TournamentDetailsPage(
-                                  tournamentId: doc.id,
-                                  data: data,
-                                ),
-                              ),
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.white,
-                                  Colors.grey[50]!,
-                                ],
-                              ),
-                            ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                              leading: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF0A1931).withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.emoji_events,
-                                  color: Color(0xFF0A1931),
-                                  size: 24,
-                                ),
-                              ),
-                              title: Text(
-                                name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              subtitle: Padding(
-                                padding: const EdgeInsets.only(top: 6.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          date.toString(),
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.grey[700],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (location.isNotEmpty) ...[
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            location,
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              color: Colors.grey[700],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                              trailing: Icon(
-                                Icons.arrow_forward_ios,
-                                size: 16,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  );
-                },
-              ),    
-              
-              const SizedBox(height: 48),
-
-              // 
-              // --- SEKSJON 3: ALLE SPILLERE (Vertikal) ---
-              // 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text(
-                  'Alle spillere',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 8.0,
-                        color: Colors.black.withOpacity(0.3),
-                        offset: const Offset(0, 2),
+                      ],
+                    ),
+                    child: Text(
+                      buttonText,
+                      style: GoogleFonts.caveat(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 16),
-
-              StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('players').orderBy('last_name').snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
-                  final allPlayers = snapshot.data!.docs;
-
-                  if (allPlayers.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text(
-                        "Ingen spillere funnet.",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
-                  }
-
-                  return Column(
-                    children: allPlayers.map((doc) {
-                      final data = doc.data() as Map<String, dynamic>;
-                      final name = "${data['first_name']} ${data['last_name']}";
-                      final position = data['position'] ?? '';
-                      final imageUrl = data['image_url'] ?? '';
-                      final team = data['team'] ?? '';
-
-                      return Card(
-                        elevation: 3,
-                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PlayerDetailPage(
-                                  playerId: doc.id,
-                                  playerData: data,
-                                ),
-                              ),
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.white,
-                                  Colors.grey[50]!,
-                                ],
-                              ),
-                            ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                              leading: Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: CircleAvatar(
-                                  radius: 28,
-                                  backgroundColor: Colors.grey[200],
-                                  backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-                                  child: imageUrl.isEmpty ? const Icon(Icons.person, color: Colors.grey) : null,
-                                ),
-                              ),
-                              title: Text(
-                                name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              subtitle: Padding(
-                                padding: const EdgeInsets.only(top: 6.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (position.isNotEmpty)
-                                      Text(
-                                        position,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Colors.grey[700],
-                                        ),
-                                      ),
-                                    if (team.isNotEmpty) ...[
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.group, size: 14, color: Colors.grey[600]),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            team,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey[600],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                              trailing: Icon(
-                                Icons.arrow_forward_ios,
-                                size: 16,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 40),
-
-              // 
-              // --- SEKSJON 4: SISTE NYTT (Valgfritt, krever 'news' collection) ---
-              // 
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  'Siste Nytt',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 12),
-              
-              StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('news').limit(3).snapshots(),
-                builder: (context, snapshot) {
-                   // Viser ingenting hvis 'news' ikke finnes eller er tom
-                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return const SizedBox.shrink();
-
-                   return Column(
-                     children: snapshot.data!.docs.map((doc) {
-                        final data = doc.data() as Map<String, dynamic>;
-                        return Card(
-                          elevation: 3,
-                          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Colors.white,
-                                    Colors.grey[50]!,
-                                  ],
-                                ),
-                              ),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.all(16),
-                                leading: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Container(
-                                    width: 70,
-                                    height: 70,
-                                    color: Colors.grey[300],
-                                    child: data['image_url'] != null 
-                                      ? Image.network(
-                                          data['image_url'],
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return const Icon(Icons.article, color: Colors.grey);
-                                          },
-                                        )
-                                      : const Icon(Icons.article, color: Colors.grey),
-                                  ),
-                                ),
-                                title: Text(
-                                  data['title'] ?? 'Nyhet',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                subtitle: Padding(
-                                  padding: const EdgeInsets.only(top: 6.0),
-                                  child: Text(
-                                    data['summary'] ?? 'Les mer...',
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey[700],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                     }).toList(),
-                   );
-                },
-              ),
-
-              const SizedBox(height: 60), // Bunn-padding
-            ], 
+              ],
+            ),
           ),
-        ),
+          
+          // Placeholder for the phone mockup image on the left
+          Positioned(
+            left: -20,
+            top: 20,
+            bottom: 20,
+            width: 130,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey.shade800, width: 4),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(5, 5))
+                ]
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.sports_volleyball, color: Colors.white54, size: 40),
+                    const SizedBox(height: 8),
+                    Text('App Preview', style: TextStyle(color: Colors.white54, fontSize: 10))
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

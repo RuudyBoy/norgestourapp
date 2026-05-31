@@ -96,7 +96,7 @@ class _MainPageState extends State<MainPage> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -124,12 +124,12 @@ class _MainPageState extends State<MainPage> {
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
           type: BottomNavigationBarType.fixed,
-          backgroundColor: const Color(0xFF0A1931),
-          selectedItemColor: Colors.white,
+          backgroundColor: const Color(0xFF1E3A8A), // Darker blue to match the gradient bottom
+          selectedItemColor: const Color(0xFFFF66C4), // Vibrant pink for selected item
           unselectedItemColor: Colors.white70,
           selectedFontSize: 12,
           unselectedFontSize: 12,
-          elevation: 8,
+          elevation: 0,
         ),
       ),
     );

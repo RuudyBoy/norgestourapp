@@ -49,7 +49,7 @@ class SettingsPage extends StatelessWidget {
                   leading: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0A1931).withOpacity(0.1),
+                      color: const Color(0xFF0A1931).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
@@ -102,7 +102,7 @@ class SettingsPage extends StatelessWidget {
                   leading: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0A1931).withOpacity(0.1),
+                      color: const Color(0xFF0A1931).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
@@ -155,7 +155,7 @@ class SettingsPage extends StatelessWidget {
                   leading: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0A1931).withOpacity(0.1),
+                      color: const Color(0xFF0A1931).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(

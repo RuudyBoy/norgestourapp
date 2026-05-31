@@ -67,7 +67,7 @@ class PlayerDetailPage extends StatelessWidget {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
+                                  color: Colors.black.withValues(alpha: 0.3),
                                   blurRadius: 20,
                                   offset: const Offset(0, 8),
                                 ),
@@ -107,7 +107,7 @@ class PlayerDetailPage extends StatelessWidget {
                     position,
                     style: TextStyle(
                       fontSize: 18,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -214,7 +214,7 @@ class PlayerDetailPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF0A1931).withOpacity(0.1),
+              color: const Color(0xFF0A1931).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: const Color(0xFF0A1931), size: 24),
@@ -266,7 +266,7 @@ class PlayerDetailPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF0A1931).withOpacity(0.1),
+              color: const Color(0xFF0A1931).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(

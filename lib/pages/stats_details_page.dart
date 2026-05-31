@@ -92,10 +92,10 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _SortButton("Poeng", () => _sortPlayers("Toppscorer")),
-                  _SortButton("Sideout", () => _sortPlayers("Sideout")), // Oppdatert
-                  _SortButton("Blokk", () => _sortPlayers("Blokk")), // Oppdatert
-                  _SortButton("Legg", () => _sortPlayers("Legging")),
+                  _sortButton("Poeng", () => _sortPlayers("Toppscorer")),
+                  _sortButton("Sideout", () => _sortPlayers("Sideout")), // Oppdatert
+                  _sortButton("Blokk", () => _sortPlayers("Blokk")), // Oppdatert
+                  _sortButton("Legg", () => _sortPlayers("Legging")),
                 ],
               ),
             ),
@@ -107,7 +107,7 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
     );
   }
 
-  Widget _SortButton(String text, VoidCallback onTap) {
+  Widget _sortButton(String text, VoidCallback onTap) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: ActionChip(

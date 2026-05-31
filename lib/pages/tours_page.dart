@@ -41,7 +41,7 @@ class ToursPage extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.6),
+                      Colors.black.withValues(alpha: 0.6),
                     ],
                   ),
                 ),
@@ -147,8 +147,8 @@ class ToursPage extends StatelessWidget {
                     ),
                   );
                 },
-                hoverColor: const Color(0xFF0A1931).withOpacity(0.05),
-                splashColor: const Color(0xFF0A1931).withOpacity(0.1),
+                hoverColor: const Color(0xFF0A1931).withValues(alpha: 0.05),
+                splashColor: const Color(0xFF0A1931).withValues(alpha: 0.1),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -190,7 +190,7 @@ class ToursPage extends StatelessWidget {
                                 end: Alignment.bottomCenter,
                                 colors: [
                                   Colors.transparent,
-                                  Colors.black.withOpacity(0.1),
+                                  Colors.black.withValues(alpha: 0.1),
                                 ],
                               ),
                             ),
@@ -228,7 +228,7 @@ class ToursPage extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF0A1931).withOpacity(0.1),
+                                    color: const Color(0xFF0A1931).withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: const Icon(

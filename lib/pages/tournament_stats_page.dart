@@ -221,7 +221,7 @@ class StatsCategoryCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 15, offset: const Offset(0, 5))
+            BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 15, offset: const Offset(0, 5))
           ],
         ),
         child: Column(
@@ -251,7 +251,7 @@ class StatsCategoryCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 35,
-                    backgroundColor: color.withOpacity(0.1),
+                    backgroundColor: color.withValues(alpha: 0.1),
                     child: Text(
                       winner.playerName.isEmpty ? "?" : winner.playerName.substring(0, 1).toUpperCase(),
                       style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: color),

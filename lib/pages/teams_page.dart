@@ -74,7 +74,7 @@ class TeamsPage extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: Colors.blueAccent.withOpacity(0.1),
+                    backgroundColor: Colors.blueAccent.withValues(alpha: 0.1),
                     child: const Icon(Icons.people, color: Colors.blueAccent),
                   ),
                   title: Text(

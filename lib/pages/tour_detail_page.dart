@@ -59,7 +59,7 @@ class TournamentDetailsPage extends StatelessWidget {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.8),
+                        Colors.black.withValues(alpha: 0.8),
                       ],
                     ),
                   ),
@@ -233,11 +233,11 @@ class TournamentDetailsPage extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: color.withOpacity(0.15),
+                            color: color.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: color.withOpacity(0.2),
+                                color: color.withValues(alpha: 0.2),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
