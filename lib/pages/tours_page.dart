@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // 1. For å hente data
-import 'tour_detail_page.dart'; // 2. For å navigere (sjekk mappenavnet ditt!)
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'tour_detail_page.dart';
 
 class ToursPage extends StatelessWidget {
   const ToursPage({super.key});
@@ -8,15 +9,23 @@ class ToursPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        title: const Text('Turneringer'),
-        backgroundColor: const Color(0xFF0A1931),
+        title: Text(
+          'TOURNAMENTS',
+          style: GoogleFonts.montserrat(
+            fontWeight: FontWeight.w900,
+            fontStyle: FontStyle.italic,
+            letterSpacing: 1.5,
+          ),
+        ),
+        backgroundColor: const Color(0xFF121212),
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: Column(
         children: [
-          // --- HEADER IMAGE (Beholdt designet ditt) ---
+          // --- HEADER IMAGE ---
           Stack(
             alignment: Alignment.center,
             children: [
@@ -28,7 +37,7 @@ class ToursPage extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     height: 200,
-                    color: Colors.grey[800],
+                    color: const Color(0xFF1E1E1E),
                     child: const Icon(Icons.golf_course, color: Colors.grey, size: 60),
                   );
                 },
@@ -41,20 +50,21 @@ class ToursPage extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withValues(alpha: 0.6),
+                      const Color(0xFF121212),
                     ],
                   ),
                 ),
               ),
-              const Text(
-                'Norges Tour 2025',
+              Text(
+                'SEASON 2025',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: GoogleFonts.montserrat(
                   color: Colors.white,
                   fontSize: 32,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w900,
+                  fontStyle: FontStyle.italic,
                   shadows: [
-                    Shadow(
+                    const Shadow(
                       blurRadius: 8.0,
                       color: Colors.black,
                       offset: Offset(2.0, 2.0),
@@ -70,19 +80,20 @@ class ToursPage extends StatelessWidget {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance.collection('tournaments').snapshots(),
               builder: (context, snapshot) {
-                // Venter på data...
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(color: Color(0xFFFF3B30)));
                 }
 
-                // Hvis feil...
                 if (snapshot.hasError) {
-                  return const Center(child: Text("Noe gikk galt."));
+                  return Center(
+                    child: Text("Noe gikk galt.", style: GoogleFonts.inter(color: Colors.white)),
+                  );
                 }
 
-                // Hvis tomt...
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("Ingen turneringer funnet."));
+                  return Center(
+                    child: Text("Ingen turneringer funnet.", style: GoogleFonts.inter(color: Colors.white)),
+                  );
                 }
 
                 final tournaments = snapshot.data!.docs;
@@ -94,7 +105,6 @@ class ToursPage extends StatelessWidget {
                     final doc = tournaments[index];
                     final data = doc.data() as Map<String, dynamic>;
 
-                    // Hent felter trygt
                     final name = data['name'] ?? 'Ukjent Navn';
                     final date = data['start_date']?.toString() ?? 'Dato kommer';
                     final imageUrl = data['image_url'] ?? 'https://via.placeholder.com/400x200';
@@ -110,7 +120,6 @@ class ToursPage extends StatelessWidget {
     );
   }
 
-  // En hjelpefunksjon som bygger kortet med Hover- og Klikk-effekt
   Widget _buildTourCard(
     BuildContext context, 
     String id, 
@@ -129,11 +138,13 @@ class ToursPage extends StatelessWidget {
           child: Transform.scale(
             scale: 0.95 + (0.05 * value),
             child: Card(
+              color: const Color(0xFF1E1E1E), // Dark card
               margin: const EdgeInsets.only(bottom: 24.0),
               elevation: 6,
               clipBehavior: Clip.antiAlias,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.0),
+                borderRadius: BorderRadius.circular(16.0),
+                side: const BorderSide(color: Colors.white10, width: 1),
               ),
               child: InkWell(
                 onTap: () {
@@ -147,12 +158,11 @@ class ToursPage extends StatelessWidget {
                     ),
                   );
                 },
-                hoverColor: const Color(0xFF0A1931).withValues(alpha: 0.05),
-                splashColor: const Color(0xFF0A1931).withValues(alpha: 0.1),
+                hoverColor: Colors.white.withOpacity(0.05),
+                splashColor: const Color(0xFFFF3B30).withOpacity(0.1),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Bildet med overlay gradient
                     Stack(
                       children: [
                         Image.network(
@@ -163,21 +173,11 @@ class ToursPage extends StatelessWidget {
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
                               height: 180,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Colors.grey[300]!,
-                                    Colors.grey[400]!,
-                                  ],
-                                ),
-                              ),
+                              color: const Color(0xFF121212),
                               child: const Icon(Icons.golf_course, color: Colors.grey, size: 60),
                             );
                           },
                         ),
-                        // Subtle gradient overlay
                         Positioned(
                           bottom: 0,
                           left: 0,
@@ -190,7 +190,7 @@ class ToursPage extends StatelessWidget {
                                 end: Alignment.bottomCenter,
                                 colors: [
                                   Colors.transparent,
-                                  Colors.black.withValues(alpha: 0.1),
+                                  const Color(0xFF1E1E1E),
                                 ],
                               ),
                             ),
@@ -199,16 +199,7 @@ class ToursPage extends StatelessWidget {
                       ],
                     ),
                     Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white,
-                            Colors.grey[50]!,
-                          ],
-                        ),
-                      ),
+                      color: const Color(0xFF1E1E1E),
                       child: Padding(
                         padding: const EdgeInsets.all(20.0),
                         child: Column(
@@ -216,10 +207,11 @@ class ToursPage extends StatelessWidget {
                           children: [
                             Text(
                               name,
-                              style: const TextStyle(
-                                fontSize: 22.0,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF0A1931),
+                              style: GoogleFonts.montserrat(
+                                fontSize: 20.0,
+                                fontWeight: FontWeight.w900,
+                                fontStyle: FontStyle.italic,
+                                color: Colors.white,
                               ),
                             ),
                             const SizedBox(height: 12.0),
@@ -228,23 +220,23 @@ class ToursPage extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF0A1931).withValues(alpha: 0.1),
+                                    color: const Color(0xFFFF3B30).withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: const Icon(
                                     Icons.calendar_today,
                                     size: 18.0,
-                                    color: Color(0xFF0A1931),
+                                    color: Color(0xFFFF3B30),
                                   ),
                                 ),
                                 const SizedBox(width: 12.0),
                                 Expanded(
                                   child: Text(
                                     date,
-                                    style: TextStyle(
-                                      fontSize: 15.0,
-                                      color: Colors.grey[700],
-                                      fontWeight: FontWeight.w500,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14.0,
+                                      color: Colors.grey[400],
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ),

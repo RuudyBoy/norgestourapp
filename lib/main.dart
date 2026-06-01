@@ -36,22 +36,23 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: const Color(0xFF0A1931),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF0A1931),
-          primary: const Color(0xFF0A1931),
-          secondary: const Color(0xFF185ADB),
-          surface: Colors.white,
-          onSurface: Colors.black87,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        primaryColor: const Color(0xFFFF3B30),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFFFF3B30),
+          secondary: Color(0xFFFF3B30),
+          surface: Color(0xFF1E1E1E),
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF0A1931),
+          backgroundColor: Color(0xFF121212),
           foregroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
         ),
         cardTheme: CardThemeData(
-          elevation: 2,
+          color: const Color(0xFF1E1E1E),
+          elevation: 4,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -124,12 +125,12 @@ class _MainPageState extends State<MainPage> {
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
           type: BottomNavigationBarType.fixed,
-          backgroundColor: const Color(0xFF1E3A8A), // Darker blue to match the gradient bottom
-          selectedItemColor: const Color(0xFFFF66C4), // Vibrant pink for selected item
-          unselectedItemColor: Colors.white70,
+          backgroundColor: const Color(0xFF1E1E1E), // Dark grey
+          selectedItemColor: const Color(0xFFFF3B30), // Striking red for selected item
+          unselectedItemColor: Colors.grey,
           selectedFontSize: 12,
           unselectedFontSize: 12,
-          elevation: 0,
+          elevation: 10,
         ),
       ),
     );

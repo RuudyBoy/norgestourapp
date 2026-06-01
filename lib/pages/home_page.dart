@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'fantasy_page.dart';
 import 'tours_page.dart';
 import 'tournament_stats_page.dart';
+import 'match_stats_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -10,28 +12,76 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // The vibrant global background gradient matching the design
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFEFE9E5), // Light beige at top matching the header
-              Color(0xFFFF66C4), // Vibrant pink
-              Color(0xFF3B82F6), // Bright blue
+      backgroundColor: const Color(0xFF121212), // Deep black background
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 20),
+              _buildLiveMatches(context),
+              const SizedBox(height: 10),
+              _buildCards(context),
+              const SizedBox(height: 30),
             ],
-            stops: [0.3, 0.6, 1.0],
           ),
         ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 30),
+      // Optional subtle texture/gradient for the header
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            const Color(0xFF1E1E1E), // Dark grey
+            const Color(0xFF121212), // Fades into the black background
+          ],
+        ),
+      ),
+      child: Center(
+        child: Image.asset(
+          'assets/images/spikedunk_logo.png', // User's attached SpikeDunk logo
+          height: 120,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
               children: [
-                _buildHeader(),
-                const SizedBox(height: 10),
-                _buildCards(context),
-                const SizedBox(height: 30),
+                TextSpan(
+                  text: 'SPIKE\n',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 48,
+                    fontWeight: FontWeight.w900,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(color: Colors.white.withOpacity(0.5), blurRadius: 10),
+                    ],
+                  ),
+                ),
+                TextSpan(
+                  text: 'DUNK',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 54,
+                    fontWeight: FontWeight.w900,
+                    fontStyle: FontStyle.italic,
+                    color: const Color(0xFFFF3B30), // Red
+                    shadows: [
+                      const Shadow(
+                        color: Color(0xFF1D4ED8), // Blue 3D shadow effect
+                        offset: Offset(4, 4),
+                        blurRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -40,31 +90,121 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
-    return SizedBox(
-      height: 200,
-      width: double.infinity,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // If there's a background texture or pattern for the header, it goes here
-          // We use the logo in the center
-          Positioned(
-            top: 20,
-            child: Image.asset(
-              'assets/images/logo.png',
-              height: 140,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Text(
-                'NORGES TOUR',
-                style: GoogleFonts.bangers(fontSize: 48, color: const Color(0xFF185ADB)),
+  Widget _buildLiveMatches(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('matches')
+          .where('status', isEqualTo: 'live')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const SizedBox.shrink(); // Hide if no live matches
+        }
+
+        final matches = snapshot.data!.docs;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "LIVE NÅ",
+                    style: GoogleFonts.montserrat(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          // We can add placeholders for player cutouts on left/right if needed
-          // For now, the logo is the main focus as in the reference.
-        ],
-      ),
+            SizedBox(
+              height: 140,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                itemCount: matches.length,
+                itemBuilder: (context, index) {
+                  final data = matches[index].data() as Map<String, dynamic>;
+                  final matchId = matches[index].id;
+                  final teamA = data['team_a_name'] ?? 'Lag A';
+                  final teamB = data['team_b_name'] ?? 'Lag B';
+                  final scoreA = data['home_score'] ?? 0;
+                  final scoreB = data['away_score'] ?? 0;
+                  final set = data['current_set'] ?? 1;
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MatchStatsPage(
+                            matchId: matchId,
+                            teamAName: teamA,
+                            teamBName: teamB,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 260,
+                      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                      padding: const EdgeInsets.all(12.0),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E1E1E),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.red.withOpacity(0.5), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.red.withOpacity(0.1),
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("Sett $set", style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(child: Text(teamA, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
+                              Text("$scoreA", style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+                            ],
+                          ),
+                          const Divider(color: Colors.grey, height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(child: Text(teamB, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
+                              Text("$scoreB", style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -76,14 +216,10 @@ class HomePage extends StatelessWidget {
           _buildActionCard(
             context: context,
             title: "FANTASY",
-            subtitle: "VELKOMMEN TIL FANTASY",
+            subtitle: "BUILD YOUR DREAM TEAM",
             description:
-                "Premier League Fantasy er et populært online spill som lar fotballfans over hele verden sette sammen sine egne drømmelag basert på spillere fra den engelske Premier League. Deltakerne får et budsjett og bruker det til å 'kjøpe' spillere til sine lag...",
-            buttonText: "go to fantasy",
-            gradientColors: [
-              const Color(0xFFA7F3D0), // Light green
-              const Color(0xFF93C5FD), // Light blue
-            ],
+                "Select players, manage your budget, and compete against others globally based on real-world performance.",
+            buttonText: "GO TO FANTASY",
             onTap: () {
               Navigator.push(
                 context,
@@ -94,41 +230,29 @@ class HomePage extends StatelessWidget {
           const SizedBox(height: 20),
           _buildActionCard(
             context: context,
-            title: "SE STATISTIKK FOR ÅRETS NT SESONG",
-            subtitle: "",
+            title: "STATISTICS",
+            subtitle: "SEASON STATS & RANKINGS",
             description:
-                "Premier League Fantasy er et populært online spill som lar fotballfans over hele verden sette sammen sine egne drømmelag basert på spillere fra den engelske Premier League. Deltakerne får et budsjett og bruker det til å 'kjøpe' spillere til sine lag...",
-            buttonText: "go to Stats",
-            gradientColors: [
-              const Color(0xFFBAE6FD), // Light sky blue
-              const Color(0xFF7DD3FC), // Cyan
-            ],
-            titleStyle: GoogleFonts.bangers(fontSize: 22, color: const Color(0xFFE04036), letterSpacing: 1.2),
+                "Deep dive into player statistics, match history, and comprehensive seasonal data.",
+            buttonText: "VIEW STATS",
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const TournamentStatsPage(
-                    tournamentId: 'nt-season',
-                    tournamentName: 'Årets NT sesong',
-                  ),
-                ),
+                MaterialPageRoute(builder: (context) => const TournamentStatsPage(
+                  tournamentId: 'nt-season',
+                  tournamentName: 'Årets NT sesong',
+                )),
               );
             },
           ),
           const SizedBox(height: 20),
           _buildActionCard(
             context: context,
-            title: "Norges tour 26/27",
-            subtitle: "TURNERING OG RESULTATER",
+            title: "TOURNAMENTS",
+            subtitle: "FIXTURES & RESULTS",
             description:
-                "Premier League Fantasy er et populært online spill som lar fotballfans over hele verden sette sammen sine egne drømmelag basert på spillere fra den engelske Premier League. Deltakerne får et budsjett og bruker det til å 'kjøpe' spillere til sine lag...",
-            buttonText: "go to fantasy", // Using text from the mockup image for tours
-            gradientColors: [
-              const Color(0xFFBFDBFE), // Blue 200
-              const Color(0xFFC4B5FD), // Purple 300
-            ],
-            titleStyle: GoogleFonts.caveat(fontSize: 32, fontWeight: FontWeight.bold, color: const Color(0xFF1D4ED8)),
+                "Keep track of upcoming tours, live matches, and final results for the entire season.",
+            buttonText: "VIEW TOURS",
             onTap: () {
               Navigator.push(
                 context,
@@ -147,55 +271,49 @@ class HomePage extends StatelessWidget {
     required String subtitle,
     required String description,
     required String buttonText,
-    required List<Color> gradientColors,
     required VoidCallback onTap,
-    TextStyle? titleStyle,
   }) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradientColors,
-        ),
+        color: const Color(0xFF1E1E1E), // Dark grey card
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white12, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Stack(
         children: [
-          // Background shapes or phone mockups can be added here
-          // We leave some padding on the left to simulate the space for the phone image
+          // Content
           Padding(
             padding: const EdgeInsets.only(left: 120.0, top: 24, bottom: 24, right: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (title.isNotEmpty)
-                  Text(
-                    title,
-                    style: titleStyle ??
-                        GoogleFonts.bangers(
-                          fontSize: 32,
-                          color: const Color(0xFF1D4ED8), // Deep blue
-                          letterSpacing: 1.5,
-                        ),
+                Text(
+                  title,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.white,
+                    letterSpacing: 1.2,
                   ),
+                ),
                 if (subtitle.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
                     child: Text(
                       subtitle,
                       style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                        color: const Color(0xFFE04036), // Vibrant red/orange
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey[400],
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -203,27 +321,27 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  maxLines: 6,
+                  maxLines: 4,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.inter(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.grey[500],
                     height: 1.4,
                   ),
                 ),
                 const SizedBox(height: 16),
                 InkWell(
                   onTap: onTap,
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(8),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF04A22), // Vibrant orange button
-                      borderRadius: BorderRadius.circular(30),
+                      color: const Color(0xFFFF3B30), // Striking red button
+                      borderRadius: BorderRadius.circular(8),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFF04A22).withValues(alpha: 0.4),
+                          color: const Color(0xFFFF3B30).withOpacity(0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -231,10 +349,11 @@ class HomePage extends StatelessWidget {
                     ),
                     child: Text(
                       buttonText,
-                      style: GoogleFonts.caveat(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
                         color: Colors.white,
+                        letterSpacing: 1.0,
                       ),
                     ),
                   ),
@@ -243,29 +362,23 @@ class HomePage extends StatelessWidget {
             ),
           ),
           
-          // Placeholder for the phone mockup image on the left
+          // Image placeholder on the left
           Positioned(
-            left: -20,
-            top: 20,
-            bottom: 20,
-            width: 130,
+            left: 16,
+            top: 24,
+            bottom: 24,
+            width: 90,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey.shade800, width: 4),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(5, 5))
-                ]
+                color: const Color(0xFF121212),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white10, width: 1),
               ),
               child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.sports_volleyball, color: Colors.white54, size: 40),
-                    const SizedBox(height: 8),
-                    Text('App Preview', style: TextStyle(color: Colors.white54, fontSize: 10))
-                  ],
+                child: Icon(
+                  Icons.sports_volleyball,
+                  color: Colors.grey[800],
+                  size: 40,
                 ),
               ),
             ),

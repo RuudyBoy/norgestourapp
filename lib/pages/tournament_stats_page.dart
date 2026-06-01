@@ -28,10 +28,13 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
 
   // Henter og slår sammen stats (Samme logikk som før)
   Future<List<PlayerMatchStats>> _calculateTournamentStats() async {
-    final matchesSnapshot = await FirebaseFirestore.instance
-        .collection('matches')
-        .where('tournament_id', isEqualTo: widget.tournamentId)
-        .get();
+    Query query = FirebaseFirestore.instance.collection('matches');
+    
+    if (widget.tournamentId != 'all' && widget.tournamentId != 'nt-season') {
+      query = query.where('tournament_id', isEqualTo: widget.tournamentId);
+    }
+    
+    final matchesSnapshot = await query.get();
 
     Map<String, PlayerMatchStats> totalStatsMap = {};
 
@@ -110,6 +113,8 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
                double bPct = b.setAttempts == 0 ? 0 : (b.setAssists / b.setAttempts);
                return bPct.compareTo(aPct);
             });
+          final serverList = List<PlayerMatchStats>.from(allPlayers)
+            ..sort((a, b) => b.aces.compareTo(a.aces));
 
 
           // HER ER ENDRINGEN:
@@ -157,6 +162,16 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
                     players: settersList,
                     valueFormatter: (p) => p.settingEfficiency,
                     onTap: () => _navigateToDetails(context, allPlayers, "Legging"),
+                  ),
+                  const SizedBox(height: 20),
+
+                  StatsCategoryCard(
+                    title: "Serve-Konge",
+                    icon: Icons.flash_on,
+                    color: Colors.deepPurple,
+                    players: serverList,
+                    valueFormatter: (p) => "${p.aces} ess",
+                    onTap: () => _navigateToDetails(context, allPlayers, "Serve"),
                   ),
                   const SizedBox(height: 40),
                 ],

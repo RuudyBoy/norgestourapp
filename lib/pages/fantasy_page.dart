@@ -44,22 +44,23 @@ class _FantasyPageState extends State<FantasyPage> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: const Color(0xFF0A1931), // Deep dark blue background
+        backgroundColor: const Color(0xFF121212), // Deep black background
         appBar: AppBar(
           title: const Text(
-            'Fantasy Tour',
+            'FANTASY SQUAD',
             style: TextStyle(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
+              fontStyle: FontStyle.italic,
               letterSpacing: 1.5,
             ),
           ),
-          backgroundColor: const Color(0xFF0A1931),
+          backgroundColor: const Color(0xFF121212),
           foregroundColor: Colors.white,
           elevation: 0,
           bottom: const TabBar(
-            indicatorColor: Color(0xFF00FFCC), // Neon cyan accent
-            labelColor: Color(0xFF00FFCC),
-            unselectedLabelColor: Colors.white70,
+            indicatorColor: Color(0xFFFF3B30), // Striking red accent
+            labelColor: Color(0xFFFF3B30),
+            unselectedLabelColor: Colors.white54,
             tabs: [
               Tab(icon: Icon(Icons.sports_volleyball), text: 'My Squad'),
               Tab(icon: Icon(Icons.leaderboard), text: 'Leagues'),
