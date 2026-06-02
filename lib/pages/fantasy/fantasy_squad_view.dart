@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import 'models.dart';
-import 'mock_data.dart';
 
 class FantasySquadView extends StatelessWidget {
   final Map<String, String?> selectedPlayers;
+  final List<FantasyPlayer> players;
   final Function(String role) onRoleTap;
+  final String? linkedPlayerId;
 
   const FantasySquadView({
     super.key,
     required this.selectedPlayers,
+    required this.players,
     required this.onRoleTap,
+    this.linkedPlayerId,
   });
 
   Widget _buildPlayerSlot(String role, String? playerId, double width) {
     FantasyPlayer? player;
     if (playerId != null) {
-      player = mockFantasyPlayers.firstWhere((p) => p.id == playerId);
+      final matches = players.where((p) => p.id == playerId);
+      player = matches.isNotEmpty ? matches.first : null;
     }
 
     return GestureDetector(
@@ -57,7 +61,7 @@ class FantasySquadView extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
-              player != null ? player.name.split(' ').last : role,
+              player != null ? (player.id == linkedPlayerId ? 'MEG' : player.name.split(' ').last) : role,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 10,
@@ -98,9 +102,12 @@ class FantasySquadView extends StatelessWidget {
         int totalPoints = 0;
         for (var playerId in selectedPlayers.values) {
           if (playerId != null) {
-            final p = mockFantasyPlayers.firstWhere((p) => p.id == playerId);
-            totalValue += p.price;
-            totalPoints += p.totalPoints;
+            final matches = players.where((p) => p.id == playerId);
+            if (matches.isNotEmpty) {
+              final p = matches.first;
+              totalValue += p.price;
+              totalPoints += p.totalPoints;
+            }
           }
         }
 

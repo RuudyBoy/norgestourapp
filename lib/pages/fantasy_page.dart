@@ -3,6 +3,11 @@ import 'fantasy/models.dart';
 import 'fantasy/fantasy_squad_view.dart';
 import 'fantasy/fantasy_leagues_view.dart';
 import 'fantasy/fantasy_player_selection.dart';
+import 'fantasy/mock_data.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'auth/login_page.dart';
+import '../widgets/profile_avatar_widget.dart';
 
 class FantasyPage extends StatefulWidget {
   const FantasyPage({super.key});
@@ -22,21 +27,69 @@ class _FantasyPageState extends State<FantasyPage> {
     FantasyRole.serve: null,
   };
 
-  void _openPlayerSelection(String role) {
+  late Future<List<FantasyPlayer>> _playersFuture;
+  String? _linkedPlayerId;
+
+  Future<List<dynamic>>? _combinedFuture;
+  String? _currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _playersFuture = fetchFantasyPlayers();
+  }
+
+  void _openPlayerSelection(String role, List<FantasyPlayer> players) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => FantasyPlayerSelection(
           role: role,
           currentSelectedPlayers: selectedPlayers,
-          onSelect: (playerId) {
+          players: players,
+          linkedPlayerId: _linkedPlayerId,
+          onSelect: (playerId) async {
             setState(() {
               selectedPlayers[role] = playerId;
             });
+            final user = FirebaseAuth.instance.currentUser;
+            if (user != null) {
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user.uid)
+                  .collection('fantasy')
+                  .doc('squad')
+                  .set(selectedPlayers, SetOptions(merge: true));
+            }
           },
         ),
       ),
     );
+  }
+
+  Future<void> _loadSquad(String uid) async {
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('fantasy')
+        .doc('squad')
+        .get();
+    if (doc.exists) {
+      final data = doc.data()!;
+      for (var key in selectedPlayers.keys) {
+        if (data.containsKey(key)) {
+          selectedPlayers[key] = data[key] as String?;
+        }
+      }
+    }
+  }
+
+  Future<void> _loadUserData(String uid) async {
+    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    if (doc.exists) {
+      final data = doc.data()!;
+      _linkedPlayerId = data['linkedPlayerId'] as String?;
+    }
   }
 
   @override
@@ -44,7 +97,7 @@ class _FantasyPageState extends State<FantasyPage> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: const Color(0xFF121212), // Deep black background
+        backgroundColor: Colors.transparent, // Gjør bakgrunnen transparent for å vise bildet
         appBar: AppBar(
           title: const Text(
             'FANTASY SQUAD',
@@ -54,9 +107,15 @@ class _FantasyPageState extends State<FantasyPage> {
               letterSpacing: 1.5,
             ),
           ),
-          backgroundColor: const Color(0xFF121212),
+          backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
           elevation: 0,
+          leadingWidth: 80,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Image.asset('assets/images/spikedunk_logo.png', fit: BoxFit.contain),
+          ),
+          actions: const [ProfileAvatarWidget()],
           bottom: const TabBar(
             indicatorColor: Color(0xFFFF3B30), // Striking red accent
             labelColor: Color(0xFFFF3B30),
@@ -67,17 +126,76 @@ class _FantasyPageState extends State<FantasyPage> {
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            // Tab 1: Squad View (Pitch)
-            FantasySquadView(
-              selectedPlayers: selectedPlayers,
-              onRoleTap: _openPlayerSelection,
-            ),
+        body: StreamBuilder<User?>(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, authSnapshot) {
+            if (authSnapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (!authSnapshot.hasData) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.lock, size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    const Text('Logg inn for å spille Fantasy', style: TextStyle(color: Colors.white, fontSize: 18)),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage()));
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF3B30)),
+                      child: const Text('Gå til innlogging', style: TextStyle(color: Colors.white)),
+                    )
+                  ],
+                ),
+              );
+            }
             
-            // Tab 2: Leagues
-            const FantasyLeaguesView(),
-          ],
+            // Bruker er logget inn
+            final user = authSnapshot.data!;
+            if (_currentUserId != user.uid) {
+              _currentUserId = user.uid;
+              _combinedFuture = Future.wait([
+                _playersFuture,
+                _loadSquad(user.uid),
+                _loadUserData(user.uid),
+              ]);
+            }
+
+            return FutureBuilder<List<dynamic>>(
+              future: _combinedFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Feil ved innlasting: ${snapshot.error}',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  );
+                }
+                
+                // _playersFuture er første element i Future.wait arrayen
+                final players = (snapshot.data?[0] as List<FantasyPlayer>?) ?? [];
+                
+                return TabBarView(
+                  children: [
+                    FantasySquadView(
+                      selectedPlayers: selectedPlayers,
+                      players: players,
+                      linkedPlayerId: _linkedPlayerId,
+                      onRoleTap: (role) => _openPlayerSelection(role, players),
+                    ),
+                    const FantasyLeaguesView(),
+                  ],
+                );
+              },
+            );
+          },
         ),
       ),
     );

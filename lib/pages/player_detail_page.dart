@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class PlayerDetailPage extends StatelessWidget {
   final String playerId;
@@ -25,169 +25,220 @@ class PlayerDetailPage extends StatelessWidget {
     final height = playerData['height']?.toString() ?? '';
     final weight = playerData['weight']?.toString() ?? '';
 
+    // Mock stats if not available
+    final matchesPlayed = playerData['matches_played']?.toString() ?? '0';
+    final goals = playerData['goals']?.toString() ?? '0';
+    final assists = playerData['assists']?.toString() ?? '0';
+    final blocks = playerData['blocks']?.toString() ?? '0';
+    final wins = playerData['wins']?.toString() ?? '0';
+
     return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(fullName),
-        backgroundColor: const Color(0xFF0A1931),
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.5),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Image.asset('assets/images/spikedunk_logo.png', height: 40, fit: BoxFit.contain),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Player Image Header
-            Container(
-              width: double.infinity,
-              height: 280,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    const Color(0xFF0A1931),
-                    const Color(0xFF185ADB),
-                  ],
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 600),
-                    curve: Curves.easeOut,
-                    builder: (context, value, child) {
-                      return Transform.scale(
-                        scale: 0.7 + (0.3 * value),
-                        child: Opacity(
-                          opacity: value,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.3),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: CircleAvatar(
-                              radius: 75,
-                              backgroundColor: Colors.white,
-                              backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-                              child: imageUrl.isEmpty
-                                  ? const Icon(Icons.person, size: 75, color: Colors.grey)
-                                  : null,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    fullName,
-                    style: const TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          blurRadius: 8.0,
-                          color: Colors.black26,
-                          offset: Offset(0, 2),
-                        ),
+            // --- PREMIUM HEADER ---
+            Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                // Background Gradient or Image
+                Container(
+                  height: 380,
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0xFF1DD05D), // Bright Green
+                        Color(0xFF0F9B43), // Darker Green
                       ],
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    position,
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Player Information
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Basic Info Section
-                  Text(
-                    'Grunnleggende informasjon',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0A1931),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  if (team.isNotEmpty)
-                    _buildInfoRow(Icons.shield, 'Lag', team),
-                  
-                  if (jerseyNumber.isNotEmpty)
-                    _buildInfoRow(Icons.tag, 'Draktnummer', jerseyNumber),
-                  
-                  if (nationality.isNotEmpty)
-                    _buildInfoRow(Icons.flag, 'Nasjonalitet', nationality),
-                  
-                  if (birthDate.isNotEmpty)
-                    _buildInfoRow(Icons.cake, 'Fødselsdato', birthDate.toString()),
-
-                  const SizedBox(height: 32),
-
-                  // Physical Stats Section
-                  Text(
-                    'Fysiske egenskaper',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0A1931),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  if (height.isNotEmpty)
-                    _buildInfoRow(Icons.height, 'Høyde', '$height cm'),
-                  
-                  if (weight.isNotEmpty)
-                    _buildInfoRow(Icons.monitor_weight, 'Vekt', '$weight kg'),
-
-                  const SizedBox(height: 24),
-
-                  // Statistics Section (placeholder for future implementation)
-                  const Text(
-                    'Statistikk',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          _buildStatRow('Kamper spilt', playerData['matches_played']?.toString() ?? '0'),
-                          const Divider(),
-                          _buildStatRow('Mål', playerData['goals']?.toString() ?? '0'),
-                          const Divider(),
-                          _buildStatRow('Assist', playerData['assists']?.toString() ?? '0'),
-                        ],
+                ),
+                // Player Image (Large, central)
+                if (imageUrl.isNotEmpty)
+                  Positioned(
+                    bottom: 0,
+                    child: ShaderMask(
+                      shaderCallback: (rect) {
+                        return const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.black, Colors.transparent],
+                          stops: [0.6, 1.0],
+                        ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height));
+                      },
+                      blendMode: BlendMode.dstIn,
+                      child: Image.network(
+                        imageUrl,
+                        height: 340,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const SizedBox(),
                       ),
                     ),
                   ),
+                // Overlay Info (Name, Position, Number)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        const Color(0xFF121212),
+                        const Color(0xFF121212).withOpacity(0.8),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  firstName.toUpperCase(),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey[400],
+                                    letterSpacing: 2,
+                                  ),
+                                ),
+                                Text(
+                                  lastName,
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 42,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    height: 1.1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (jerseyNumber.isNotEmpty)
+                            Text(
+                              jerseyNumber,
+                              style: GoogleFonts.montserrat(
+                                fontSize: 48,
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFFFF3B30), // App Primary Red
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          _buildTag(position),
+                          const SizedBox(width: 8),
+                          if (team.isNotEmpty) _buildTag(team),
+                          const SizedBox(width: 8),
+                          if (nationality.isNotEmpty) _buildTag(nationality),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // --- STATS GRID ---
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'SESONG STATISTIKK',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[500],
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1.1,
+                    children: [
+                      _buildPremiumStatCard('Kamper', matchesPlayed),
+                      _buildPremiumStatCard('Poeng', goals),
+                      _buildPremiumStatCard('Blokker', blocks),
+                      _buildPremiumStatCard('Seiere', wins),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // --- FYSISKE EGENSKAPER ---
+                  Text(
+                    'FYSISKE EGENSKAPER',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[500],
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: Column(
+                      children: [
+                        if (height.isNotEmpty) _buildListTile('Høyde', '$height cm', Icons.height),
+                        if (weight.isNotEmpty) ...[
+                          const Divider(color: Colors.white10, height: 1),
+                          _buildListTile('Vekt', '$weight kg', Icons.monitor_weight),
+                        ],
+                        if (birthDate.isNotEmpty) ...[
+                          const Divider(color: Colors.white10, height: 1),
+                          _buildListTile('Født', birthDate, Icons.cake),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
@@ -197,51 +248,58 @@ class PlayerDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildTag(String text) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16.0),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey[200]!,
-          width: 1,
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
       ),
-      child: Row(
+    );
+  }
+
+  Widget _buildPremiumStatCard(String label, String value) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1DD05D), // Bright green like Image 1
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1DD05D).withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0A1931).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
             ),
-            child: Icon(icon, color: const Color(0xFF0A1931), size: 24),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF0A1931),
-                  ),
-                ),
-              ],
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: GoogleFonts.montserrat(
+              fontSize: 42,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
             ),
           ),
         ],
@@ -249,33 +307,28 @@ class PlayerDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatRow(String label, String value) {
+  Widget _buildListTile(String title, String value, IconData icon) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Icon(icon, color: Colors.grey[500], size: 20),
+          const SizedBox(width: 16),
           Text(
-            label,
-            style: TextStyle(
-              fontSize: 16,
+            title,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: Colors.grey[400],
               fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0A1931).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF0A1931),
-              ),
+          const Spacer(),
+          Text(
+            value,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],

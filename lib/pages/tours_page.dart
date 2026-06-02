@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'tour_detail_page.dart';
+import '../widgets/profile_avatar_widget.dart';
 
 class ToursPage extends StatelessWidget {
   const ToursPage({super.key});
@@ -9,7 +10,7 @@ class ToursPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(
           'TOURNAMENTS',
@@ -19,9 +20,15 @@ class ToursPage extends StatelessWidget {
             letterSpacing: 1.5,
           ),
         ),
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         elevation: 0,
+        leadingWidth: 80,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: Image.asset('assets/images/spikedunk_logo.png', fit: BoxFit.contain),
+        ),
+        actions: const [ProfileAvatarWidget()],
       ),
       body: Column(
         children: [
@@ -137,16 +144,24 @@ class ToursPage extends StatelessWidget {
           opacity: value,
           child: Transform.scale(
             scale: 0.95 + (0.05 * value),
-            child: Card(
-              color: const Color(0xFF1E1E1E), // Dark card
+            child: Container(
+              height: 240, // Set fixed height for the card so Stack can expand
               margin: const EdgeInsets.only(bottom: 24.0),
-              elevation: 6,
-              clipBehavior: Clip.antiAlias,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0),
-                side: const BorderSide(color: Colors.white10, width: 1),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.4),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  )
+                ],
               ),
-              child: InkWell(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20.0),
+                child: Material(
+                  color: const Color(0xFF1E1E1E),
+                  child: InkWell(
                 onTap: () {
                   Navigator.push(
                     context,
@@ -160,95 +175,102 @@ class ToursPage extends StatelessWidget {
                 },
                 hoverColor: Colors.white.withOpacity(0.05),
                 splashColor: const Color(0xFFFF3B30).withOpacity(0.1),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                child: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    Stack(
-                      children: [
-                        Image.network(
-                          imageUrl,
-                          height: 180,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 180,
-                              color: const Color(0xFF121212),
-                              child: const Icon(Icons.golf_course, color: Colors.grey, size: 60),
-                            );
-                          },
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            height: 60,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  const Color(0xFF1E1E1E),
-                                ],
-                              ),
-                            ),
+                    Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: const Color(0xFF1E1E1E),
+                          child: const Icon(Icons.golf_course, color: Colors.grey, size: 60),
+                        );
+                      },
+                    ),
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.3),
+                              Colors.black.withOpacity(0.9),
+                            ],
+                            stops: const [0.4, 0.7, 1.0],
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                    Container(
-                      color: const Color(0xFF1E1E1E),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              name,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 20.0,
-                                fontWeight: FontWeight.w900,
-                                fontStyle: FontStyle.italic,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 12.0),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFF3B30).withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.calendar_today,
-                                    size: 18.0,
-                                    color: Color(0xFFFF3B30),
-                                  ),
-                                ),
-                                const SizedBox(width: 12.0),
-                                Expanded(
-                                  child: Text(
-                                    date,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14.0,
-                                      color: Colors.grey[400],
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 16,
-                                  color: Colors.grey[600],
-                                ),
+                    Positioned(
+                      bottom: 20,
+                      left: 20,
+                      right: 20,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 22.0,
+                              fontWeight: FontWeight.w900,
+                              fontStyle: FontStyle.italic,
+                              color: Colors.white,
+                              shadows: [
+                                const Shadow(
+                                  color: Colors.black87,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 2),
+                                )
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 12.0),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFF3B30),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.calendar_today,
+                                      size: 14.0,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      date,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12.0,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -256,8 +278,10 @@ class ToursPage extends StatelessWidget {
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
+  },
+);
   }
 }

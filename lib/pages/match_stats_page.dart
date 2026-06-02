@@ -17,9 +17,11 @@ class MatchStatsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent, // Inherit from background if possible
       appBar: AppBar(
-        title: const Text("Kampfakta"),
-        backgroundColor: const Color(0xFF0A1931),
+        title: const Text("KAMPFAKTA", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -52,7 +54,7 @@ class MatchStatsPage extends StatelessWidget {
             child: Column(
               children: [
                 Text("$teamAName vs $teamBName", 
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)
                 ),
                 const SizedBox(height: 20),
                 
@@ -75,100 +77,89 @@ class MatchStatsPage extends StatelessWidget {
   }
 
   Widget _buildStatsTable(List<PlayerMatchStats> players) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [const BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
-      ),
-      child: Table(
-        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-        // Vi justerer breddene for å få plass til alt
-        columnWidths: const {
-          0: FlexColumnWidth(2.5), // Navn
-          1: FlexColumnWidth(1),   // Poeng
-          2: FlexColumnWidth(1.2), // Angrep
-          3: FlexColumnWidth(1),   // SO (Sideout)
-          4: FlexColumnWidth(1.2), // Legg
-          5: FlexColumnWidth(0.8), // Mot (Feil)
-        },
-        border: TableBorder(horizontalInside: BorderSide(color: Colors.grey[200]!, width: 1)),
-        children: [
-          // HEADER
-          const TableRow(
-            decoration: BoxDecoration(color: Color(0xFFF5F5F5)),
-            children: [
-              _HeaderCell("SPILLER", align: TextAlign.left),
-              _HeaderCell("TOT"),
-              _HeaderCell("ANG\n(V/F)"),
-              _HeaderCell("SO"), // Sideout points
-              _HeaderCell("LEGG"),
-              _HeaderCell("MOT"), // Mottaksfeil
+    return Column(
+      children: players.map((p) {
+        bool isTeamA = p.teamName == teamAName;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isTeamA ? Colors.blueAccent.withOpacity(0.5) : Colors.redAccent.withOpacity(0.5),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              )
             ],
           ),
-          
-          // DATA RADER
-          ...players.map((p) => TableRow(
+          child: Row(
             children: [
-              // Navn
-              Padding(
-                padding: const EdgeInsets.all(8.0),
+              // Info
+              Expanded(
+                flex: 3,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(p.playerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text(p.teamName, style: TextStyle(fontSize: 9, color: Colors.grey[600])),
+                    Text(
+                      p.playerName,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      p.teamName,
+                      style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                    ),
                   ],
                 ),
               ),
-              // Totalt poeng
-              _DataCell(p.totalPoints.toString(), isBold: true, color: Colors.blue[800]),
-              
-              // Angrep (Kills / Feil)
-              _DataCell("${p.kills}/${p.attackErrors}"),
-              
-              // Sideout poeng
-              _DataCell("${p.sideoutPoints}"),
-              
-              // Legg effektivitet (Prosent)
-              _DataCell(p.settingEfficiency),
-              
-              // Mottaksfeil (Rødt hvis mer enn 0)
-              _DataCell("${p.receptionErrors}", color: p.receptionErrors > 0 ? Colors.red : Colors.black),
+              // Stats
+              Expanded(
+                flex: 5,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildMiniStat("TOT", p.totalPoints.toString(), color: const Color(0xFF1DD05D)),
+                    _buildMiniStat("ANG", "${p.kills}/${p.attackErrors}", color: Colors.white),
+                    _buildMiniStat("SO", "${p.sideoutPoints}", color: Colors.white),
+                    _buildMiniStat("LEGG", p.settingEfficiency, color: Colors.white),
+                    _buildMiniStat("MOT", "${p.receptionErrors}", color: p.receptionErrors > 0 ? const Color(0xFFFF3B30) : Colors.grey[500]!),
+                  ],
+                ),
+              )
             ],
-          )),
-        ],
-      ),
+          ),
+        );
+      }).toList(),
     );
   }
-}
 
-class _HeaderCell extends StatelessWidget {
-  final String text;
-  final TextAlign align;
-  const _HeaderCell(this.text, {this.align = TextAlign.center});
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
-      child: Text(text, 
-        textAlign: align, 
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[700])
-      ),
-    );
-  }
-}
-
-class _DataCell extends StatelessWidget {
-  final String text;
-  final bool isBold;
-  final Color? color;
-  const _DataCell(this.text, {this.isBold = false, this.color});
-  @override
-  Widget build(BuildContext context) {
-    return Text(text, 
-      textAlign: TextAlign.center, 
-      style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal, color: color, fontSize: 12)
+  Widget _buildMiniStat(String label, String value, {required Color color}) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey[500],
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 15,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ],
     );
   }
 }

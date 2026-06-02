@@ -76,6 +76,11 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
         title: Text("Hall of Fame - ${widget.tournamentName}"),
         backgroundColor: const Color(0xFF0A1931),
         foregroundColor: Colors.white,
+        leadingWidth: 80,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: Image.asset('assets/images/spikedunk_logo.png', fit: BoxFit.contain),
+        ),
       ),
       body: FutureBuilder<List<PlayerMatchStats>>(
         future: _statsFuture,

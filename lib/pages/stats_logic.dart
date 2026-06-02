@@ -36,7 +36,7 @@ Map<String, PlayerMatchStats> calculateMatchStats(List<Map<String, dynamic>> eve
   for (var event in events) {
     String pKey = event['player_name'] ?? 'Ukjent';
     String team = event['team'] ?? '';
-    String action = event['action'];
+    String action = event['action'] ?? '';
     String phase = event['phase'] ?? '';
     String? subType = event['sub_type']; // Henter den nye detaljen
 

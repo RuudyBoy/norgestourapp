@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'models.dart';
-import 'mock_data.dart';
 
 class FantasyPlayerSelection extends StatelessWidget {
   final String role;
   final Map<String, String?> currentSelectedPlayers;
+  final List<FantasyPlayer> players;
   final Function(String playerId) onSelect;
+  final String? linkedPlayerId;
 
   const FantasyPlayerSelection({
     super.key,
     required this.role,
     required this.currentSelectedPlayers,
+    required this.players,
     required this.onSelect,
+    this.linkedPlayerId,
   });
 
   @override
@@ -46,9 +49,9 @@ class FantasyPlayerSelection extends StatelessWidget {
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: mockFantasyPlayers.length,
+        itemCount: players.length,
         itemBuilder: (context, index) {
-          final player = mockFantasyPlayers[index];
+          final player = players[index];
           // Check if player is already selected in any other role
           bool isSelected = currentSelectedPlayers.values.contains(player.id);
           String? selectedRole;
@@ -83,7 +86,7 @@ class FantasyPlayerSelection extends StatelessWidget {
                 child: const Icon(Icons.person, color: Colors.white),
               ),
               title: Text(
-                player.name,
+                player.id == linkedPlayerId ? 'MEG (${player.name})' : player.name,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

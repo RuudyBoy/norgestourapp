@@ -5,19 +5,28 @@ import 'fantasy_page.dart';
 import 'tours_page.dart';
 import 'tournament_stats_page.dart';
 import 'match_stats_page.dart';
+import '../widgets/profile_avatar_widget.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  final Function(int)? onTabSelected;
+
+  const HomePage({super.key, this.onTabSelected});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212), // Deep black background
+      backgroundColor: Colors.transparent, // Viser bakgrunnen fra MainPage
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        title: Image.asset('assets/images/spikedunk_logo.png', height: 60, fit: BoxFit.contain),
+        actions: const [ProfileAvatarWidget()],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
-              _buildHeader(),
               const SizedBox(height: 20),
               _buildLiveMatches(context),
               const SizedBox(height: 10),
@@ -30,65 +39,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 30),
-      // Optional subtle texture/gradient for the header
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            const Color(0xFF1E1E1E), // Dark grey
-            const Color(0xFF121212), // Fades into the black background
-          ],
-        ),
-      ),
-      child: Center(
-        child: Image.asset(
-          'assets/images/spikedunk_logo.png', // User's attached SpikeDunk logo
-          height: 120,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) => RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: 'SPIKE\n',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 48,
-                    fontWeight: FontWeight.w900,
-                    fontStyle: FontStyle.italic,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(color: Colors.white.withOpacity(0.5), blurRadius: 10),
-                    ],
-                  ),
-                ),
-                TextSpan(
-                  text: 'DUNK',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 54,
-                    fontWeight: FontWeight.w900,
-                    fontStyle: FontStyle.italic,
-                    color: const Color(0xFFFF3B30), // Red
-                    shadows: [
-                      const Shadow(
-                        color: Color(0xFF1D4ED8), // Blue 3D shadow effect
-                        offset: Offset(4, 4),
-                        blurRadius: 2,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildLiveMatches(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -221,10 +171,14 @@ class HomePage extends StatelessWidget {
                 "Select players, manage your budget, and compete against others globally based on real-world performance.",
             buttonText: "GO TO FANTASY",
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const FantasyPage()),
-              );
+              if (onTabSelected != null) {
+                onTabSelected!(1); // 1 = Fantasy tab
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const FantasyPage()),
+                );
+              }
             },
           ),
           const SizedBox(height: 20),
@@ -254,10 +208,14 @@ class HomePage extends StatelessWidget {
                 "Keep track of upcoming tours, live matches, and final results for the entire season.",
             buttonText: "VIEW TOURS",
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ToursPage()),
-              );
+              if (onTabSelected != null) {
+                onTabSelected!(2); // 2 = Tours tab
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ToursPage()),
+                );
+              }
             },
           ),
         ],

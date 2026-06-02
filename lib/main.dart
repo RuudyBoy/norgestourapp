@@ -9,7 +9,7 @@ import 'firebase_options.dart'; // Denne filen ble laget av 'flutterfire configu
 import 'pages/home_page.dart'; // Sjekk at mappen din heter 'pages' eller 'screens'
 import 'pages/fantasy_page.dart';
 import 'pages/tours_page.dart';
-import 'pages/settings_page.dart';
+import 'pages/stats_root_page.dart';
 
 // --- 2. NYTT: Gjør main-funksjonen 'async' ---
 void main() async {
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF121212),
+        scaffoldBackgroundColor: Colors.transparent, // Gjør bakgrunnen transparent for å vise bildet
         primaryColor: const Color(0xFFFF3B30),
         colorScheme: const ColorScheme.dark(
           primary: Color(0xFFFF3B30),
@@ -61,6 +61,18 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         useMaterial3: true,
       ),
+      builder: (context, child) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.black, // Fallback
+            image: DecorationImage(
+              image: AssetImage('assets/images/bakgrunn.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: child,
+        );
+      },
       home: const MainPage(),
     );
   }
@@ -76,11 +88,11 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
 
-  static const List<Widget> _pages = <Widget>[
-    HomePage(),
-    FantasyPage(),
-    ToursPage(),
-    SettingsPage(),
+  List<Widget> get _pages => [
+    HomePage(onTabSelected: _onItemTapped),
+    const FantasyPage(),
+    const ToursPage(),
+    const StatsRootPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -92,7 +104,11 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex],
+      backgroundColor: Colors.transparent,
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -118,8 +134,8 @@ class _MainPageState extends State<MainPage> {
               label: 'Tours',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: 'Settings',
+              icon: Icon(Icons.bar_chart),
+              label: 'Stats',
             ),
           ],
           currentIndex: _selectedIndex,
