@@ -14,6 +14,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
+  final _teamNameController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -37,6 +38,7 @@ class _RegisterPageState extends State<RegisterPage> {
         await FirebaseFirestore.instance.collection('users').doc(credentials.user!.uid).set({
           'email': credentials.user!.email,
           'name': _nameController.text.trim(),
+          'teamName': _teamNameController.text.trim().isEmpty ? 'Ukjent Lag' : _teamNameController.text.trim(),
           'createdAt': FieldValue.serverTimestamp(),
           'isPlayer': false,
         });
@@ -87,6 +89,15 @@ class _RegisterPageState extends State<RegisterPage> {
                   labelText: "Fullt navn",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.badge),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _teamNameController,
+                decoration: const InputDecoration(
+                  labelText: "Fantasy Lagnavn",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.sports_volleyball),
                 ),
               ),
               const SizedBox(height: 16),

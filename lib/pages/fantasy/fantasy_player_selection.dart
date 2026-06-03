@@ -5,6 +5,7 @@ class FantasyPlayerSelection extends StatelessWidget {
   final String role;
   final Map<String, String?> currentSelectedPlayers;
   final List<FantasyPlayer> players;
+  final Map<String, double> ownershipPercentages;
   final Function(String playerId) onSelect;
   final String? linkedPlayerId;
 
@@ -13,12 +14,24 @@ class FantasyPlayerSelection extends StatelessWidget {
     required this.role,
     required this.currentSelectedPlayers,
     required this.players,
+    required this.ownershipPercentages,
     required this.onSelect,
     this.linkedPlayerId,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Calculate current total value excluding the player currently in this role
+    double currentTotalValue = 0;
+    for (var entry in currentSelectedPlayers.entries) {
+      if (entry.key != role && entry.value != null) {
+        final match = players.where((p) => p.id == entry.value);
+        if (match.isNotEmpty) {
+          currentTotalValue += match.first.price;
+        }
+      }
+    }
+
     // Determine which stat is most relevant for the selected role to highlight
     String primaryStat(FantasyPlayer p) {
       switch (role) {
@@ -63,8 +76,14 @@ class FantasyPlayerSelection extends StatelessWidget {
             });
           }
 
+          // Check if selecting this player would exceed the 50m budget
+          bool exceedsBudget = (currentTotalValue + player.price) > 50.0;
+          bool isDisabled = (isSelected && selectedRole != role) || exceedsBudget;
+
+          double ownership = ownershipPercentages[player.id] ?? 0.0;
+
           return Card(
-            color: const Color(0xFF1E3A8A),
+            color: isDisabled ? const Color(0xFF1E3A8A).withValues(alpha: 0.5) : const Color(0xFF1E3A8A),
             margin: const EdgeInsets.only(bottom: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -83,7 +102,9 @@ class FantasyPlayerSelection extends StatelessWidget {
                   color: Colors.white12,
                   border: Border.all(color: const Color(0xFF00FFCC), width: 1),
                 ),
-                child: const Icon(Icons.person, color: Colors.white),
+                child: player.imageUrl.isNotEmpty
+                    ? ClipOval(child: Image.network(player.imageUrl, fit: BoxFit.cover))
+                    : const Icon(Icons.person, color: Colors.white),
               ),
               title: Text(
                 player.id == linkedPlayerId ? 'MEG (${player.name})' : player.name,
@@ -100,12 +121,25 @@ class FantasyPlayerSelection extends StatelessWidget {
                     player.team,
                     style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12),
                   ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Valgt av: ${ownership.toStringAsFixed(1)}%',
+                    style: const TextStyle(color: Color(0xFF00FFCC), fontSize: 11),
+                  ),
                   if (isSelected)
                     Padding(
                       padding: const EdgeInsets.only(top: 4.0),
                       child: Text(
                         'Selected for $selectedRole',
                         style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                      ),
+                    ),
+                  if (exceedsBudget && !isSelected)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        'Overgår budsjett!',
+                        style: TextStyle(color: Colors.redAccent, fontSize: 12),
                       ),
                     ),
                 ],
@@ -129,13 +163,17 @@ class FantasyPlayerSelection extends StatelessWidget {
                   ),
                 ],
               ),
-              onTap: () {
-                if (isSelected && selectedRole != role) {
+              onTap: isDisabled ? () {
+                if (exceedsBudget) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${player.name} is already playing as $selectedRole!')),
+                    const SnackBar(content: Text('Du har ikke nok budsjett til å velge denne spilleren! (Maks 50m)')),
                   );
-                  return;
+                } else if (isSelected && selectedRole != role) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${player.name} spiller allerede som $selectedRole!')),
+                  );
                 }
+              } : () {
                 onSelect(player.id);
                 Navigator.pop(context);
               },

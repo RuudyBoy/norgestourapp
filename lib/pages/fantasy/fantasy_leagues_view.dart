@@ -1,19 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'models.dart';
+import 'league_logic.dart';
 
-class FantasyLeaguesView extends StatelessWidget {
-  const FantasyLeaguesView({super.key});
+class FantasyLeaguesView extends StatefulWidget {
+  final List<FantasyPlayer> players;
+  const FantasyLeaguesView({super.key, required this.players});
+
+  @override
+  State<FantasyLeaguesView> createState() => _FantasyLeaguesViewState();
+}
+
+class _FantasyLeaguesViewState extends State<FantasyLeaguesView> {
+  bool _isGlobalTab = true;
+  bool _isLoading = true;
+  List<LeaderboardEntry> _globalLeaderboard = [];
+  final String? _currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLeaderboard();
+  }
+
+  Future<void> _fetchLeaderboard() async {
+    setState(() => _isLoading = true);
+    _globalLeaderboard = await LeagueLogic.getGlobalLeaderboard(widget.players);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Mock leaderboard data
-    final List<Map<String, dynamic>> leaderboard = [
-      {'rank': 1, 'name': 'Sand Kings', 'manager': 'Ola Nordmann', 'points': 845},
-      {'rank': 2, 'name': 'Block Busters', 'manager': 'Kari Nilsen', 'points': 812},
-      {'rank': 3, 'name': 'Spike Squad', 'manager': 'Per Hansen', 'points': 790},
-      {'rank': 4, 'name': 'Net Ninjas', 'manager': 'Jens Mygge', 'points': 755},
-      {'rank': 5, 'name': 'Dig It', 'manager': 'Lise Berg', 'points': 720},
-      {'rank': 6, 'name': 'Ace High', 'manager': 'Tom Tomm', 'points': 690},
-    ];
 
     return Column(
       children: [
@@ -23,12 +42,52 @@ class FantasyLeaguesView extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildLeagueTab('Global', true),
+              GestureDetector(
+                onTap: () => setState(() => _isGlobalTab = true),
+                child: _buildLeagueTab('Global', _isGlobalTab),
+              ),
               const SizedBox(width: 16),
-              _buildLeagueTab('My Friends', false),
+              GestureDetector(
+                onTap: () => setState(() => _isGlobalTab = false),
+                child: _buildLeagueTab('Mine Ligaer', !_isGlobalTab),
+              ),
             ],
           ),
         ),
+
+        if (!_isGlobalTab)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // TODO: Implementere opprettelse av liga
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kommer snart!')));
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Lag Liga'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF3B30),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // TODO: Implementere join liga
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kommer snart!')));
+                  },
+                  icon: const Icon(Icons.group_add),
+                  label: const Text('Bli med'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E3A8A),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
 
         // Leaderboard Table
         Expanded(
@@ -62,12 +121,17 @@ class FantasyLeaguesView extends StatelessWidget {
                 
                 // Table Rows
                 Expanded(
-                  child: ListView.separated(
-                    itemCount: leaderboard.length,
+                  child: _isLoading 
+                    ? const Center(child: CircularProgressIndicator(color: Color(0xFF00FFCC)))
+                    : (!_isGlobalTab) 
+                      ? const Center(child: Text('Du er ikke med i noen private ligaer ennå.', style: TextStyle(color: Colors.white70)))
+                      : ListView.separated(
+                    itemCount: _globalLeaderboard.length,
                     separatorBuilder: (context, index) => const Divider(color: Colors.white12, height: 1),
                     itemBuilder: (context, index) {
-                      final team = leaderboard[index];
-                      final isCurrentUser = team['manager'] == 'Jens Mygge'; // Fake current user logic
+                      final entry = _globalLeaderboard[index];
+                      final isCurrentUser = entry.userId == _currentUserId;
+                      final rank = index + 1;
 
                       return Container(
                         color: isCurrentUser ? const Color(0xFF00FFCC).withValues(alpha: 0.1) : Colors.transparent,
@@ -77,9 +141,9 @@ class FantasyLeaguesView extends StatelessWidget {
                             SizedBox(
                               width: 40,
                               child: Text(
-                                '${team['rank']}',
+                                '$rank',
                                 style: TextStyle(
-                                  color: team['rank'] <= 3 ? const Color(0xFF00FFCC) : Colors.white,
+                                  color: rank <= 3 ? const Color(0xFF00FFCC) : Colors.white,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
@@ -90,7 +154,7 @@ class FantasyLeaguesView extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    team['name'],
+                                    entry.teamName,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -98,7 +162,7 @@ class FantasyLeaguesView extends StatelessWidget {
                                     ),
                                   ),
                                   Text(
-                                    team['manager'],
+                                    entry.managerName,
                                     style: TextStyle(
                                       color: Colors.white.withValues(alpha: 0.6),
                                       fontSize: 12,
@@ -108,7 +172,7 @@ class FantasyLeaguesView extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              '${team['points']}',
+                              '${entry.totalPoints}',
                               style: const TextStyle(
                                 color: Color(0xFF00FFCC),
                                 fontWeight: FontWeight.bold,

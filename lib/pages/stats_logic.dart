@@ -3,6 +3,7 @@
 class PlayerMatchStats {
   String playerName;
   String teamName;
+  String imageUrl;
   
   int kills = 0;
   int attackErrors = 0;
@@ -19,7 +20,7 @@ class PlayerMatchStats {
   Map<String, int> aceDetails = {};
   Map<String, int> attackErrorDetails = {};
   
-  PlayerMatchStats({required this.playerName, required this.teamName});
+  PlayerMatchStats({required this.playerName, required this.teamName, this.imageUrl = ''});
 
   int get totalPoints => kills + blocks + aces;
   
@@ -41,7 +42,7 @@ Map<String, PlayerMatchStats> calculateMatchStats(List<Map<String, dynamic>> eve
     String? subType = event['sub_type']; // Henter den nye detaljen
 
     if (!statsMap.containsKey(pKey)) {
-      statsMap[pKey] = PlayerMatchStats(playerName: pKey, teamName: team);
+      statsMap[pKey] = PlayerMatchStats(playerName: pKey, teamName: team, imageUrl: event['image_url'] ?? event['image'] ?? event['photoUrl'] ?? event['photo_url'] ?? event['picture'] ?? '');
     }
 
     final stats = statsMap[pKey]!;

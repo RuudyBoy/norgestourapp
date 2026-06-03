@@ -29,11 +29,16 @@ class _PlayersListPageState extends State<PlayersListPage> {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         elevation: 0,
-        leadingWidth: 80,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: Image.asset('assets/images/spikedunk_logo.png', fit: BoxFit.contain),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Image.asset('assets/images/spikedunk_logo.png', width: 40, fit: BoxFit.contain),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -109,7 +114,7 @@ class _PlayersListPageState extends State<PlayersListPage> {
                     
                     final firstName = data['first_name'] ?? '';
                     final lastName = data['last_name'] ?? '';
-                    final imageUrl = data['image_url'] ?? '';
+                    final imageUrl = data['image_url'] ?? data['image'] ?? data['photoUrl'] ?? data['photo_url'] ?? data['picture'] ?? '';
                     final jersey = data['jersey_number']?.toString() ?? '';
                     final position = data['position'] ?? 'Spiller';
 

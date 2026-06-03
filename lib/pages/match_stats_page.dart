@@ -100,24 +100,53 @@ class MatchStatsPage extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Info
-              Expanded(
-                flex: 3,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      p.playerName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      p.teamName,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[400]),
-                    ),
-                  ],
+                // Info
+                Expanded(
+                  flex: 3,
+                  child: Row(
+                    children: [
+                      if (p.imageUrl.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundImage: NetworkImage(p.imageUrl),
+                            backgroundColor: Colors.white10,
+                          ),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Colors.white10,
+                            child: Text(
+                              p.playerName.isEmpty ? "?" : p.playerName.substring(0, 1).toUpperCase(),
+                              style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              p.playerName,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              p.teamName,
+                              style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
               // Stats
               Expanded(
                 flex: 5,

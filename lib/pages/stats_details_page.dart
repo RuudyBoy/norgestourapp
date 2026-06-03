@@ -186,6 +186,27 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
                     ),
                   ),
                 ),
+                if (p.imageUrl.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12.0),
+                    child: CircleAvatar(
+                      radius: 20,
+                      backgroundImage: NetworkImage(p.imageUrl),
+                      backgroundColor: Colors.white10,
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12.0),
+                    child: CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Colors.white10,
+                      child: Text(
+                        p.playerName.isEmpty ? "?" : p.playerName.substring(0, 1).toUpperCase(),
+                        style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
                 // Name & Team
                 Expanded(
                   flex: 3,

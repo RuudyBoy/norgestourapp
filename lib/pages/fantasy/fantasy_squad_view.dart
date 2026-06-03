@@ -15,7 +15,7 @@ class FantasySquadView extends StatelessWidget {
     this.linkedPlayerId,
   });
 
-  Widget _buildPlayerSlot(String role, String? playerId, double width) {
+  Widget _buildPlayerSlot(BuildContext context, String role, String? playerId, double width) {
     FantasyPlayer? player;
     if (playerId != null) {
       final matches = players.where((p) => p.id == playerId);
@@ -23,7 +23,13 @@ class FantasySquadView extends StatelessWidget {
     }
 
     return GestureDetector(
-      onTap: () => onRoleTap(role),
+      onTap: () {
+        if (player != null) {
+          _showPlayerOptions(context, role, player);
+        } else {
+          onRoleTap(role);
+        }
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -47,11 +53,13 @@ class FantasySquadView extends StatelessWidget {
                     ]
                   : [],
             ),
-            child: Icon(
-              player != null ? Icons.person : Icons.person_add,
-              color: Colors.white,
-              size: width * 0.08,
-            ),
+            child: player != null && player.imageUrl.isNotEmpty
+                ? ClipOval(child: Image.network(player.imageUrl, fit: BoxFit.cover))
+                : Icon(
+                    player != null ? Icons.person : Icons.person_add,
+                    color: Colors.white,
+                    size: width * 0.08,
+                  ),
           ),
           const SizedBox(height: 4),
           Container(
@@ -136,8 +144,30 @@ class FantasySquadView extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildStatItem('Points', totalPoints.toString()),
-                  _buildStatItem('Budget', '\$${(100.0 - totalValue).toStringAsFixed(1)}m'),
+                  _buildStatItem('Budget', '\$${(50.0 - totalValue).toStringAsFixed(1)}m'),
                   _buildStatItem('Value', '\$${totalValue.toStringAsFixed(1)}m'),
+                ],
+              ),
+            ),
+            
+            // Deadline Info
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.redAccent, width: 1),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.timer, color: Colors.white, size: 16),
+                  SizedBox(width: 8),
+                  Text(
+                    'Tidsfrist for neste runde: I morgen kl 18:00',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
             ),
@@ -188,7 +218,7 @@ class FantasySquadView extends StatelessWidget {
                       left: 0,
                       right: 0,
                       child: Center(
-                        child: _buildPlayerSlot(FantasyRole.block, selectedPlayers[FantasyRole.block], width),
+                        child: _buildPlayerSlot(context, FantasyRole.block, selectedPlayers[FantasyRole.block], width),
                       ),
                     ),
                     
@@ -196,24 +226,24 @@ class FantasySquadView extends StatelessWidget {
                     Positioned(
                       top: 140,
                       left: width * 0.15,
-                      child: _buildPlayerSlot(FantasyRole.attack, selectedPlayers[FantasyRole.attack], width),
+                      child: _buildPlayerSlot(context, FantasyRole.attack, selectedPlayers[FantasyRole.attack], width),
                     ),
                     Positioned(
                       top: 140,
                       right: width * 0.15,
-                      child: _buildPlayerSlot(FantasyRole.set, selectedPlayers[FantasyRole.set], width),
+                      child: _buildPlayerSlot(context, FantasyRole.set, selectedPlayers[FantasyRole.set], width),
                     ),
                     
                     // Back (Mottak, Forsvar)
                     Positioned(
                       bottom: 120,
                       left: width * 0.15,
-                      child: _buildPlayerSlot(FantasyRole.receive, selectedPlayers[FantasyRole.receive], width),
+                      child: _buildPlayerSlot(context, FantasyRole.receive, selectedPlayers[FantasyRole.receive], width),
                     ),
                     Positioned(
                       bottom: 120,
                       right: width * 0.15,
-                      child: _buildPlayerSlot(FantasyRole.defense, selectedPlayers[FantasyRole.defense], width),
+                      child: _buildPlayerSlot(context, FantasyRole.defense, selectedPlayers[FantasyRole.defense], width),
                     ),
                     
                     // Serve (Deep back)
@@ -222,7 +252,7 @@ class FantasySquadView extends StatelessWidget {
                       left: 0,
                       right: 0,
                       child: Center(
-                        child: _buildPlayerSlot(FantasyRole.serve, selectedPlayers[FantasyRole.serve], width),
+                        child: _buildPlayerSlot(context, FantasyRole.serve, selectedPlayers[FantasyRole.serve], width),
                       ),
                     ),
                   ],
@@ -254,6 +284,100 @@ class FantasySquadView extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+      ],
+    );
+  }
+
+  void _showPlayerOptions(BuildContext context, String role, FantasyPlayer player) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E3A8A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF00FFCC), width: 2),
+                    ),
+                    child: player.imageUrl.isNotEmpty
+                        ? ClipOval(child: Image.network(player.imageUrl, fit: BoxFit.cover))
+                        : const Icon(Icons.person, color: Colors.white, size: 40),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          player.name,
+                          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          '${player.team} - $role',
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '${player.totalPoints} pts',
+                    style: const TextStyle(color: Color(0xFF00FFCC), fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              const Text('Poengoversikt:', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildDetailStat('Angrep', player.attacks.toString()),
+                  _buildDetailStat('Blokk', player.blocks.toString()),
+                  _buildDetailStat('Ess', player.aces.toString()),
+                  _buildDetailStat('Forsvar', player.digs.toString()),
+                ],
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    onRoleTap(role); // Åpne byttespiller skjermen
+                  },
+                  icon: const Icon(Icons.swap_horiz),
+                  label: const Text('Bytt Spiller'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF3B30),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailStat(String label, String value) {
+    return Column(
+      children: [
+        Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
       ],
     );
   }

@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'auth/login_page.dart';
 import '../widgets/profile_avatar_widget.dart';
+import 'fantasy/league_logic.dart';
 
 class FantasyPage extends StatefulWidget {
   const FantasyPage({super.key});
@@ -28,6 +29,7 @@ class _FantasyPageState extends State<FantasyPage> {
   };
 
   late Future<List<FantasyPlayer>> _playersFuture;
+  late Future<Map<String, double>> _ownershipFuture;
   String? _linkedPlayerId;
 
   Future<List<dynamic>>? _combinedFuture;
@@ -39,7 +41,7 @@ class _FantasyPageState extends State<FantasyPage> {
     _playersFuture = fetchFantasyPlayers();
   }
 
-  void _openPlayerSelection(String role, List<FantasyPlayer> players) {
+  void _openPlayerSelection(String role, List<FantasyPlayer> players, Map<String, double> ownershipPercentages) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -47,6 +49,7 @@ class _FantasyPageState extends State<FantasyPage> {
           role: role,
           currentSelectedPlayers: selectedPlayers,
           players: players,
+          ownershipPercentages: ownershipPercentages,
           linkedPlayerId: _linkedPlayerId,
           onSelect: (playerId) async {
             setState(() {
@@ -157,10 +160,12 @@ class _FantasyPageState extends State<FantasyPage> {
             final user = authSnapshot.data!;
             if (_currentUserId != user.uid) {
               _currentUserId = user.uid;
+              _ownershipFuture = LeagueLogic.getPlayerOwnershipPercentages();
               _combinedFuture = Future.wait([
                 _playersFuture,
                 _loadSquad(user.uid),
                 _loadUserData(user.uid),
+                _ownershipFuture,
               ]);
             }
 
@@ -181,6 +186,7 @@ class _FantasyPageState extends State<FantasyPage> {
                 
                 // _playersFuture er første element i Future.wait arrayen
                 final players = (snapshot.data?[0] as List<FantasyPlayer>?) ?? [];
+                final ownershipPercentages = (snapshot.data?[3] as Map<String, double>?) ?? {};
                 
                 return TabBarView(
                   children: [
@@ -188,9 +194,9 @@ class _FantasyPageState extends State<FantasyPage> {
                       selectedPlayers: selectedPlayers,
                       players: players,
                       linkedPlayerId: _linkedPlayerId,
-                      onRoleTap: (role) => _openPlayerSelection(role, players),
+                      onRoleTap: (role) => _openPlayerSelection(role, players, ownershipPercentages),
                     ),
-                    const FantasyLeaguesView(),
+                    FantasyLeaguesView(players: players),
                   ],
                 );
               },

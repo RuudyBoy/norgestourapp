@@ -28,6 +28,18 @@ class _StatsRootPageState extends State<StatsRootPage> {
 
     Map<String, PlayerMatchStats> totalStatsMap = {};
 
+    final playersSnapshot = await FirebaseFirestore.instance.collection('players').get();
+    Map<String, String> playerImages = {};
+    for (var doc in playersSnapshot.docs) {
+      final data = doc.data();
+      final firstName = (data['first_name'] ?? '').toString();
+      final lastName = (data['last_name'] ?? '').toString();
+      final fullName = "$firstName $lastName".trim();
+      if (fullName.isNotEmpty) {
+        playerImages[fullName] = data['image_url'] ?? data['image'] ?? data['photoUrl'] ?? data['photo_url'] ?? data['picture'] ?? '';
+      }
+    }
+
     for (var matchDoc in matchesSnapshot.docs) {
       final eventsSnapshot = await matchDoc.reference.collection('events').get();
       if (eventsSnapshot.docs.isEmpty) continue;
@@ -40,7 +52,8 @@ class _StatsRootPageState extends State<StatsRootPage> {
         if (!totalStatsMap.containsKey(playerName)) {
           totalStatsMap[playerName] = PlayerMatchStats(
             playerName: playerName, 
-            teamName: s.teamName
+            teamName: s.teamName,
+            imageUrl: playerImages[playerName] ?? s.imageUrl
           );
         }
         final total = totalStatsMap[playerName]!;
@@ -373,10 +386,11 @@ class StatsCategoryCard extends StatelessWidget {
                   CircleAvatar(
                     radius: 40,
                     backgroundColor: color.withOpacity(0.2),
-                    child: Text(
+                    backgroundImage: winner.imageUrl.isNotEmpty ? NetworkImage(winner.imageUrl) : null,
+                    child: winner.imageUrl.isEmpty ? Text(
                       winner.playerName.isEmpty ? "?" : winner.playerName.substring(0, 1).toUpperCase(),
                       style: GoogleFonts.montserrat(fontSize: 32, fontWeight: FontWeight.bold, color: color),
-                    ),
+                    ) : null,
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -428,7 +442,17 @@ class StatsCategoryCard extends StatelessWidget {
                               style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.grey[500])
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          if (player.imageUrl.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: CircleAvatar(
+                                radius: 12,
+                                backgroundImage: NetworkImage(player.imageUrl),
+                                backgroundColor: Colors.white10,
+                              ),
+                            )
+                          else
+                            const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               player.playerName, 
