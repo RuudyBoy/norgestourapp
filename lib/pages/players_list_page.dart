@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'player_detail_page.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../theme/app_theme.dart';
 
 class PlayersListPage extends StatefulWidget {
   const PlayersListPage({super.key});
@@ -11,88 +13,59 @@ class PlayersListPage extends StatefulWidget {
 }
 
 class _PlayersListPageState extends State<PlayersListPage> {
-  String _searchQuery = "";
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text(
-          'ALL PLAYERS',
-          style: GoogleFonts.montserrat(
-            fontWeight: FontWeight.w900,
-            fontStyle: FontStyle.italic,
-            letterSpacing: 1.5,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
+        title: Text('SPILLERE', style: AppText.dispH2(18)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios, size: 18),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: Image.asset('assets/images/spikedunk_logo.png', width: 40, fit: BoxFit.contain),
+            child: Image.asset('assets/images/ntlogo.png', width: 40, fit: BoxFit.contain),
           ),
         ],
       ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 12, AppTheme.pageHPad, 0),
             child: TextField(
-              style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'Søk etter spiller...',
-                hintStyle: TextStyle(color: Colors.grey[500]),
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                filled: true,
-                fillColor: const Color(0xFF1E1E1E),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
+                prefixIcon: const Icon(Icons.search, color: AppColors.ink3),
               ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value.toLowerCase();
-                });
-              },
+              style: AppText.uiBody,
+              onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
             ),
           ),
+          const SizedBox(height: 12),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance.collection('players').snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFFFF3B30)));
+                  return const Center(child: CircularProgressIndicator(color: AppColors.coral));
                 }
-
                 if (snapshot.hasError) {
-                  return Center(
-                    child: Text("Noe gikk galt.", style: GoogleFonts.inter(color: Colors.white)),
-                  );
+                  return Center(child: Text('Noe gikk galt.', style: AppText.uiBody));
                 }
-
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(
-                    child: Text("Ingen spillere funnet.", style: GoogleFonts.inter(color: Colors.white)),
-                  );
+                  return Center(child: Text('Ingen spillere funnet.', style: AppText.uiBody));
                 }
 
                 final players = snapshot.data!.docs.where((doc) {
                   final data = doc.data() as Map<String, dynamic>;
                   final firstName = (data['first_name'] ?? '').toString().toLowerCase();
                   final lastName = (data['last_name'] ?? '').toString().toLowerCase();
-                  final fullName = "$firstName $lastName";
-                  return fullName.contains(_searchQuery);
+                  return '$firstName $lastName'.contains(_searchQuery);
                 }).toList();
 
-                // Sorter alfabetisk på fornavn
                 players.sort((a, b) {
                   final aName = (a.data() as Map<String, dynamic>)['first_name'] ?? '';
                   final bName = (b.data() as Map<String, dynamic>)['first_name'] ?? '';
@@ -100,18 +73,17 @@ class _PlayersListPageState extends State<PlayersListPage> {
                 });
 
                 return GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 0, AppTheme.pageHPad, 32),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     childAspectRatio: 0.75,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                    crossAxisSpacing: AppTheme.rowGap,
+                    mainAxisSpacing: AppTheme.rowGap,
                   ),
                   itemCount: players.length,
                   itemBuilder: (context, index) {
                     final doc = players[index];
                     final data = doc.data() as Map<String, dynamic>;
-                    
                     final firstName = data['first_name'] ?? '';
                     final lastName = data['last_name'] ?? '';
                     final imageUrl = data['image_url'] ?? data['image'] ?? data['photoUrl'] ?? data['photo_url'] ?? data['picture'] ?? '';
@@ -119,22 +91,15 @@ class _PlayersListPageState extends State<PlayersListPage> {
                     final position = data['position'] ?? 'Spiller';
 
                     return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PlayerDetailPage(
-                              playerId: doc.id,
-                              playerData: data,
-                            ),
-                          ),
-                        );
-                      },
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => PlayerDetailPage(playerId: doc.id, playerData: data)),
+                      ),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E1E1E),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white10),
+                          color: AppColors.sand0,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                          boxShadow: AppTheme.shadowSm,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -142,82 +107,47 @@ class _PlayersListPageState extends State<PlayersListPage> {
                             Expanded(
                               flex: 3,
                               child: ClipRRect(
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.radiusCard)),
                                 child: imageUrl.isNotEmpty
                                     ? Image.network(
                                         imageUrl,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return Container(
-                                            color: const Color(0xFF2A2A2A),
-                                            child: const Icon(Icons.person, size: 50, color: Colors.grey),
-                                          );
-                                        },
+                                        errorBuilder: (context, error, stackTrace) => Container(
+                                          color: AppColors.sand2,
+                                          child: const Icon(Icons.person, size: 50, color: AppColors.ink3),
+                                        ),
                                       )
                                     : Container(
-                                        color: const Color(0xFF2A2A2A),
-                                        child: const Icon(Icons.person, size: 50, color: Colors.grey),
+                                        color: AppColors.sand2,
+                                        child: const Icon(Icons.person, size: 50, color: AppColors.ink3),
                                       ),
                               ),
                             ),
                             Expanded(
                               flex: 2,
                               child: Padding(
-                                padding: const EdgeInsets.all(12.0),
+                                padding: const EdgeInsets.all(10.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text(
-                                      firstName,
-                                      style: GoogleFonts.inter(
-                                        color: Colors.white70,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      lastName,
-                                      style: GoogleFonts.montserrat(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 4),
+                                    Text(firstName, style: AppText.uiCaption, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    Text(lastName, style: AppText.uiTitle.copyWith(fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    const SizedBox(height: 5),
                                     Row(
                                       children: [
                                         if (jersey.isNotEmpty)
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            margin: const EdgeInsets.only(right: 6),
+                                            margin: const EdgeInsets.only(right: 5),
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFFFF3B30),
-                                              borderRadius: BorderRadius.circular(4),
+                                              color: AppColors.coral,
+                                              borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
                                             ),
-                                            child: Text(
-                                              jersey,
-                                              style: GoogleFonts.inter(
-                                                color: Colors.white,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
+                                            child: Text(jersey, style: AppText.monoSm.copyWith(color: Colors.white, fontSize: 9)),
                                           ),
                                         Expanded(
-                                          child: Text(
-                                            position,
-                                            style: GoogleFonts.inter(
-                                              color: Colors.grey[400],
-                                              fontSize: 11,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
+                                          child: Text(position, style: AppText.monoSm, maxLines: 1, overflow: TextOverflow.ellipsis),
                                         ),
                                       ],
                                     ),

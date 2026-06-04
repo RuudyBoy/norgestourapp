@@ -4,11 +4,15 @@ import 'fantasy/fantasy_squad_view.dart';
 import 'fantasy/fantasy_leagues_view.dart';
 import 'fantasy/fantasy_player_selection.dart';
 import 'fantasy/mock_data.dart';
+import 'fantasy/fantasy_highlights_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'auth/login_page.dart';
 import '../widgets/profile_avatar_widget.dart';
+import '../widgets/season_hero_widget.dart';
 import 'fantasy/league_logic.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class FantasyPage extends StatefulWidget {
   const FantasyPage({super.key});
@@ -18,7 +22,6 @@ class FantasyPage extends StatefulWidget {
 }
 
 class _FantasyPageState extends State<FantasyPage> {
-  // Map to keep track of the selected player for each role
   Map<String, String?> selectedPlayers = {
     FantasyRole.block: null,
     FantasyRole.defense: null,
@@ -34,6 +37,7 @@ class _FantasyPageState extends State<FantasyPage> {
 
   Future<List<dynamic>>? _combinedFuture;
   String? _currentUserId;
+  String? _teamName;
 
   @override
   void initState() {
@@ -52,9 +56,7 @@ class _FantasyPageState extends State<FantasyPage> {
           ownershipPercentages: ownershipPercentages,
           linkedPlayerId: _linkedPlayerId,
           onSelect: (playerId) async {
-            setState(() {
-              selectedPlayers[role] = playerId;
-            });
+            setState(() { selectedPlayers[role] = playerId; });
             final user = FirebaseAuth.instance.currentUser;
             if (user != null) {
               await FirebaseFirestore.instance
@@ -71,18 +73,11 @@ class _FantasyPageState extends State<FantasyPage> {
   }
 
   Future<void> _loadSquad(String uid) async {
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .collection('fantasy')
-        .doc('squad')
-        .get();
+    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).collection('fantasy').doc('squad').get();
     if (doc.exists) {
       final data = doc.data()!;
       for (var key in selectedPlayers.keys) {
-        if (data.containsKey(key)) {
-          selectedPlayers[key] = data[key] as String?;
-        }
+        if (data.containsKey(key)) selectedPlayers[key] = data[key] as String?;
       }
     }
   }
@@ -92,40 +87,88 @@ class _FantasyPageState extends State<FantasyPage> {
     if (doc.exists) {
       final data = doc.data()!;
       _linkedPlayerId = data['linkedPlayerId'] as String?;
+      _teamName = data['teamName'] as String?;
     }
+  }
+
+  Widget _buildTeamNameForm(BuildContext context, String uid) {
+    final TextEditingController controller = TextEditingController();
+    bool isLoading = false;
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.sports_volleyball, size: 64, color: AppColors.coral),
+                const SizedBox(height: 24),
+                Text('Velg et lagnavn', style: AppText.dispH2(24), textAlign: TextAlign.center),
+                const SizedBox(height: 8),
+                Text('Du må velge et navn for Fantasy-laget ditt for å fortsette.\n\nMERK: Dette kan kun gjøres én gang!',
+                    style: AppText.uiCaption, textAlign: TextAlign.center),
+                const SizedBox(height: 32),
+                TextField(
+                  controller: controller,
+                  decoration: InputDecoration(
+                    labelText: 'Lagnavn',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: isLoading ? null : () async {
+                      final name = controller.text.trim();
+                      if (name.isEmpty) return;
+                      setState(() => isLoading = true);
+                      await FirebaseFirestore.instance.collection('users').doc(uid).update({'teamName': name});
+                      this.setState(() {
+                        _currentUserId = null; // force reload
+                      });
+                    },
+                    child: isLoading
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : Text('Lagre Navn', style: AppText.uiCta),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
-        backgroundColor: Colors.transparent, // Gjør bakgrunnen transparent for å vise bildet
         appBar: AppBar(
-          title: const Text(
-            'FANTASY SQUAD',
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-              fontStyle: FontStyle.italic,
-              letterSpacing: 1.5,
-            ),
-          ),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.white,
-          elevation: 0,
+          title: Text('FANTASY', style: AppText.dispH2(20)),
           leadingWidth: 80,
           leading: Padding(
             padding: const EdgeInsets.only(left: 16.0),
-            child: Image.asset('assets/images/spikedunk_logo.png', fit: BoxFit.contain),
+            child: Image.asset('assets/images/ntlogo.png', fit: BoxFit.contain),
           ),
           actions: const [ProfileAvatarWidget()],
-          bottom: const TabBar(
-            indicatorColor: Color(0xFFFF3B30), // Striking red accent
-            labelColor: Color(0xFFFF3B30),
-            unselectedLabelColor: Colors.white54,
-            tabs: [
-              Tab(icon: Icon(Icons.sports_volleyball), text: 'My Squad'),
-              Tab(icon: Icon(Icons.leaderboard), text: 'Leagues'),
+          bottom: TabBar(
+            indicatorColor: AppColors.coral,
+            indicatorWeight: 3,
+            labelColor: AppColors.coral,
+            unselectedLabelColor: AppColors.ink3,
+            labelStyle: AppText.uiTab.copyWith(color: AppColors.coral, fontWeight: FontWeight.w800),
+            unselectedLabelStyle: AppText.uiTab,
+            tabs: const [
+              Tab(icon: Icon(Icons.sports_volleyball, size: 18), text: 'Mitt Lag'),
+              Tab(icon: Icon(Icons.leaderboard, size: 18), text: 'Ligaer'),
+              Tab(icon: Icon(Icons.star, size: 18), text: 'Høydepunkter'),
             ],
           ),
         ),
@@ -133,30 +176,41 @@ class _FantasyPageState extends State<FantasyPage> {
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, authSnapshot) {
             if (authSnapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator(color: AppColors.coral));
             }
             if (!authSnapshot.hasData) {
               return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.lock, size: 64, color: Colors.grey),
-                    const SizedBox(height: 16),
-                    const Text('Logg inn for å spille Fantasy', style: TextStyle(color: Colors.white, fontSize: 18)),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage()));
-                      },
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF3B30)),
-                      child: const Text('Gå til innlogging', style: TextStyle(color: Colors.white)),
-                    )
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: AppColors.sand2,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.lock_outline, size: 40, color: AppColors.ink3),
+                      ),
+                      const SizedBox(height: 20),
+                      Text('Logg inn for å spille Fantasy', style: AppText.dispH2(20), textAlign: TextAlign.center),
+                      const SizedBox(height: 8),
+                      Text('Sett opp laget ditt og konkurrér med andre.', style: AppText.uiCaption, textAlign: TextAlign.center),
+                      const SizedBox(height: 28),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage())),
+                          child: Text('Logg inn', style: AppText.uiCta),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
-            
-            // Bruker er logget inn
+
             final user = authSnapshot.data!;
             if (_currentUserId != user.uid) {
               _currentUserId = user.uid;
@@ -173,30 +227,39 @@ class _FantasyPageState extends State<FantasyPage> {
               future: _combinedFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(color: AppColors.coral));
                 }
                 if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Feil ved innlasting: ${snapshot.error}',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  );
+                  return Center(child: Text('Feil ved innlasting: ${snapshot.error}', style: AppText.uiBody));
                 }
-                
-                // _playersFuture er første element i Future.wait arrayen
+
                 final players = (snapshot.data?[0] as List<FantasyPlayer>?) ?? [];
                 final ownershipPercentages = (snapshot.data?[3] as Map<String, double>?) ?? {};
-                
-                return TabBarView(
+
+                if (_teamName == null || _teamName == 'Ukjent Lag' || _teamName!.isEmpty) {
+                  return _buildTeamNameForm(context, user.uid);
+                }
+
+                return Column(
                   children: [
-                    FantasySquadView(
-                      selectedPlayers: selectedPlayers,
-                      players: players,
-                      linkedPlayerId: _linkedPlayerId,
-                      onRoleTap: (role) => _openPlayerSelection(role, players, ownershipPercentages),
+                    const SeasonHeroWidget(
+                      title: 'FANTASY',
+                      description: 'Bygg drømmelaget ditt og konkurrer med andre!',
                     ),
-                    FantasyLeaguesView(players: players),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          FantasySquadView(
+                            selectedPlayers: selectedPlayers,
+                            players: players,
+                            linkedPlayerId: _linkedPlayerId,
+                            onRoleTap: (role) => _openPlayerSelection(role, players, ownershipPercentages),
+                          ),
+                          FantasyLeaguesView(players: players),
+                          FantasyHighlightsView(players: players),
+                        ],
+                      ),
+                    ),
                   ],
                 );
               },

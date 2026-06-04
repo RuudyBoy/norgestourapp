@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'models.dart';
 import 'league_logic.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/app_theme.dart';
 
 class FantasyLeaguesView extends StatefulWidget {
   final List<FantasyPlayer> players;
@@ -26,164 +29,137 @@ class _FantasyLeaguesViewState extends State<FantasyLeaguesView> {
   Future<void> _fetchLeaderboard() async {
     setState(() => _isLoading = true);
     _globalLeaderboard = await LeagueLogic.getGlobalLeaderboard(widget.players);
-    if (mounted) {
-      setState(() => _isLoading = false);
-    }
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Column(
       children: [
-        // League Header (Global vs Private)
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+        // Tab selector
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: AppTheme.pageHPad),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              GestureDetector(
+              Expanded(child: GestureDetector(
                 onTap: () => setState(() => _isGlobalTab = true),
-                child: _buildLeagueTab('Global', _isGlobalTab),
-              ),
-              const SizedBox(width: 16),
-              GestureDetector(
+                child: _buildTab('Global', _isGlobalTab),
+              )),
+              const SizedBox(width: 10),
+              Expanded(child: GestureDetector(
                 onTap: () => setState(() => _isGlobalTab = false),
-                child: _buildLeagueTab('Mine Ligaer', !_isGlobalTab),
-              ),
+                child: _buildTab('Mine Ligaer', !_isGlobalTab),
+              )),
             ],
           ),
         ),
 
         if (!_isGlobalTab)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 0, AppTheme.pageHPad, 12),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Implementere opprettelse av liga
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kommer snart!')));
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Lag Liga'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF3B30),
-                    foregroundColor: Colors.white,
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Kommer snart!')),
+                    ),
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text('Lag Liga'),
                   ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Implementere join liga
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kommer snart!')));
-                  },
-                  icon: const Icon(Icons.group_add),
-                  label: const Text('Bli med'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E3A8A),
-                    foregroundColor: Colors.white,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Kommer snart!')),
+                    ),
+                    icon: const Icon(Icons.group_add, size: 16),
+                    label: const Text('Bli med'),
                   ),
                 ),
               ],
             ),
           ),
 
-        // Leaderboard Table
+        // Leaderboard
         Expanded(
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            margin: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 0, AppTheme.pageHPad, 16),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E3A8A),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
-                ),
-              ],
+              color: AppColors.sand0,
+              borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+              boxShadow: AppTheme.shadowSm,
             ),
             child: Column(
               children: [
-                // Table Header
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
+                // Header row
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.cardPad, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.sand2,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.radiusCard)),
+                  ),
                   child: Row(
                     children: [
-                      const SizedBox(width: 40, child: Text('Rank', style: TextStyle(color: Colors.white70))),
-                      const Expanded(child: Text('Team', style: TextStyle(color: Colors.white70))),
-                      const Text('Points', style: TextStyle(color: Colors.white70)),
+                      SizedBox(width: 36, child: Text('#', style: AppText.monoSm)),
+                      Expanded(child: Text('Team', style: AppText.monoSm)),
+                      Text('Poeng', style: AppText.monoSm),
                     ],
                   ),
                 ),
-                const Divider(color: Colors.white24, height: 1),
-                
-                // Table Rows
-                Expanded(
-                  child: _isLoading 
-                    ? const Center(child: CircularProgressIndicator(color: Color(0xFF00FFCC)))
-                    : (!_isGlobalTab) 
-                      ? const Center(child: Text('Du er ikke med i noen private ligaer ennå.', style: TextStyle(color: Colors.white70)))
-                      : ListView.separated(
-                    itemCount: _globalLeaderboard.length,
-                    separatorBuilder: (context, index) => const Divider(color: Colors.white12, height: 1),
-                    itemBuilder: (context, index) {
-                      final entry = _globalLeaderboard[index];
-                      final isCurrentUser = entry.userId == _currentUserId;
-                      final rank = index + 1;
 
-                      return Container(
-                        color: isCurrentUser ? const Color(0xFF00FFCC).withValues(alpha: 0.1) : Colors.transparent,
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 40,
-                              child: Text(
-                                '$rank',
-                                style: TextStyle(
-                                  color: rank <= 3 ? const Color(0xFF00FFCC) : Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    entry.teamName,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
+                Expanded(
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator(color: AppColors.coral))
+                      : (!_isGlobalTab)
+                          ? Center(child: Text('Du er ikke med i noen private ligaer ennå.', style: AppText.uiCaption))
+                          : ListView.separated(
+                              itemCount: _globalLeaderboard.length,
+                              separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.line),
+                              itemBuilder: (context, index) {
+                                final entry = _globalLeaderboard[index];
+                                final isCurrentUser = entry.userId == _currentUserId;
+                                final rank = index + 1;
+                                final isTop3 = rank <= 3;
+
+                                return Container(
+                                  color: isCurrentUser ? AppColors.coral.withOpacity(0.06) : Colors.transparent,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppTheme.cardPad,
+                                    vertical: 12,
                                   ),
-                                  Text(
-                                    entry.managerName,
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.6),
-                                      fontSize: 12,
-                                    ),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 36,
+                                        child: Text(
+                                          '$rank',
+                                          style: isTop3
+                                              ? AppText.dispH2(16).copyWith(color: AppColors.coral)
+                                              : AppText.monoMd,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(entry.teamName, style: AppText.uiTitle),
+                                            Text(entry.managerName, style: AppText.uiCaption),
+                                          ],
+                                        ),
+                                      ),
+                                      Text(
+                                        '${entry.totalPoints}',
+                                        style: AppText.dispH2(18).copyWith(
+                                          color: isCurrentUser ? AppColors.coral : AppColors.ink,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
+                                );
+                              },
                             ),
-                            Text(
-                              '${entry.totalPoints}',
-                              style: const TextStyle(
-                                color: Color(0xFF00FFCC),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
                 ),
               ],
             ),
@@ -193,21 +169,20 @@ class _FantasyLeaguesViewState extends State<FantasyLeaguesView> {
     );
   }
 
-  Widget _buildLeagueTab(String title, bool isSelected) {
+  Widget _buildTab(String title, bool isSelected) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF00FFCC).withValues(alpha: 0.2) : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected ? const Color(0xFF00FFCC) : Colors.white24,
-        ),
+        color: isSelected ? AppColors.coral : AppColors.sand2,
+        borderRadius: BorderRadius.circular(AppTheme.radiusChip),
       ),
       child: Text(
         title,
-        style: TextStyle(
-          color: isSelected ? const Color(0xFF00FFCC) : Colors.white70,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        textAlign: TextAlign.center,
+        style: AppText.uiCta.copyWith(
+          color: isSelected ? Colors.white : AppColors.ink2,
+          fontSize: 13,
+          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
         ),
       ),
     );

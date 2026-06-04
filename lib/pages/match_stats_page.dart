@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'stats_logic.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../theme/app_theme.dart';
 
 class MatchStatsPage extends StatelessWidget {
   final String matchId;
@@ -17,12 +20,12 @@ class MatchStatsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent, // Inherit from background if possible
       appBar: AppBar(
-        title: const Text("KAMPFAKTA", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.white,
+        title: Text('KAMPFAKTA', style: AppText.dispH2(18)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, size: 18),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -31,17 +34,26 @@ class MatchStatsPage extends StatelessWidget {
             .collection('events')
             .snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.coral));
+          }
 
           final docs = snapshot.data!.docs;
-          
           if (docs.isEmpty) {
-            return const Center(child: Text("Ingen data enda."));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.sports_volleyball, size: 48, color: AppColors.ink3),
+                  const SizedBox(height: 12),
+                  Text('Ingen data enda.', style: AppText.uiBody),
+                ],
+              ),
+            );
           }
 
           final eventsList = docs.map((d) => d.data() as Map<String, dynamic>).toList();
           final statsMap = calculateMatchStats(eventsList);
-          
           final players = statsMap.values.toList();
           players.sort((a, b) {
             if (a.teamName == teamAName && b.teamName != teamAName) return -1;
@@ -50,24 +62,28 @@ class MatchStatsPage extends StatelessWidget {
           });
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(12),
             child: Column(
               children: [
-                Text("$teamAName vs $teamBName", 
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)
-                ),
-                const SizedBox(height: 20),
-                
-                // Legend / Forklaring (Viktig når vi bruker forkortelser)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 10),
-                  child: Text(
-                    "SO = Sideout Poeng  |  MOT = Mottaksfeil",
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                _buildScoreboardHero(),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, AppTheme.sectionGap, AppTheme.pageHPad, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(width: 14, height: 3, decoration: BoxDecoration(color: AppColors.coral, borderRadius: BorderRadius.circular(2))),
+                          const SizedBox(width: 8),
+                          Text('LAGSTATISTIKK', style: AppText.dispKicker()),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text('SO = Sideout  ·  MOT = Mottaksfeil', style: AppText.monoSm),
+                      const SizedBox(height: 16),
+                      _buildStatsTable(players),
+                    ],
                   ),
                 ),
-
-                _buildStatsTable(players),
               ],
             ),
           );
@@ -76,92 +92,140 @@ class MatchStatsPage extends StatelessWidget {
     );
   }
 
+  Widget _buildScoreboardHero() {
+    return Container(
+      decoration: const BoxDecoration(gradient: AppColors.heroNavy),
+      padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 20, AppTheme.pageHPad, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.coral,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+                    const SizedBox(width: 5),
+                    Text('LIVE · SETT 2', style: AppText.monoSmLight),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Text('NORGES TOUR', style: AppText.monoSmLight),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildScoreRow(teamAName, null, isLeading: true),
+          const SizedBox(height: 8),
+          Divider(color: Colors.white.withOpacity(0.10), height: 1),
+          const SizedBox(height: 8),
+          _buildScoreRow(teamBName, null, isLeading: false),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScoreRow(String teamName, int? score, {required bool isLeading}) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 32,
+          decoration: BoxDecoration(
+            color: isLeading ? AppColors.blue : AppColors.ink.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(teamName.toUpperCase(), style: AppText.dispH2(18).copyWith(color: Colors.white)),
+            ],
+          ),
+        ),
+        if (score != null)
+          Text('$score', style: AppText.dispScore(36).copyWith(color: Colors.white)),
+      ],
+    );
+  }
+
   Widget _buildStatsTable(List<PlayerMatchStats> players) {
     return Column(
       children: players.map((p) {
-        bool isTeamA = p.teamName == teamAName;
+        final isTeamA = p.teamName == teamAName;
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.only(bottom: AppTheme.rowGap),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isTeamA ? Colors.blueAccent.withOpacity(0.5) : Colors.redAccent.withOpacity(0.5),
-              width: 1.5,
+            color: AppColors.sand0,
+            borderRadius: BorderRadius.circular(AppTheme.radiusRow),
+            border: Border(
+              left: BorderSide(
+                color: isTeamA ? AppColors.blue : AppColors.coral,
+                width: 3,
+              ),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              )
-            ],
+            boxShadow: AppTheme.shadowSm,
           ),
-          child: Row(
-            children: [
-                // Info
-                Expanded(
-                  flex: 3,
-                  child: Row(
-                    children: [
-                      if (p.imageUrl.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: CircleAvatar(
-                            radius: 16,
-                            backgroundImage: NetworkImage(p.imageUrl),
-                            backgroundColor: Colors.white10,
-                          ),
-                        )
-                      else
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: CircleAvatar(
-                            radius: 16,
-                            backgroundColor: Colors.white10,
-                            child: Text(
-                              p.playerName.isEmpty ? "?" : p.playerName.substring(0, 1).toUpperCase(),
-                              style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              p.playerName,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              p.teamName,
-                              style: TextStyle(fontSize: 12, color: Colors.grey[400]),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                if (p.imageUrl.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10.0),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundImage: NetworkImage(p.imageUrl),
+                      backgroundColor: AppColors.sand2,
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10.0),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: AppColors.sand2,
+                      child: Text(
+                        p.playerName.isEmpty ? '?' : p.playerName.substring(0, 1).toUpperCase(),
+                        style: AppText.dispKicker(14).copyWith(color: AppColors.ink2),
                       ),
+                    ),
+                  ),
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(p.playerName, style: AppText.uiTitle, overflow: TextOverflow.ellipsis),
+                      Text(p.teamName, style: AppText.uiCaption, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
-              // Stats
-              Expanded(
-                flex: 5,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildMiniStat("TOT", p.totalPoints.toString(), color: const Color(0xFF1DD05D)),
-                    _buildMiniStat("ANG", "${p.kills}/${p.attackErrors}", color: Colors.white),
-                    _buildMiniStat("SO", "${p.sideoutPoints}", color: Colors.white),
-                    _buildMiniStat("LEGG", p.settingEfficiency, color: Colors.white),
-                    _buildMiniStat("MOT", "${p.receptionErrors}", color: p.receptionErrors > 0 ? const Color(0xFFFF3B30) : Colors.grey[500]!),
-                  ],
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 3,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildMiniStat('TOT', p.totalPoints.toString(), color: AppColors.coral),
+                      _buildMiniStat('ANG', '${p.kills}/${p.attackErrors}', color: AppColors.ink),
+                      _buildMiniStat('SO', '${p.sideoutPoints}', color: AppColors.ink),
+                      _buildMiniStat('LEGG', p.settingEfficiency, color: AppColors.ink),
+                      _buildMiniStat('MOT', '${p.receptionErrors}',
+                          color: p.receptionErrors > 0 ? AppColors.coral : AppColors.ink3),
+                    ],
+                  ),
                 ),
-              )
-            ],
+              ],
+            ),
           ),
         );
       }).toList(),
@@ -171,23 +235,9 @@ class MatchStatsPage extends StatelessWidget {
   Widget _buildMiniStat(String label, String value, {required Color color}) {
     return Column(
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey[500],
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            color: color,
-            fontSize: 15,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
+        Text(label, style: AppText.monoSm),
+        const SizedBox(height: 3),
+        Text(value, style: AppText.dispKicker(13).copyWith(color: color)),
       ],
     );
   }

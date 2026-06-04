@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'fantasy_page.dart';
 import 'tours_page.dart';
 import 'tournament_stats_page.dart';
 import 'match_stats_page.dart';
 import '../widgets/profile_avatar_widget.dart';
+import '../widgets/season_hero_widget.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../theme/app_theme.dart';
 
 class HomePage extends StatelessWidget {
   final Function(int)? onTabSelected;
@@ -15,30 +18,52 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent, // Viser bakgrunnen fra MainPage
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: Image.asset('assets/images/spikedunk_logo.png', height: 60, fit: BoxFit.contain),
+        title: Image.asset('assets/images/ntlogo.png', height: 60, fit: BoxFit.contain),
         actions: const [ProfileAvatarWidget()],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
+        child: Column(
+          children: [
+            const SeasonHeroWidget(
+              title: 'NT',
+              description: 'Gjør deg klar for sesongen 2026!',
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+              const SizedBox(height: 8),
               _buildLiveMatches(context),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppTheme.sectionGap),
               _buildCards(context),
               const SizedBox(height: 30),
-            ],
-          ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
+  Widget _buildSectionKicker(String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
+      child: Row(
+        children: [
+          Container(width: 14, height: 3, decoration: BoxDecoration(color: AppColors.coral, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(width: 8),
+          Text(label.toUpperCase(), style: AppText.dispKicker()),
+        ],
+      ),
+    );
+  }
 
   Widget _buildLiveMatches(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -48,7 +73,7 @@ class HomePage extends StatelessWidget {
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const SizedBox.shrink(); // Hide if no live matches
+          return const SizedBox.shrink();
         }
 
         final matches = snapshot.data!.docs;
@@ -56,36 +81,13 @@ class HomePage extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Row(
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "LIVE NÅ",
-                    style: GoogleFonts.montserrat(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildSectionKicker('Live nå'),
+            const SizedBox(height: 12),
             SizedBox(
-              height: 140,
+              height: 150,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
                 itemCount: matches.length,
                 itemBuilder: (context, index) {
                   final data = matches[index].data() as Map<String, dynamic>;
@@ -110,39 +112,59 @@ class HomePage extends StatelessWidget {
                       );
                     },
                     child: Container(
-                      width: 260,
-                      margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                      padding: const EdgeInsets.all(12.0),
+                      width: 270,
+                      margin: const EdgeInsets.only(right: AppTheme.rowGap),
+                      padding: const EdgeInsets.all(AppTheme.cardPad),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E1E1E),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.red.withOpacity(0.5), width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.red.withOpacity(0.1),
-                            blurRadius: 8,
-                            spreadRadius: 2,
-                          ),
-                        ],
+                        gradient: AppColors.heroNavy,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                        boxShadow: AppTheme.shadowLg,
                       ),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Sett $set", style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(child: Text(teamA, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
-                              Text("$scoreA", style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppColors.coral,
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+                                    const SizedBox(width: 5),
+                                    Text('LIVE · SETT $set', style: AppText.monoSmLight),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
-                          const Divider(color: Colors.grey, height: 16),
+                          const Spacer(),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(child: Text(teamB, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
-                              Text("$scoreB", style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+                              Expanded(
+                                child: Text(teamA.toUpperCase(),
+                                    style: AppText.dispH2(18).copyWith(color: Colors.white),
+                                    overflow: TextOverflow.ellipsis),
+                              ),
+                              Text('$scoreA', style: AppText.dispScore(32).copyWith(color: Colors.white)),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(teamB.toUpperCase(),
+                                    style: AppText.dispH2(18).copyWith(color: Colors.white.withOpacity(0.7)),
+                                    overflow: TextOverflow.ellipsis),
+                              ),
+                              Text('$scoreB',
+                                  style: AppText.dispScore(32).copyWith(color: Colors.white.withOpacity(0.7))),
                             ],
                           ),
                         ],
@@ -160,35 +182,37 @@ class HomePage extends StatelessWidget {
 
   Widget _buildCards(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _buildKickerInline('Utforsk'),
+          const SizedBox(height: 12),
           _buildActionCard(
             context: context,
-            title: "FANTASY",
-            subtitle: "BUILD YOUR DREAM TEAM",
-            description:
-                "Select players, manage your budget, and compete against others globally based on real-world performance.",
-            buttonText: "GO TO FANTASY",
+            title: 'Fantasy',
+            subtitle: 'Bygg drømmelaget ditt',
+            description: 'Velg spillere, styr budsjettet og konkurrèr mot andre basert på ekte prestasjoner.',
+            buttonText: 'Spill nå',
+            icon: Icons.sports_volleyball,
+            iconColor: AppColors.coral,
             onTap: () {
               if (onTabSelected != null) {
-                onTabSelected!(1); // 1 = Fantasy tab
+                onTabSelected!(1);
               } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const FantasyPage()),
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const FantasyPage()));
               }
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppTheme.rowGap),
           _buildActionCard(
             context: context,
-            title: "STATISTICS",
-            subtitle: "SEASON STATS & RANKINGS",
-            description:
-                "Deep dive into player statistics, match history, and comprehensive seasonal data.",
-            buttonText: "VIEW STATS",
+            title: 'Statistikk',
+            subtitle: 'Sesongstats & rangeringer',
+            description: 'Dypdykk i spillerstatistikk, kamphistorikk og sesongdata.',
+            buttonText: 'Se stats',
+            icon: Icons.bar_chart,
+            iconColor: AppColors.blue,
             onTap: () {
               Navigator.push(
                 context,
@@ -199,27 +223,35 @@ class HomePage extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppTheme.rowGap),
           _buildActionCard(
             context: context,
-            title: "TOURNAMENTS",
-            subtitle: "FIXTURES & RESULTS",
-            description:
-                "Keep track of upcoming tours, live matches, and final results for the entire season.",
-            buttonText: "VIEW TOURS",
+            title: 'Tours',
+            subtitle: 'Kamper & resultater',
+            description: 'Følg kommende tours, liveresultater og sluttresultater for hele sesongen.',
+            buttonText: 'Se tours',
+            icon: Icons.flag,
+            iconColor: AppColors.green,
             onTap: () {
               if (onTabSelected != null) {
-                onTabSelected!(2); // 2 = Tours tab
+                onTabSelected!(2);
               } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ToursPage()),
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ToursPage()));
               }
             },
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildKickerInline(String label) {
+    return Row(
+      children: [
+        Container(width: 14, height: 3, decoration: BoxDecoration(color: AppColors.coral, borderRadius: BorderRadius.circular(2))),
+        const SizedBox(width: 8),
+        Text(label.toUpperCase(), style: AppText.dispKicker()),
+      ],
     );
   }
 
@@ -229,119 +261,64 @@ class HomePage extends StatelessWidget {
     required String subtitle,
     required String description,
     required String buttonText,
+    required IconData icon,
+    required Color iconColor,
     required VoidCallback onTap,
   }) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E), // Dark grey card
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white12, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.5),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppColors.sand0,
+        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+        boxShadow: AppTheme.shadowSm,
       ),
-      child: Stack(
-        children: [
-          // Content
-          Padding(
-            padding: const EdgeInsets.only(left: 120.0, top: 24, bottom: 24, right: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+          splashColor: AppColors.coral.withOpacity(0.08),
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.cardPad),
+            child: Row(
               children: [
-                Text(
-                  title,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    fontStyle: FontStyle.italic,
-                    color: Colors.white,
-                    letterSpacing: 1.2,
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: iconColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusRow),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 28),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: AppText.dispH2(18)),
+                      const SizedBox(height: 2),
+                      Text(subtitle, style: AppText.monoSm),
+                      const SizedBox(height: 6),
+                      Text(description, style: AppText.uiCaption, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    ],
                   ),
                 ),
-                if (subtitle.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
-                    child: Text(
-                      subtitle,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.grey[400],
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: AppColors.coral,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusChip),
+                    boxShadow: AppTheme.shadowCoral,
                   ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.grey[500],
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                InkWell(
-                  onTap: onTap,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFF3B30), // Striking red button
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFFF3B30).withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      buttonText,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                  ),
+                  child: Text(buttonText, style: AppText.uiCta.copyWith(fontSize: 13)),
                 ),
               ],
             ),
           ),
-          
-          // Image placeholder on the left
-          Positioned(
-            left: 16,
-            top: 24,
-            bottom: 24,
-            width: 90,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF121212),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white10, width: 1),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.sports_volleyball,
-                  color: Colors.grey[800],
-                  size: 40,
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../pages/auth/login_page.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../theme/app_theme.dart';
 
 class ProfileAvatarWidget extends StatelessWidget {
   const ProfileAvatarWidget({super.key});
@@ -13,30 +16,33 @@ class ProfileAvatarWidget extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Padding(
             padding: EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.transparent,
-              child: CircularProgressIndicator(strokeWidth: 2),
+            child: SizedBox(
+              width: 36,
+              height: 36,
+              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.coral),
             ),
           );
         }
-        
+
         final user = snapshot.data;
-        
+
         return Padding(
           padding: const EdgeInsets.only(right: 16.0),
           child: user == null
               ? GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                    );
-                  },
-                  child: const CircleAvatar(
-                    radius: 18,
-                    backgroundColor: Color(0xFF1E1E1E), // Dark circle
-                    child: Icon(Icons.person, color: Colors.white70, size: 20),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                  ),
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.sand2,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.line),
+                    ),
+                    child: const Icon(Icons.person_outline, color: AppColors.ink3, size: 20),
                   ),
                 )
               : PopupMenuButton<String>(
@@ -44,26 +50,28 @@ class ProfileAvatarWidget extends StatelessWidget {
                     if (value == 'logout') {
                       FirebaseAuth.instance.signOut();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Logget ut')),
+                        SnackBar(
+                          content: Text('Logget ut', style: AppText.uiBody.copyWith(color: AppColors.ink)),
+                          backgroundColor: AppColors.sand0,
+                        ),
                       );
                     }
                   },
-                  offset: const Offset(0, 45),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  color: const Color(0xFF2C2C2E),
-                  child: CircleAvatar(
-                    radius: 18,
-                    backgroundColor: const Color(0xFF1E1E1E),
-                    child: Text(
-                      user.email != null && user.email!.isNotEmpty
-                          ? user.email![0].toUpperCase()
-                          : 'U',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                  offset: const Offset(0, 48),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusRow)),
+                  color: AppColors.sand0,
+                  elevation: 8,
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.coral,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        user.email != null && user.email!.isNotEmpty ? user.email![0].toUpperCase() : 'U',
+                        style: AppText.dispKicker(16).copyWith(color: Colors.white),
                       ),
                     ),
                   ),
@@ -71,10 +79,10 @@ class ProfileAvatarWidget extends StatelessWidget {
                     PopupMenuItem<String>(
                       value: 'logout',
                       child: Row(
-                        children: const [
-                          Icon(Icons.logout, color: Colors.white, size: 20),
-                          SizedBox(width: 12),
-                          Text('Logg ut', style: TextStyle(color: Colors.white)),
+                        children: [
+                          const Icon(Icons.logout, color: AppColors.coral, size: 18),
+                          const SizedBox(width: 12),
+                          Text('Logg ut', style: AppText.uiBody),
                         ],
                       ),
                     ),

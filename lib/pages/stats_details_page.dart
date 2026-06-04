@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'stats_logic.dart';
 import 'player_detail_page.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../theme/app_theme.dart';
 
 class StatsDetailsPage extends StatefulWidget {
   final List<PlayerMatchStats> allPlayers;
-  final String initialSort; 
+  final String initialSort;
 
   const StatsDetailsPage({
     super.key,
@@ -33,37 +36,30 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator(color: Color(0xFFFF3B30))),
+      builder: (context) => const Center(child: CircularProgressIndicator(color: AppColors.coral)),
     );
 
     try {
       final query = await FirebaseFirestore.instance.collection('players').get();
-      
       if (!mounted) return;
-      Navigator.pop(context); // Lukk loading
+      Navigator.pop(context);
 
       final docs = query.docs.where((doc) {
         final data = doc.data();
         final firstName = data['first_name'] ?? '';
         final lastName = data['last_name'] ?? '';
-        final fullName = "$firstName $lastName";
-        return fullName.toLowerCase() == p.playerName.toLowerCase();
+        return '$firstName $lastName'.toLowerCase() == p.playerName.toLowerCase();
       }).toList();
 
       if (docs.isNotEmpty) {
         final doc = docs.first;
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => PlayerDetailPage(
-              playerId: doc.id,
-              playerData: doc.data(),
-            ),
-          ),
+          MaterialPageRoute(builder: (context) => PlayerDetailPage(playerId: doc.id, playerData: doc.data())),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fant ikke profil for ${p.playerName}')),
+          SnackBar(content: Text('Fant ikke profil for ${p.playerName}', style: AppText.uiCaption)),
         );
       }
     } catch (e) {
@@ -78,17 +74,17 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
   void _sortPlayers(String criteria) {
     setState(() {
       currentSort = criteria;
-      if (criteria == "Toppscorer") {
+      if (criteria == 'Toppscorer') {
         sortedPlayers.sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
-      } else if (criteria == "Sideout") {
+      } else if (criteria == 'Sideout') {
         sortedPlayers.sort((a, b) => b.sideoutPoints.compareTo(a.sideoutPoints));
-      } else if (criteria == "Blokk") {
+      } else if (criteria == 'Blokk') {
         sortedPlayers.sort((a, b) => b.blocks.compareTo(a.blocks));
-      } else if (criteria == "Legging") {
-         sortedPlayers.sort((a, b) {
-           double aPct = a.setAttempts == 0 ? 0 : (a.setAssists / a.setAttempts);
-           double bPct = b.setAttempts == 0 ? 0 : (b.setAssists / b.setAttempts);
-           return bPct.compareTo(aPct);
+      } else if (criteria == 'Legging') {
+        sortedPlayers.sort((a, b) {
+          double aPct = a.setAttempts == 0 ? 0 : (a.setAssists / a.setAttempts);
+          double bPct = b.setAttempts == 0 ? 0 : (b.setAssists / b.setAttempts);
+          return bPct.compareTo(aPct);
         });
       }
     });
@@ -97,153 +93,130 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent, // Inherit from main if used in stack, or black
       appBar: AppBar(
-        title: const Text("FULL OVERSIKT", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.white,
+        title: Text('FULL OVERSIKT', style: AppText.dispH2(18)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, size: 18),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Column(
         children: [
-          // Knapperad for sortering
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 12, AppTheme.pageHPad, 0),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _sortButton("Poeng", () => _sortPlayers("Toppscorer"), currentSort == "Toppscorer"),
-                  _sortButton("Sideout", () => _sortPlayers("Sideout"), currentSort == "Sideout"),
-                  _sortButton("Blokk", () => _sortPlayers("Blokk"), currentSort == "Blokk"),
-                  _sortButton("Legg", () => _sortPlayers("Legging"), currentSort == "Legging"),
+                  _sortChip('Poeng', () => _sortPlayers('Toppscorer'), currentSort == 'Toppscorer'),
+                  _sortChip('Sideout', () => _sortPlayers('Sideout'), currentSort == 'Sideout'),
+                  _sortChip('Blokk', () => _sortPlayers('Blokk'), currentSort == 'Blokk'),
+                  _sortChip('Legg', () => _sortPlayers('Legging'), currentSort == 'Legging'),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: _buildStatsList(sortedPlayers),
-          ),
+          const SizedBox(height: 12),
+          Expanded(child: _buildStatsList(sortedPlayers)),
         ],
       ),
     );
   }
 
-  Widget _sortButton(String text, VoidCallback onTap, bool isSelected) {
+  Widget _sortChip(String text, VoidCallback onTap, bool isSelected) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
-      child: ActionChip(
-        label: Text(
-          text,
-          style: TextStyle(
-            color: isSelected ? Colors.black : Colors.white,
-            fontWeight: FontWeight.bold,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.coral : AppColors.sand2,
+            borderRadius: BorderRadius.circular(AppTheme.radiusChip),
+          ),
+          child: Text(
+            text,
+            style: AppText.monoSm.copyWith(
+              color: isSelected ? Colors.white : AppColors.ink2,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
-        onPressed: onTap,
-        backgroundColor: isSelected ? const Color(0xFF1DD05D) : const Color(0xFF2C2C2E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        side: BorderSide(color: isSelected ? const Color(0xFF1DD05D) : Colors.white24),
       ),
     );
   }
 
   Widget _buildStatsList(List<PlayerMatchStats> players) {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 0, AppTheme.pageHPad, 32),
       itemCount: players.length,
       itemBuilder: (context, index) {
         final p = players[index];
+        final isTop3 = index < 3;
         return GestureDetector(
           onTap: () => _navigateToPlayerProfile(p),
           child: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(bottom: AppTheme.rowGap),
+            padding: const EdgeInsets.all(AppTheme.cardPad),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: AppColors.sand0,
+              borderRadius: BorderRadius.circular(AppTheme.radiusRow),
+              border: isTop3
+                  ? Border(left: BorderSide(color: AppColors.coral, width: 3))
+                  : null,
+              boxShadow: AppTheme.shadowSm,
             ),
             child: Row(
               children: [
-                // Rank
                 SizedBox(
-                  width: 30,
+                  width: 28,
                   child: Text(
-                    "#${index + 1}",
-                    style: const TextStyle(
-                      color: Colors.white54,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+                    '#${index + 1}',
+                    style: isTop3
+                        ? AppText.dispH2(16).copyWith(color: AppColors.coral)
+                        : AppText.monoMd.copyWith(color: AppColors.ink3),
                   ),
                 ),
                 if (p.imageUrl.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(right: 12.0),
+                    padding: const EdgeInsets.only(right: 10.0),
                     child: CircleAvatar(
-                      radius: 20,
+                      radius: 18,
                       backgroundImage: NetworkImage(p.imageUrl),
-                      backgroundColor: Colors.white10,
+                      backgroundColor: AppColors.sand2,
                     ),
                   )
                 else
                   Padding(
-                    padding: const EdgeInsets.only(right: 12.0),
+                    padding: const EdgeInsets.only(right: 10.0),
                     child: CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Colors.white10,
+                      radius: 18,
+                      backgroundColor: AppColors.sand2,
                       child: Text(
-                        p.playerName.isEmpty ? "?" : p.playerName.substring(0, 1).toUpperCase(),
-                        style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
+                        p.playerName.isEmpty ? '?' : p.playerName.substring(0, 1).toUpperCase(),
+                        style: AppText.dispKicker(14).copyWith(color: AppColors.ink2),
                       ),
                     ),
                   ),
-                // Name & Team
                 Expanded(
                   flex: 3,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        p.playerName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        p.teamName,
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 12,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      Text(p.playerName, style: AppText.uiTitle, overflow: TextOverflow.ellipsis),
+                      Text(p.teamName, style: AppText.uiCaption, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
-                // Key Stats
                 Expanded(
                   flex: 4,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildMiniStat("TOT", p.totalPoints.toString(), isHighlight: currentSort == "Toppscorer"),
-                      _buildMiniStat("SO", p.sideoutPoints.toString(), isHighlight: currentSort == "Sideout"),
-                      _buildMiniStat("BLK", p.blocks.toString(), isHighlight: currentSort == "Blokk"),
-                      _buildMiniStat("LEGG", p.settingEfficiency, isHighlight: currentSort == "Legging"),
+                      _buildMiniStat('TOT', p.totalPoints.toString(), isHighlight: currentSort == 'Toppscorer'),
+                      _buildMiniStat('SO', p.sideoutPoints.toString(), isHighlight: currentSort == 'Sideout'),
+                      _buildMiniStat('BLK', p.blocks.toString(), isHighlight: currentSort == 'Blokk'),
+                      _buildMiniStat('LEGG', p.settingEfficiency, isHighlight: currentSort == 'Legging'),
                     ],
                   ),
                 ),
@@ -258,22 +231,13 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
   Widget _buildMiniStat(String label, String value, {bool isHighlight = false}) {
     return Column(
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: isHighlight ? const Color(0xFF1DD05D) : Colors.grey[500],
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 4),
+        Text(label, style: AppText.monoSm.copyWith(color: isHighlight ? AppColors.coral : AppColors.ink3)),
+        const SizedBox(height: 3),
         Text(
           value,
-          style: TextStyle(
-            color: isHighlight ? Colors.white : Colors.grey[300],
-            fontSize: 16,
-            fontWeight: isHighlight ? FontWeight.w900 : FontWeight.bold,
-          ),
+          style: isHighlight
+              ? AppText.dispKicker(14).copyWith(color: AppColors.coral)
+              : AppText.uiTitle.copyWith(fontSize: 13),
         ),
       ],
     );

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'stats_logic.dart'; 
+import 'stats_logic.dart';
 import 'stats_details_page.dart';
 import 'players_list_page.dart';
 import '../widgets/profile_avatar_widget.dart';
+import '../widgets/season_hero_widget.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../theme/app_theme.dart';
 
 class StatsRootPage extends StatefulWidget {
   const StatsRootPage({super.key});
@@ -23,9 +26,7 @@ class _StatsRootPageState extends State<StatsRootPage> {
   }
 
   Future<List<PlayerMatchStats>> _calculateAllTimeStats() async {
-    // Fetches all matches for overall stats
     final matchesSnapshot = await FirebaseFirestore.instance.collection('matches').get();
-
     Map<String, PlayerMatchStats> totalStatsMap = {};
 
     final playersSnapshot = await FirebaseFirestore.instance.collection('players').get();
@@ -34,7 +35,7 @@ class _StatsRootPageState extends State<StatsRootPage> {
       final data = doc.data();
       final firstName = (data['first_name'] ?? '').toString();
       final lastName = (data['last_name'] ?? '').toString();
-      final fullName = "$firstName $lastName".trim();
+      final fullName = '$firstName $lastName'.trim();
       if (fullName.isNotEmpty) {
         playerImages[fullName] = data['image_url'] ?? data['image'] ?? data['photoUrl'] ?? data['photo_url'] ?? data['picture'] ?? '';
       }
@@ -43,7 +44,6 @@ class _StatsRootPageState extends State<StatsRootPage> {
     for (var matchDoc in matchesSnapshot.docs) {
       final eventsSnapshot = await matchDoc.reference.collection('events').get();
       if (eventsSnapshot.docs.isEmpty) continue;
-
       final eventsList = eventsSnapshot.docs.map((d) => d.data()).toList();
       final typedList = eventsList.cast<Map<String, dynamic>>();
       final matchStats = calculateMatchStats(typedList);
@@ -51,9 +51,9 @@ class _StatsRootPageState extends State<StatsRootPage> {
       matchStats.forEach((playerName, s) {
         if (!totalStatsMap.containsKey(playerName)) {
           totalStatsMap[playerName] = PlayerMatchStats(
-            playerName: playerName, 
+            playerName: playerName,
             teamName: s.teamName,
-            imageUrl: playerImages[playerName] ?? s.imageUrl
+            imageUrl: playerImages[playerName] ?? s.imageUrl,
           );
         }
         final total = totalStatsMap[playerName]!;
@@ -66,8 +66,6 @@ class _StatsRootPageState extends State<StatsRootPage> {
         total.sideoutPoints += s.sideoutPoints;
         total.setAssists += s.setAssists;
         total.setAttempts += s.setAttempts;
-        
-        // Merge detail maps
         s.killDetails.forEach((k, v) => total.killDetails[k] = (total.killDetails[k] ?? 0) + v);
         s.aceDetails.forEach((k, v) => total.aceDetails[k] = (total.aceDetails[k] ?? 0) + v);
         s.attackErrorDetails.forEach((k, v) => total.attackErrorDetails[k] = (total.attackErrorDetails[k] ?? 0) + v);
@@ -77,233 +75,168 @@ class _StatsRootPageState extends State<StatsRootPage> {
   }
 
   Future<void> _refreshStats() async {
-    setState(() {
-      _statsFuture = _calculateAllTimeStats();
-    });
+    setState(() { _statsFuture = _calculateAllTimeStats(); });
     await _statsFuture;
   }
 
   void _navigateToDetails(BuildContext context, List<PlayerMatchStats> players, String category) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => StatsDetailsPage(allPlayers: players, initialSort: category),
-      ),
+      MaterialPageRoute(builder: (context) => StatsDetailsPage(allPlayers: players, initialSort: category)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text(
-          'STATISTICS',
-          style: GoogleFonts.montserrat(
-            fontWeight: FontWeight.w900,
-            fontStyle: FontStyle.italic,
-            letterSpacing: 1.5,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
+        title: Text('STATISTIKK', style: AppText.dispH2(20)),
         leadingWidth: 80,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0),
-          child: Image.asset('assets/images/spikedunk_logo.png', fit: BoxFit.contain),
+          child: Image.asset('assets/images/ntlogo.png', fit: BoxFit.contain),
         ),
-        actions: const [
-          ProfileAvatarWidget(),
-        ],
+        actions: const [ProfileAvatarWidget()],
       ),
       body: FutureBuilder<List<PlayerMatchStats>>(
         future: _statsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFFFF3B30)));
+            return const Center(child: CircularProgressIndicator(color: AppColors.coral));
           }
-
-          List<PlayerMatchStats> allPlayers = [];
-          bool isDummy = false;
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-             allPlayers = [
-               PlayerMatchStats(playerName: "Spiller En", teamName: "Team A")..kills=15..sideoutPoints=15..blocks=5..aces=5,
-               PlayerMatchStats(playerName: "Spiller To", teamName: "Team B")..kills=10..sideoutPoints=12..blocks=8..aces=2,
-               PlayerMatchStats(playerName: "Spiller Tre", teamName: "Team A")..kills=6..sideoutPoints=10..blocks=4..aces=8,
-               PlayerMatchStats(playerName: "Spiller Fire", teamName: "Team C")..kills=9..sideoutPoints=8..blocks=2..aces=4..setAssists=40..setAttempts=50,
-             ];
-             isDummy = true;
-          } else {
-             allPlayers = snapshot.data!;
+            return RefreshIndicator(
+              onRefresh: _refreshStats,
+              color: AppColors.coral,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  SizedBox(height: 200),
+                  Center(child: Text('Ingen statistikk registrert enda.')),
+                ],
+              ),
+            );
           }
 
-          final pointsList = List<PlayerMatchStats>.from(allPlayers)
-            ..sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
-          final sideoutList = List<PlayerMatchStats>.from(allPlayers)
-            ..sort((a, b) => b.sideoutPoints.compareTo(a.sideoutPoints));
-          final blocksList = List<PlayerMatchStats>.from(allPlayers)
-            ..sort((a, b) => b.blocks.compareTo(a.blocks));
+          List<PlayerMatchStats> allPlayers = snapshot.data!;
+
+          final pointsList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
+          final sideoutList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.sideoutPoints.compareTo(a.sideoutPoints));
+          final blocksList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.blocks.compareTo(a.blocks));
           final settersList = List<PlayerMatchStats>.from(allPlayers)
             ..sort((a, b) {
-               double aPct = a.setAttempts == 0 ? 0 : (a.setAssists / a.setAttempts);
-               double bPct = b.setAttempts == 0 ? 0 : (b.setAssists / b.setAttempts);
-               return bPct.compareTo(aPct);
+              double aPct = a.setAttempts == 0 ? 0 : (a.setAssists / a.setAttempts);
+              double bPct = b.setAttempts == 0 ? 0 : (b.setAssists / b.setAttempts);
+              return bPct.compareTo(aPct);
             });
-          final serverList = List<PlayerMatchStats>.from(allPlayers)
-            ..sort((a, b) => b.aces.compareTo(a.aces));
+          final serverList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.aces.compareTo(a.aces));
 
-          return RefreshIndicator(
-            onRefresh: _refreshStats,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (isDummy)
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.info_outline, color: Colors.orange),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              "Ingen data funnet. Viser eksempeldata for layout.",
-                              style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
+          return Column(
+            children: [
+              const SeasonHeroWidget(
+                title: 'STATS',
+                description: 'Hvem leder, og hvem har flest serveess?',
+              ),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: _refreshStats,
+                  color: AppColors.coral,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, AppTheme.sectionGap, AppTheme.pageHPad, 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                  // All players button
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const PlayersListPage()),
-                      );
-                    },
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PlayersListPage())),
                     child: Container(
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF2C2C2E), Color(0xFF1C1C1E)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.5),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
+                        gradient: AppColors.heroNavy,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                        boxShadow: AppTheme.shadowLg,
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: AppTheme.cardPad),
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFF3B30).withOpacity(0.2),
+                              color: AppColors.coral.withOpacity(0.2),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.groups_rounded, color: Color(0xFFFF3B30), size: 28),
+                            child: const Icon(Icons.groups_rounded, color: AppColors.coral, size: 26),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 14),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'ALL PLAYERS',
-                                  style: GoogleFonts.montserrat(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 18,
-                                    color: Colors.white,
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Se alle registrerte spillere og profiler',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    color: Colors.grey[400],
-                                  ),
-                                ),
+                                Text('ALLE SPILLERE', style: AppText.dispKicker(14).copyWith(color: Colors.white)),
+                                const SizedBox(height: 3),
+                                Text('Se alle registrerte spillere og profiler',
+                                    style: AppText.uiCaption.copyWith(color: Colors.white.withOpacity(0.6))),
                               ],
                             ),
                           ),
-                          const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 18),
+                          const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppTheme.sectionGap),
 
                   StatsCategoryCard(
-                    title: "Toppscorer",
+                    title: 'Toppscorer',
                     icon: Icons.emoji_events,
-                    color: Colors.orange,
+                    accentColor: AppColors.coral,
                     players: pointsList,
-                    valueFormatter: (p) => "${p.totalPoints} p",
-                    onTap: () => _navigateToDetails(context, allPlayers, "Toppscorer"),
+                    valueFormatter: (p) => '${p.totalPoints} p',
+                    onTap: () => _navigateToDetails(context, allPlayers, 'Toppscorer'),
                   ),
-                  const SizedBox(height: 20),
-                  
+                  const SizedBox(height: AppTheme.rowGap),
                   StatsCategoryCard(
-                    title: "Sideout-maskin",
+                    title: 'Sideout-maskin',
                     icon: Icons.compare_arrows,
-                    color: Colors.blueAccent,
+                    accentColor: AppColors.blue,
                     players: sideoutList,
-                    valueFormatter: (p) => "${p.sideoutPoints} p",
-                    onTap: () => _navigateToDetails(context, allPlayers, "Sideout"),
+                    valueFormatter: (p) => '${p.sideoutPoints} p',
+                    onTap: () => _navigateToDetails(context, allPlayers, 'Sideout'),
                   ),
-                  const SizedBox(height: 20),
-
+                  const SizedBox(height: AppTheme.rowGap),
                   StatsCategoryCard(
-                    title: "Blokk-monster",
+                    title: 'Blokk-monster',
                     icon: Icons.front_hand,
-                    color: Colors.redAccent,
+                    accentColor: AppColors.coral,
                     players: blocksList,
-                    valueFormatter: (p) => "${p.blocks} blk",
-                    onTap: () => _navigateToDetails(context, allPlayers, "Blokk"),
+                    valueFormatter: (p) => '${p.blocks} blk',
+                    onTap: () => _navigateToDetails(context, allPlayers, 'Blokk'),
                   ),
-                  const SizedBox(height: 20),
-
+                  const SizedBox(height: AppTheme.rowGap),
                   StatsCategoryCard(
-                    title: "Legge-maestro",
+                    title: 'Legge-maestro',
                     icon: Icons.sports_volleyball,
-                    color: Colors.green,
+                    accentColor: AppColors.green,
                     players: settersList,
                     valueFormatter: (p) => p.settingEfficiency,
-                    onTap: () => _navigateToDetails(context, allPlayers, "Legging"),
+                    onTap: () => _navigateToDetails(context, allPlayers, 'Legging'),
                   ),
-                  const SizedBox(height: 20),
-
+                  const SizedBox(height: AppTheme.rowGap),
                   StatsCategoryCard(
-                    title: "Serve-Konge",
+                    title: 'Serve-Konge',
                     icon: Icons.flash_on,
-                    color: Colors.deepPurple,
+                    accentColor: AppColors.blue,
                     players: serverList,
-                    valueFormatter: (p) => "${p.aces} ess",
-                    onTap: () => _navigateToDetails(context, allPlayers, "Serve"),
+                    valueFormatter: (p) => '${p.aces} ess',
+                    onTap: () => _navigateToDetails(context, allPlayers, 'Serve'),
                   ),
-                  const SizedBox(height: 40),
                 ],
               ),
             ),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -314,7 +247,7 @@ class _StatsRootPageState extends State<StatsRootPage> {
 class StatsCategoryCard extends StatelessWidget {
   final String title;
   final IconData icon;
-  final Color color;
+  final Color accentColor;
   final List<PlayerMatchStats> players;
   final String Function(PlayerMatchStats) valueFormatter;
   final VoidCallback onTap;
@@ -323,7 +256,7 @@ class StatsCategoryCard extends StatelessWidget {
     super.key,
     required this.title,
     required this.icon,
-    required this.color,
+    required this.accentColor,
     required this.players,
     required this.valueFormatter,
     required this.onTap,
@@ -340,107 +273,77 @@ class StatsCategoryCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white10),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.5), 
-              blurRadius: 10, 
-              offset: const Offset(0, 4)
-            )
-          ],
+          color: AppColors.sand0,
+          borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+          boxShadow: AppTheme.shadowSm,
         ),
         child: Column(
           children: [
-            // HEADER
+            // Header
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: AppTheme.cardPad),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
-                borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
+                color: accentColor.withOpacity(0.10),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.radiusCard)),
               ),
               child: Row(
                 children: [
-                  Icon(icon, color: color),
+                  Icon(icon, color: accentColor, size: 20),
                   const SizedBox(width: 10),
-                  Text(
-                    title, 
-                    style: GoogleFonts.montserrat(
-                      color: Colors.white, 
-                      fontWeight: FontWeight.bold, 
-                      fontSize: 16
-                    )
-                  ),
+                  Text(title, style: AppText.dispKicker(14).copyWith(color: AppColors.ink)),
                   const Spacer(),
-                  const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+                  Icon(Icons.arrow_forward_ios, color: AppColors.ink3, size: 14),
                 ],
               ),
             ),
 
-            // VINNER (STOR)
+            // Winner
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
                   CircleAvatar(
-                    radius: 40,
-                    backgroundColor: color.withOpacity(0.2),
+                    radius: 38,
+                    backgroundColor: accentColor.withOpacity(0.15),
                     backgroundImage: winner.imageUrl.isNotEmpty ? NetworkImage(winner.imageUrl) : null,
-                    child: winner.imageUrl.isEmpty ? Text(
-                      winner.playerName.isEmpty ? "?" : winner.playerName.substring(0, 1).toUpperCase(),
-                      style: GoogleFonts.montserrat(fontSize: 32, fontWeight: FontWeight.bold, color: color),
-                    ) : null,
+                    child: winner.imageUrl.isEmpty
+                        ? Text(
+                            winner.playerName.isEmpty ? '?' : winner.playerName.substring(0, 1).toUpperCase(),
+                            style: AppText.dispScore(28).copyWith(color: accentColor),
+                          )
+                        : null,
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    winner.playerName, 
-                    style: GoogleFonts.inter(
-                      fontSize: 20, 
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    )
-                  ),
-                  if (winner.teamName.isNotEmpty)
-                    Text(
-                      winner.teamName, 
-                      style: GoogleFonts.inter(color: Colors.grey[400], fontSize: 13)
-                    ),
+                  const SizedBox(height: 10),
+                  Text(winner.playerName, style: AppText.uiTitle.copyWith(fontSize: 17)),
+                  if (winner.teamName.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(winner.teamName, style: AppText.uiCaption),
+                  ],
                   const SizedBox(height: 8),
-                  Text(
-                    valueFormatter(winner),
-                    style: GoogleFonts.montserrat(
-                      fontSize: 26, 
-                      fontWeight: FontWeight.w900, 
-                      color: color
-                    ),
-                  ),
+                  Text(valueFormatter(winner), style: AppText.dispScore(28).copyWith(color: accentColor)),
                 ],
               ),
             ),
 
-            // RUNNERS UP
+            // Runners up
             if (runnersUp.isNotEmpty)
               Container(
-                decoration: const BoxDecoration(
-                  color: Color(0xFF161616),
-                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16)),
+                decoration: BoxDecoration(
+                  color: AppColors.sand1,
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppTheme.radiusCard)),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Column(
                   children: runnersUp.asMap().entries.map((entry) {
-                    final index = entry.key + 2; 
+                    final index = entry.key + 2;
                     final player = entry.value;
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: AppTheme.cardPad, vertical: 7),
                       child: Row(
                         children: [
                           SizedBox(
-                            width: 24,
-                            child: Text(
-                              "$index.", 
-                              style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.grey[500])
-                            ),
+                            width: 22,
+                            child: Text('$index.', style: AppText.monoMd.copyWith(color: AppColors.ink3)),
                           ),
                           if (player.imageUrl.isNotEmpty)
                             Padding(
@@ -448,27 +351,13 @@ class StatsCategoryCard extends StatelessWidget {
                               child: CircleAvatar(
                                 radius: 12,
                                 backgroundImage: NetworkImage(player.imageUrl),
-                                backgroundColor: Colors.white10,
+                                backgroundColor: AppColors.sand2,
                               ),
                             )
                           else
                             const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              player.playerName, 
-                              style: GoogleFonts.inter(
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey[300],
-                              )
-                            )
-                          ),
-                          Text(
-                            valueFormatter(player), 
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white
-                            )
-                          ),
+                          Expanded(child: Text(player.playerName, style: AppText.uiTitle.copyWith(fontSize: 13))),
+                          Text(valueFormatter(player), style: AppText.monoMd.copyWith(fontWeight: FontWeight.w700, color: AppColors.ink)),
                         ],
                       ),
                     );

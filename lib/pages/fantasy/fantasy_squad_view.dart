@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'models.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/app_theme.dart';
 
 class FantasySquadView extends StatelessWidget {
   final Map<String, String?> selectedPlayers;
@@ -22,6 +25,8 @@ class FantasySquadView extends StatelessWidget {
       player = matches.isNotEmpty ? matches.first : null;
     }
 
+    final isLinked = player != null && player.id == linkedPlayerId;
+
     return GestureDetector(
       onTap: () {
         if (player != null) {
@@ -34,66 +39,47 @@ class FantasySquadView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: width * 0.15,
-            height: width * 0.15,
+            width: width * 0.14,
+            height: width * 0.14,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: player != null ? const Color(0xFF1E3A8A) : Colors.black45,
+              color: player != null ? AppColors.blue : AppColors.sand2,
               border: Border.all(
-                color: player != null ? const Color(0xFF00FFCC) : Colors.white54,
-                width: 2,
+                color: player != null ? AppColors.coral : AppColors.ink3,
+                width: player != null ? 2.5 : 1.5,
               ),
-              boxShadow: player != null
-                  ? [
-                      BoxShadow(
-                        color: const Color(0xFF00FFCC).withValues(alpha: 0.5),
-                        blurRadius: 10,
-                        spreadRadius: 1,
-                      )
-                    ]
-                  : [],
+              boxShadow: player != null ? AppTheme.shadowSm : [],
             ),
             child: player != null && player.imageUrl.isNotEmpty
                 ? ClipOval(child: Image.network(player.imageUrl, fit: BoxFit.cover))
                 : Icon(
                     player != null ? Icons.person : Icons.person_add,
-                    color: Colors.white,
-                    size: width * 0.08,
+                    color: player != null ? Colors.white : AppColors.ink3,
+                    size: width * 0.07,
                   ),
           ),
           const SizedBox(height: 4),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
             decoration: BoxDecoration(
-              color: Colors.black87,
-              borderRadius: BorderRadius.circular(4),
+              color: isLinked ? AppColors.coral : AppColors.ink.withOpacity(0.85),
+              borderRadius: BorderRadius.circular(AppTheme.radiusChip),
             ),
             child: Text(
-              player != null ? (player.id == linkedPlayerId ? 'MEG' : player.name.split(' ').last) : role,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
+              player != null ? (isLinked ? 'MEG' : player.name.split(' ').last) : role,
+              style: AppText.monoSmLight.copyWith(fontSize: 9),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           if (player != null)
             Container(
-              margin: const EdgeInsets.only(top: 2.0),
+              margin: const EdgeInsets.only(top: 2),
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFF00FFCC).withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(4),
+                color: AppColors.coral.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(AppTheme.radiusChip),
               ),
-              child: Text(
-                '${player.price}m',
-                style: const TextStyle(
-                  color: Color(0xFF00FFCC),
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Text('${player.price}m', style: AppText.monoSm.copyWith(color: AppColors.coral, fontSize: 9)),
             ),
         ],
       ),
@@ -105,7 +91,6 @@ class FantasySquadView extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        // Calculate total team value
         double totalValue = 0;
         int totalPoints = 0;
         for (var playerId in selectedPlayers.values) {
@@ -121,139 +106,121 @@ class FantasySquadView extends StatelessWidget {
 
         return Column(
           children: [
-            // Stats Header
+            // Stats header
             Container(
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.all(AppTheme.cardPad),
+              margin: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 12, AppTheme.pageHPad, 0),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1E3A8A), Color(0xFF0A1931)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
+                gradient: AppColors.heroNavy,
+                borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                boxShadow: AppTheme.shadowLg,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildStatItem('Points', totalPoints.toString()),
-                  _buildStatItem('Budget', '\$${(50.0 - totalValue).toStringAsFixed(1)}m'),
-                  _buildStatItem('Value', '\$${totalValue.toStringAsFixed(1)}m'),
+                  _buildStatItem('Poeng', totalPoints.toString()),
+                  Container(width: 1, height: 32, color: Colors.white.withOpacity(0.15)),
+                  _buildStatItem('Budsjett', '\$${(50.0 - totalValue).toStringAsFixed(1)}m'),
+                  Container(width: 1, height: 32, color: Colors.white.withOpacity(0.15)),
+                  _buildStatItem('Verdi', '\$${totalValue.toStringAsFixed(1)}m'),
                 ],
               ),
             ),
-            
-            // Deadline Info
+
+            // Deadline banner
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              margin: const EdgeInsets.only(bottom: 8),
+              margin: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 10, AppTheme.pageHPad, 0),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
               decoration: BoxDecoration(
-                color: Colors.redAccent.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.redAccent, width: 1),
+                color: AppColors.coral.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(AppTheme.radiusRow),
+                border: Border.all(color: AppColors.coral.withOpacity(0.4)),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.timer, color: Colors.white, size: 16),
-                  SizedBox(width: 8),
-                  Text(
-                    'Tidsfrist for neste runde: I morgen kl 18:00',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
+                  const Icon(Icons.timer_outlined, color: AppColors.coral, size: 15),
+                  const SizedBox(width: 8),
+                  Text('Tidsfrist for neste runde: I morgen kl 18:00',
+                      style: AppText.monoSm.copyWith(color: AppColors.coral)),
                 ],
               ),
             ),
-            
-            // Pitch Area
+
+            // Pitch area
             Expanded(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                margin: const EdgeInsets.all(AppTheme.pageHPad),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: const Color(0xFFD2B48C), // Sand color
-                  image: const DecorationImage(
-                    image: AssetImage('assets/sand_texture.png'), // Will fallback nicely if not exists
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                      Colors.black26,
-                      BlendMode.darken,
-                    ),
-                  ),
-                  border: Border.all(color: Colors.white24, width: 2),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                  color: const Color(0xFFD4B896),
+                  border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+                  boxShadow: AppTheme.shadowSm,
                 ),
                 child: Stack(
                   children: [
-                    // Court lines (Top half)
+                    // Court lines
                     Positioned.fill(
-                      child: Column(
-                        children: [
-                          Container(
-                            height: 4,
-                            color: Colors.white70, // Net
-                          ),
-                          Expanded(
-                            child: Container(
-                              margin: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.white70, width: 2),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                margin: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                            Container(height: 2, color: Colors.white.withOpacity(0.7)),
+                            Expanded(
+                              child: Container(
+                                margin: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    
-                    // Players Positioned
-                    // Net (Blokk)
+
+                    // Players
                     Positioned(
-                      top: 40,
+                      top: 32,
                       left: 0,
                       right: 0,
-                      child: Center(
-                        child: _buildPlayerSlot(context, FantasyRole.block, selectedPlayers[FantasyRole.block], width),
-                      ),
+                      child: Center(child: _buildPlayerSlot(context, FantasyRole.block, selectedPlayers[FantasyRole.block], width)),
                     ),
-                    
-                    // Middle (Angrep, Legg)
                     Positioned(
-                      top: 140,
-                      left: width * 0.15,
+                      top: width * 0.32,
+                      left: width * 0.12,
                       child: _buildPlayerSlot(context, FantasyRole.attack, selectedPlayers[FantasyRole.attack], width),
                     ),
                     Positioned(
-                      top: 140,
-                      right: width * 0.15,
+                      top: width * 0.32,
+                      right: width * 0.12,
                       child: _buildPlayerSlot(context, FantasyRole.set, selectedPlayers[FantasyRole.set], width),
                     ),
-                    
-                    // Back (Mottak, Forsvar)
                     Positioned(
-                      bottom: 120,
-                      left: width * 0.15,
+                      bottom: width * 0.28,
+                      left: width * 0.12,
                       child: _buildPlayerSlot(context, FantasyRole.receive, selectedPlayers[FantasyRole.receive], width),
                     ),
                     Positioned(
-                      bottom: 120,
-                      right: width * 0.15,
+                      bottom: width * 0.28,
+                      right: width * 0.12,
                       child: _buildPlayerSlot(context, FantasyRole.defense, selectedPlayers[FantasyRole.defense], width),
                     ),
-                    
-                    // Serve (Deep back)
                     Positioned(
-                      bottom: 20,
+                      bottom: 24,
                       left: 0,
                       right: 0,
-                      child: Center(
-                        child: _buildPlayerSlot(context, FantasyRole.serve, selectedPlayers[FantasyRole.serve], width),
-                      ),
+                      child: Center(child: _buildPlayerSlot(context, FantasyRole.serve, selectedPlayers[FantasyRole.serve], width)),
                     ),
                   ],
                 ),
@@ -268,22 +235,9 @@ class FantasySquadView extends StatelessWidget {
   Widget _buildStatItem(String label, String value) {
     return Column(
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-          ),
-        ),
+        Text(label, style: AppText.monoSmLight.copyWith(fontSize: 9.5)),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        Text(value, style: AppText.dispH2(18).copyWith(color: Colors.white)),
       ],
     );
   }
@@ -291,9 +245,9 @@ class FantasySquadView extends StatelessWidget {
   void _showPlayerOptions(BuildContext context, String role, FantasyPlayer player) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E3A8A),
+      backgroundColor: AppColors.sand0,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusCard)),
       ),
       builder: (context) {
         return Padding(
@@ -305,41 +259,33 @@ class FantasySquadView extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    width: 60,
-                    height: 60,
+                    width: 58,
+                    height: 58,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF00FFCC), width: 2),
+                      border: Border.all(color: AppColors.coral, width: 2.5),
+                      color: AppColors.sand2,
                     ),
                     child: player.imageUrl.isNotEmpty
                         ? ClipOval(child: Image.network(player.imageUrl, fit: BoxFit.cover))
-                        : const Icon(Icons.person, color: Colors.white, size: 40),
+                        : const Icon(Icons.person, color: AppColors.ink2, size: 32),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          player.name,
-                          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          '${player.team} - $role',
-                          style: const TextStyle(color: Colors.white70),
-                        ),
+                        Text(player.name, style: AppText.dispH2(18)),
+                        Text('${player.team} · $role', style: AppText.uiCaption),
                       ],
                     ),
                   ),
-                  Text(
-                    '${player.totalPoints} pts',
-                    style: const TextStyle(color: Color(0xFF00FFCC), fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
+                  Text('${player.totalPoints} pts', style: AppText.dispScore(24).copyWith(color: AppColors.coral)),
                 ],
               ),
-              const SizedBox(height: 24),
-              const Text('Poengoversikt:', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
+              const SizedBox(height: 20),
+              Text('Poengoversikt:', style: AppText.dispKicker()),
+              const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -349,21 +295,16 @@ class FantasySquadView extends StatelessWidget {
                   _buildDetailStat('Forsvar', player.digs.toString()),
                 ],
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
-                    onRoleTap(role); // Åpne byttespiller skjermen
+                    onRoleTap(role);
                   },
                   icon: const Icon(Icons.swap_horiz),
                   label: const Text('Bytt Spiller'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF3B30),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
                 ),
               ),
             ],
@@ -376,8 +317,8 @@ class FantasySquadView extends StatelessWidget {
   Widget _buildDetailStat(String label, String value) {
     return Column(
       children: [
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+        Text(value, style: AppText.dispH2(20)),
+        Text(label, style: AppText.uiCaption),
       ],
     );
   }

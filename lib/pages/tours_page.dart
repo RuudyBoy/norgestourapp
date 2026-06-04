@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'tour_detail_page.dart';
 import '../widgets/profile_avatar_widget.dart';
+import '../widgets/season_hero_widget.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../theme/app_theme.dart';
 
 class ToursPage extends StatelessWidget {
   const ToursPage({super.key});
@@ -10,113 +13,53 @@ class ToursPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text(
-          'TOURNAMENTS',
-          style: GoogleFonts.montserrat(
-            fontWeight: FontWeight.w900,
-            fontStyle: FontStyle.italic,
-            letterSpacing: 1.5,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
+        title: Text('TOURS', style: AppText.dispH2(20)),
         leadingWidth: 80,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0),
-          child: Image.asset('assets/images/spikedunk_logo.png', fit: BoxFit.contain),
+          child: Image.asset('assets/images/ntlogo.png', fit: BoxFit.contain),
         ),
         actions: const [ProfileAvatarWidget()],
       ),
       body: Column(
         children: [
-          // --- HEADER IMAGE ---
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Image.network(
-                'https://images.unsplash.com/photo-1559164342-b31f433a0b17?q=80&w=2070&auto=format&fit=crop',
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 200,
-                    color: const Color(0xFF1E1E1E),
-                    child: const Icon(Icons.golf_course, color: Colors.grey, size: 60),
-                  );
-                },
-              ),
-              Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      const Color(0xFF121212),
-                    ],
-                  ),
-                ),
-              ),
-              Text(
-                'SEASON 2025',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.montserrat(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w900,
-                  fontStyle: FontStyle.italic,
-                  shadows: [
-                    const Shadow(
-                      blurRadius: 8.0,
-                      color: Colors.black,
-                      offset: Offset(2.0, 2.0),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          const SeasonHeroWidget(
+            title: 'TOURS',
+            description: 'Finn din neste turnering og meld deg på!',
           ),
-
-          // --- LISTE OVER TURNERINGER FRA FIREBASE ---
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance.collection('tournaments').snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFFFF3B30)));
+                  return const Center(child: CircularProgressIndicator(color: AppColors.coral));
                 }
-
                 if (snapshot.hasError) {
-                  return Center(
-                    child: Text("Noe gikk galt.", style: GoogleFonts.inter(color: Colors.white)),
-                  );
+                  return Center(child: Text('Noe gikk galt.', style: AppText.uiBody));
                 }
-
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(
-                    child: Text("Ingen turneringer funnet.", style: GoogleFonts.inter(color: Colors.white)),
-                  );
+                  return Center(child: Text('Ingen turneringer funnet.', style: AppText.uiBody));
                 }
 
                 final tournaments = snapshot.data!.docs;
 
                 return ListView.builder(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.pageHPad, AppTheme.sectionGap,
+                    AppTheme.pageHPad, 32,
+                  ),
                   itemCount: tournaments.length,
                   itemBuilder: (context, index) {
                     final doc = tournaments[index];
                     final data = doc.data() as Map<String, dynamic>;
-
                     final name = data['name'] ?? 'Ukjent Navn';
                     final date = data['start_date']?.toString() ?? 'Dato kommer';
-                    final imageUrl = data['image_url'] ?? 'https://via.placeholder.com/400x200';
+                    final imageUrl = data['image_url'] ?? '';
+                    final location = data['location'] ?? '';
+                    final status = data['status'] ?? '';
 
-                    return _buildTourCard(context, doc.id, data, name, date, imageUrl);
+                    return _buildTourCard(context, doc.id, data, name, date, imageUrl, location, status);
                   },
                 );
               },
@@ -127,161 +70,148 @@ class ToursPage extends StatelessWidget {
     );
   }
 
+
   Widget _buildTourCard(
-    BuildContext context, 
-    String id, 
-    Map<String, dynamic> data, 
-    String name, 
-    String date, 
-    String imageUrl
+    BuildContext context,
+    String id,
+    Map<String, dynamic> data,
+    String name,
+    String date,
+    String imageUrl,
+    String location,
+    String status,
   ) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOut,
-      builder: (context, value, child) {
-        return Opacity(
-          opacity: value,
-          child: Transform.scale(
-            scale: 0.95 + (0.05 * value),
-            child: Container(
-              height: 240, // Set fixed height for the card so Stack can expand
-              margin: const EdgeInsets.only(bottom: 24.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
-                  )
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20.0),
-                child: Material(
-                  color: const Color(0xFF1E1E1E),
-                  child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TournamentDetailsPage(
-                        tournamentId: id,
-                        data: data,
+    final isLive = status == 'live';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.sectionGap),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+        child: Material(
+          color: AppColors.sand0,
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TournamentDetailsPage(tournamentId: id, data: data),
+                ),
+              );
+            },
+            splashColor: AppColors.coral.withOpacity(0.08),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (imageUrl.isNotEmpty)
+                  Stack(
+                    children: [
+                      Image.network(
+                        imageUrl,
+                        height: 160,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 160,
+                            decoration: BoxDecoration(gradient: AppColors.heroNavy),
+                          );
+                        },
                       ),
-                    ),
-                  );
-                },
-                hoverColor: Colors.white.withOpacity(0.05),
-                splashColor: const Color(0xFFFF3B30).withOpacity(0.1),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: const Color(0xFF1E1E1E),
-                          child: const Icon(Icons.golf_course, color: Colors.grey, size: 60),
-                        );
-                      },
-                    ),
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.3),
-                              Colors.black.withOpacity(0.9),
-                            ],
-                            stops: const [0.4, 0.7, 1.0],
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.transparent, AppColors.ink.withOpacity(0.6)],
+                              stops: const [0.5, 1.0],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      bottom: 20,
-                      left: 20,
-                      right: 20,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: GoogleFonts.montserrat(
-                              fontSize: 22.0,
-                              fontWeight: FontWeight.w900,
-                              fontStyle: FontStyle.italic,
-                              color: Colors.white,
-                              shadows: [
-                                const Shadow(
-                                  color: Colors.black87,
-                                  blurRadius: 10,
-                                  offset: Offset(0, 2),
-                                )
+                      if (isLive)
+                        Positioned(
+                          top: 12,
+                          left: 12,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.coral,
+                              borderRadius: BorderRadius.circular(AppTheme.radiusChip),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+                                const SizedBox(width: 5),
+                                Text('LIVE', style: AppText.monoSmLight),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 12.0),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFF3B30),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.calendar_today,
-                                      size: 14.0,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      date,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 12.0,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Spacer(),
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 14,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+                        ),
+                    ],
+                  )
+                else
+                  Container(
+                    height: 100,
+                    decoration: BoxDecoration(gradient: AppColors.heroNavy),
+                    child: Center(
+                      child: Text(name.toUpperCase(),
+                          style: AppText.dispH2(24).copyWith(color: Colors.white.withOpacity(0.3))),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(AppTheme.cardPad),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: isLive ? AppColors.coral : AppColors.blue,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(name, style: AppText.dispH2(20)),
+                            const SizedBox(height: 3),
+                            if (location.isNotEmpty)
+                              Text(location.toUpperCase(), style: AppText.monoSm),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: AppColors.sand2,
+                              borderRadius: BorderRadius.circular(AppTheme.radiusChip),
+                            ),
+                            child: Text(date, style: AppText.monoSm.copyWith(color: AppColors.ink2)),
                           ),
+                          const SizedBox(height: 8),
+                          const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.ink3),
                         ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
       ),
     );
-  },
-);
   }
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/services.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../theme/app_theme.dart';
 
 class PlayerDetailPage extends StatelessWidget {
   final String playerId;
@@ -15,7 +18,7 @@ class PlayerDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final firstName = playerData['first_name'] ?? '';
     final lastName = playerData['last_name'] ?? '';
-    final fullName = "$firstName $lastName";
+    final fullName = '$firstName $lastName';
     final position = playerData['position'] ?? 'Ukjent posisjon';
     final team = playerData['team'] ?? 'Ukjent lag';
     final imageUrl = playerData['image_url'] ?? playerData['image'] ?? playerData['photoUrl'] ?? playerData['photo_url'] ?? playerData['picture'] ?? '';
@@ -24,31 +27,33 @@ class PlayerDetailPage extends StatelessWidget {
     final nationality = playerData['nationality'] ?? '';
     final height = playerData['height']?.toString() ?? '';
     final weight = playerData['weight']?.toString() ?? '';
-
-    // Mock stats if not available
     final matchesPlayed = playerData['matches_played']?.toString() ?? '0';
     final goals = playerData['goals']?.toString() ?? '0';
-    final assists = playerData['assists']?.toString() ?? '0';
     final blocks = playerData['blocks']?.toString() ?? '0';
     final wins = playerData['wins']?.toString() ?? '0';
+    final assists = playerData['assists']?.toString() ?? '0';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0E0E10), // Deep dark background like the screenshot
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        systemOverlayStyle: const SystemUiOverlayStyle(statusBarBrightness: Brightness.dark),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), shape: BoxShape.circle),
+            child: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 16),
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.share, color: Colors.white, size: 20),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.bookmark_border, color: Colors.white, size: 20),
+            icon: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), shape: BoxShape.circle),
+              child: const Icon(Icons.share, color: Colors.white, size: 16),
+            ),
             onPressed: () {},
           ),
           const SizedBox(width: 8),
@@ -57,44 +62,51 @@ class PlayerDetailPage extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // --- PREMIUM HEADER ---
+            // --- HERO HEADER ---
             SizedBox(
-              height: 500, // Taller header to fit the player image properly
+              height: 460,
               child: Stack(
-                alignment: Alignment.bottomCenter,
+                fit: StackFit.expand,
                 children: [
-                  // Huge Watermark Text (Team or Last Name)
+                  // Background gradient
+                  Container(decoration: const BoxDecoration(gradient: AppColors.heroNavy)),
+
+                  // Watermark text
                   Positioned(
-                    top: 120,
+                    top: 100,
+                    left: -20,
+                    right: -20,
                     child: Text(
                       (team.isNotEmpty ? team : lastName).toUpperCase(),
-                      style: GoogleFonts.montserrat(
-                        fontSize: 120,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white.withOpacity(0.03), // Very subtle watermark
-                        letterSpacing: -5,
+                      style: AppText.dispScore(110).copyWith(
+                        color: Colors.white.withOpacity(0.04),
+                        letterSpacing: -4,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.clip,
+                      textAlign: TextAlign.center,
                     ),
                   ),
 
-                  // Player Image (Transparent PNG)
+                  // Player image
                   if (imageUrl.isNotEmpty)
                     Positioned(
-                      bottom: 40, // Floating slightly above the card
+                      bottom: 60,
+                      left: 0,
+                      right: 0,
                       child: Image.network(
                         imageUrl,
-                        height: 420,
+                        height: 360,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) => const SizedBox(),
                       ),
                     ),
 
-                  // Top left Name & Team Info (like the Juve / Ronaldo text)
+                  // Player info (top left)
                   Positioned(
                     top: 100,
-                    left: 24,
+                    left: AppTheme.pageHPad,
+                    right: AppTheme.pageHPad,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -104,79 +116,42 @@ class PlayerDetailPage extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFF3B30),
-                                  borderRadius: BorderRadius.circular(4),
+                                  color: AppColors.coral,
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
                                 ),
-                                child: Text(
-                                  jerseyNumber,
-                                  style: GoogleFonts.montserrat(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                  ),
-                                ),
+                                child: Text(jerseyNumber, style: AppText.monoSmLight),
                               ),
                             const SizedBox(width: 8),
-                            Text(
-                              team.toUpperCase(),
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey[400],
-                                letterSpacing: 1.5,
-                              ),
-                            ),
+                            Text(team.toUpperCase(), style: AppText.monoSmLight),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          fullName,
-                          style: GoogleFonts.montserrat(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            height: 1.1,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          position.toUpperCase(),
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[500],
-                            letterSpacing: 2,
-                          ),
-                        ),
+                        Text(fullName, style: AppText.dispH1(30).copyWith(color: Colors.white)),
+                        const SizedBox(height: 4),
+                        Text(position.toUpperCase(), style: AppText.monoSmLight),
                       ],
                     ),
                   ),
 
-                  // Floating Stats Card (Age, Games, Goals style)
+                  // Floating stat card
                   Positioned(
                     bottom: 0,
-                    left: 24,
-                    right: 24,
+                    left: AppTheme.pageHPad,
+                    right: AppTheme.pageHPad,
                     child: Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: AppTheme.cardPad),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1C1C24), // Dark sleek card color
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.5),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
+                        color: AppColors.sand0,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                        boxShadow: AppTheme.shadowLg,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           _buildTopStat('Kamper', matchesPlayed),
-                          Container(width: 1, height: 40, color: Colors.white10),
+                          Container(width: 1, height: 36, color: AppColors.line),
                           _buildTopStat('Poeng', goals),
-                          Container(width: 1, height: 40, color: Colors.white10),
+                          Container(width: 1, height: 36, color: AppColors.line),
                           _buildTopStat('Blokker', blocks),
                         ],
                       ),
@@ -186,62 +161,55 @@ class PlayerDetailPage extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: AppTheme.sectionGap),
 
-            // --- DETAILED STATS SECTIONS ---
+            // --- DETAILS ---
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle('DISCIPLINE & MORE'),
-                  const SizedBox(height: 16),
+                  _buildSectionKicker('Statistikk'),
+                  const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.symmetric(vertical: 18, horizontal: AppTheme.cardPad),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF16161C),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white10),
+                      color: AppColors.sand0,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                      boxShadow: AppTheme.shadowSm,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildDetailedStat(wins, 'Seiere', Colors.white),
-                        _buildDetailedStat(assists, 'Assists', Colors.white),
-                        _buildDetailedStat('0', 'Gule kort', Colors.amber),
-                        _buildDetailedStat('0', 'Røde kort', Colors.redAccent),
+                        _buildDetailedStat(wins, 'Seiere', AppColors.ink),
+                        _buildDetailedStat(assists, 'Assists', AppColors.ink),
+                        _buildDetailedStat('0', 'Gule kort', Colors.amber.shade700),
+                        _buildDetailedStat('0', 'Røde kort', AppColors.coral),
                       ],
                     ),
                   ),
-                  
-                  const SizedBox(height: 32),
 
-                  _buildSectionTitle('FYSISKE EGENSKAPER'),
-                  const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF16161C),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white10),
+                  if (height.isNotEmpty || weight.isNotEmpty || birthDate.isNotEmpty || nationality.isNotEmpty) ...[
+                    const SizedBox(height: AppTheme.sectionGap),
+                    _buildSectionKicker('Profil'),
+                    const SizedBox(height: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.sand0,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                        boxShadow: AppTheme.shadowSm,
+                      ),
+                      child: Column(
+                        children: [
+                          if (height.isNotEmpty) _buildListTile('Høyde', '$height cm'),
+                          if (weight.isNotEmpty) ...[const Divider(height: 1), _buildListTile('Vekt', '$weight kg')],
+                          if (birthDate.isNotEmpty) ...[const Divider(height: 1), _buildListTile('Født', birthDate)],
+                          if (nationality.isNotEmpty) ...[const Divider(height: 1), _buildListTile('Nasjonalitet', nationality)],
+                        ],
+                      ),
                     ),
-                    child: Column(
-                      children: [
-                        if (height.isNotEmpty) _buildListTile('Høyde', '$height cm'),
-                        if (weight.isNotEmpty) ...[
-                          const Divider(color: Colors.white10, height: 1),
-                          _buildListTile('Vekt', '$weight kg'),
-                        ],
-                        if (birthDate.isNotEmpty) ...[
-                          const Divider(color: Colors.white10, height: 1),
-                          _buildListTile('Født', birthDate),
-                        ],
-                        if (nationality.isNotEmpty) ...[
-                          const Divider(color: Colors.white10, height: 1),
-                          _buildListTile('Nasjonalitet', nationality),
-                        ],
-                      ],
-                    ),
-                  ),
+                  ],
+
                   const SizedBox(height: 40),
                 ],
               ),
@@ -252,27 +220,23 @@ class PlayerDetailPage extends StatelessWidget {
     );
   }
 
+  Widget _buildSectionKicker(String label) {
+    return Row(
+      children: [
+        Container(width: 14, height: 3, decoration: BoxDecoration(color: AppColors.coral, borderRadius: BorderRadius.circular(2))),
+        const SizedBox(width: 8),
+        Text(label.toUpperCase(), style: AppText.dispKicker()),
+      ],
+    );
+  }
+
   Widget _buildTopStat(String label, String value) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey[500],
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: GoogleFonts.montserrat(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
+        Text(label, style: AppText.monoSm),
+        const SizedBox(height: 6),
+        Text(value, style: AppText.dispScore(26)),
       ],
     );
   }
@@ -280,65 +244,23 @@ class PlayerDetailPage extends StatelessWidget {
   Widget _buildDetailedStat(String value, String label, Color valueColor) {
     return Column(
       children: [
-        Text(
-          value,
-          style: GoogleFonts.montserrat(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: valueColor,
-          ),
-        ),
+        Text(value, style: AppText.dispH2(22).copyWith(color: valueColor)),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 11,
-            color: Colors.grey[600],
-            height: 1.2,
-          ),
-          textAlign: TextAlign.center,
-        ),
+        Text(label, style: AppText.monoSm, textAlign: TextAlign.center),
       ],
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.inter(
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-        letterSpacing: 2,
-      ),
     );
   }
 
   Widget _buildListTile(String title, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.cardPad, vertical: 14),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: Colors.grey[400],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text(title, style: AppText.uiCaption),
+          Text(value, style: AppText.uiTitle),
         ],
       ),
     );
   }
 }
-

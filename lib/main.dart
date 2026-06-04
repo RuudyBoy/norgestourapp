@@ -10,6 +10,7 @@ import 'pages/home_page.dart'; // Sjekk at mappen din heter 'pages' eller 'scree
 import 'pages/fantasy_page.dart';
 import 'pages/tours_page.dart';
 import 'pages/stats_root_page.dart';
+import 'theme/app_theme.dart';
 
 // --- 2. NYTT: Gjør main-funksjonen 'async' ---
 void main() async {
@@ -35,44 +36,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: Colors.transparent, // Gjør bakgrunnen transparent for å vise bildet
-        primaryColor: const Color(0xFFFF3B30),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFFFF3B30),
-          secondary: Color(0xFFFF3B30),
-          surface: Color(0xFF1E1E1E),
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF121212),
-          foregroundColor: Colors.white,
-          elevation: 0,
-          centerTitle: true,
-        ),
-        cardTheme: CardThemeData(
-          color: const Color(0xFF1E1E1E),
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        ),
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        useMaterial3: true,
-      ),
-      builder: (context, child) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.black, // Fallback
-            image: DecorationImage(
-              image: AssetImage('assets/images/bakgrunn.png'),
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: child,
-        );
-      },
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       home: const MainPage(),
     );
   }
@@ -104,7 +70,6 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,
@@ -123,30 +88,23 @@ class _MainPageState extends State<MainPage> {
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
-              label: 'Home',
+              label: 'Hjem',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.sports_esports),
+              icon: Icon(Icons.sports_volleyball),
               label: 'Fantasy',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.map),
+              icon: Icon(Icons.flag),
               label: 'Tours',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.bar_chart),
-              label: 'Stats',
+              label: 'Statistikk',
             ),
           ],
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: const Color(0xFF1E1E1E), // Dark grey
-          selectedItemColor: const Color(0xFFFF3B30), // Striking red for selected item
-          unselectedItemColor: Colors.grey,
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
-          elevation: 10,
         ),
       ),
     );

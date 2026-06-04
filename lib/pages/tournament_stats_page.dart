@@ -79,7 +79,7 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
         leadingWidth: 80,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0),
-          child: Image.asset('assets/images/spikedunk_logo.png', fit: BoxFit.contain),
+          child: Image.asset('assets/images/ntlogo.png', fit: BoxFit.contain),
         ),
       ),
       body: FutureBuilder<List<PlayerMatchStats>>(
