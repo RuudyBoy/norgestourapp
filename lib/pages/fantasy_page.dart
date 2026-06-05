@@ -4,12 +4,10 @@ import 'fantasy/fantasy_squad_view.dart';
 import 'fantasy/fantasy_leagues_view.dart';
 import 'fantasy/fantasy_player_selection.dart';
 import 'fantasy/mock_data.dart';
-import 'fantasy/fantasy_highlights_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'auth/login_page.dart';
 import '../widgets/profile_avatar_widget.dart';
-import '../widgets/season_hero_widget.dart';
 import 'fantasy/league_logic.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -148,10 +146,13 @@ class _FantasyPageState extends State<FantasyPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('FANTASY', style: AppText.dispH2(20)),
+          backgroundColor: Colors.transparent,
+          foregroundColor: AppColors.ink,
+          elevation: 0,
+          scrolledUnderElevation: 0,
           leadingWidth: 80,
           leading: Padding(
             padding: const EdgeInsets.only(left: 16.0),
@@ -168,7 +169,6 @@ class _FantasyPageState extends State<FantasyPage> {
             tabs: const [
               Tab(icon: Icon(Icons.sports_volleyball, size: 18), text: 'Mitt Lag'),
               Tab(icon: Icon(Icons.leaderboard, size: 18), text: 'Ligaer'),
-              Tab(icon: Icon(Icons.star, size: 18), text: 'Høydepunkter'),
             ],
           ),
         ),
@@ -241,10 +241,21 @@ class _FantasyPageState extends State<FantasyPage> {
                 }
 
                 return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SeasonHeroWidget(
-                      title: 'FANTASY',
-                      description: 'Bygg drømmelaget ditt og konkurrer med andre!',
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Fantasy', style: AppText.dispH2(28)),
+                          const SizedBox(height: 2),
+                          Text(
+                            _teamName ?? '',
+                            style: AppText.dispKicker(14).copyWith(color: AppColors.coral),
+                          ),
+                        ],
+                      ),
                     ),
                     Expanded(
                       child: TabBarView(
@@ -256,7 +267,6 @@ class _FantasyPageState extends State<FantasyPage> {
                             onRoleTap: (role) => _openPlayerSelection(role, players, ownershipPercentages),
                           ),
                           FantasyLeaguesView(players: players),
-                          FantasyHighlightsView(players: players),
                         ],
                       ),
                     ),

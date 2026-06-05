@@ -13,8 +13,12 @@ class ToursPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('TOURS', style: AppText.dispH2(20)),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         leadingWidth: 80,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0),

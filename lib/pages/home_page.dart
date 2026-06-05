@@ -1,63 +1,96 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'fantasy_page.dart';
 import 'tours_page.dart';
 import 'tournament_stats_page.dart';
 import 'match_stats_page.dart';
+import 'tour_detail_page.dart';
+import 'fantasy/mock_data.dart';
 import '../widgets/profile_avatar_widget.dart';
 import '../widgets/season_hero_widget.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_theme.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   final Function(int)? onTabSelected;
 
   const HomePage({super.key, this.onTabSelected});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: Image.asset('assets/images/ntlogo.png', height: 60, fit: BoxFit.contain),
-        actions: const [ProfileAvatarWidget()],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SeasonHeroWidget(
-              title: 'NT',
-              description: 'Gjør deg klar for sesongen 2026!',
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-              const SizedBox(height: 8),
-              _buildLiveMatches(context),
-              const SizedBox(height: AppTheme.sectionGap),
-              _buildCards(context),
-              const SizedBox(height: 30),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String? _uid;
+  String? _teamName;
+  int? _fantasyPoints;
+  StreamSubscription<User?>? _authSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user == null) {
+        if (mounted) setState(() { _uid = null; _teamName = null; _fantasyPoints = null; });
+        return;
+      }
+      if (user.uid == _uid) return;
+      _uid = user.uid;
+      _loadFantasyData(user.uid);
+    });
   }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadFantasyData(String uid) async {
+    try {
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (!userDoc.exists || !mounted) return;
+      final userData = userDoc.data()!;
+      final teamName = userData['teamName'] as String?;
+      if (teamName == null || teamName.isEmpty || teamName == 'Ukjent Lag') return;
+
+      final squadDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('fantasy')
+          .doc('squad')
+          .get();
+
+      int points = 0;
+      if (squadDoc.exists) {
+        final squadData = squadDoc.data()!;
+        final players = await fetchFantasyPlayers();
+        for (final playerId in squadData.values) {
+          if (playerId is String) {
+            final match = players.where((p) => p.id == playerId);
+            if (match.isNotEmpty) points += match.first.totalPoints;
+          }
+        }
+      }
+
+      if (mounted) setState(() { _teamName = teamName; _fantasyPoints = points; });
+    } catch (_) {}
+  }
+
+  // ── Shared kicker header ───────────────────────────────────────
 
   Widget _buildSectionKicker(String label) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
       child: Row(
         children: [
-          Container(width: 14, height: 3, decoration: BoxDecoration(color: AppColors.coral, borderRadius: BorderRadius.circular(2))),
+          Container(
+            width: 14, height: 3,
+            decoration: BoxDecoration(color: AppColors.coral, borderRadius: BorderRadius.circular(2)),
+          ),
           const SizedBox(width: 8),
           Text(label.toUpperCase(), style: AppText.dispKicker()),
         ],
@@ -65,107 +98,83 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildLiveMatches(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('matches')
-          .where('status', isEqualTo: 'live')
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const SizedBox.shrink();
-        }
+  Widget _buildKickerInline(String label) {
+    return Row(
+      children: [
+        Container(
+          width: 14, height: 3,
+          decoration: BoxDecoration(color: AppColors.coral, borderRadius: BorderRadius.circular(2)),
+        ),
+        const SizedBox(width: 8),
+        Text(label.toUpperCase(), style: AppText.dispKicker()),
+      ],
+    );
+  }
 
-        final matches = snapshot.data!.docs;
+  // ── Season timeline ────────────────────────────────────────────
+
+  Widget _buildSeasonTimeline() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('tournaments').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return const SizedBox.shrink();
+
+        final tournaments = snapshot.data!.docs;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionKicker('Live nå'),
+            _buildSectionKicker('Sesongen 2026'),
             const SizedBox(height: 12),
             SizedBox(
-              height: 150,
+              height: 40,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
-                itemCount: matches.length,
+                itemCount: tournaments.length,
                 itemBuilder: (context, index) {
-                  final data = matches[index].data() as Map<String, dynamic>;
-                  final matchId = matches[index].id;
-                  final teamA = data['team_a_name'] ?? 'Lag A';
-                  final teamB = data['team_b_name'] ?? 'Lag B';
-                  final scoreA = data['home_score'] ?? 0;
-                  final scoreB = data['away_score'] ?? 0;
-                  final set = data['current_set'] ?? 1;
+                  final data = tournaments[index].data() as Map<String, dynamic>;
+                  final name = data['name'] ?? 'Tour ${index + 1}';
+                  final status = (data['status'] ?? '') as String;
+                  final isLive = status == 'live';
+                  final isDone = status == 'completed' || status == 'finished';
+
+                  final bgColor = isLive
+                      ? AppColors.coral
+                      : isDone
+                          ? AppColors.greenLight
+                          : AppColors.sand2;
+                  final textColor = isLive
+                      ? Colors.white
+                      : isDone
+                          ? AppColors.green
+                          : AppColors.ink2;
 
                   return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MatchStatsPage(
-                            matchId: matchId,
-                            teamAName: teamA,
-                            teamBName: teamB,
-                          ),
-                        ),
-                      );
-                    },
+                    onTap: () => widget.onTabSelected?.call(2),
                     child: Container(
-                      width: 270,
-                      margin: const EdgeInsets.only(right: AppTheme.rowGap),
-                      padding: const EdgeInsets.all(AppTheme.cardPad),
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        gradient: AppColors.heroNavy,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-                        boxShadow: AppTheme.shadowLg,
+                        color: bgColor,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusChip),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: AppColors.coral,
-                                  borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
-                                    const SizedBox(width: 5),
-                                    Text('LIVE · SETT $set', style: AppText.monoSmLight),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Spacer(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(teamA.toUpperCase(),
-                                    style: AppText.dispH2(18).copyWith(color: Colors.white),
-                                    overflow: TextOverflow.ellipsis),
-                              ),
-                              Text('$scoreA', style: AppText.dispScore(32).copyWith(color: Colors.white)),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(teamB.toUpperCase(),
-                                    style: AppText.dispH2(18).copyWith(color: Colors.white.withOpacity(0.7)),
-                                    overflow: TextOverflow.ellipsis),
-                              ),
-                              Text('$scoreB',
-                                  style: AppText.dispScore(32).copyWith(color: Colors.white.withOpacity(0.7))),
-                            ],
+                          if (isLive) ...[
+                            Container(
+                              width: 5, height: 5,
+                              margin: const EdgeInsets.only(right: 5),
+                              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                            ),
+                          ] else if (isDone) ...[
+                            const Icon(Icons.check, size: 10, color: AppColors.green),
+                            const SizedBox(width: 4),
+                          ],
+                          Text(
+                            name,
+                            style: AppText.monoSm.copyWith(color: textColor, fontSize: 10),
                           ),
                         ],
                       ),
@@ -179,6 +188,314 @@ class HomePage extends StatelessWidget {
       },
     );
   }
+
+  // ── Live matches OR next tour ─────────────────────────────────
+
+  Widget _buildLiveOrNextSection(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('matches')
+          .where('status', isEqualTo: 'live')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+          return _buildLiveMatchesList(context, snapshot.data!.docs);
+        }
+        return _buildNextTourSection(context);
+      },
+    );
+  }
+
+  Widget _buildLiveMatchesList(BuildContext context, List<QueryDocumentSnapshot> matches) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionKicker('Live nå'),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 150,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
+            itemCount: matches.length,
+            itemBuilder: (context, index) {
+              final data = matches[index].data() as Map<String, dynamic>;
+              final matchId = matches[index].id;
+              final teamA = data['team_a_name'] ?? 'Lag A';
+              final teamB = data['team_b_name'] ?? 'Lag B';
+              final scoreA = data['home_score'] ?? 0;
+              final scoreB = data['away_score'] ?? 0;
+              final set = data['current_set'] ?? 1;
+
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MatchStatsPage(
+                        matchId: matchId,
+                        teamAName: teamA,
+                        teamBName: teamB,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 270,
+                  margin: const EdgeInsets.only(right: AppTheme.rowGap),
+                  padding: const EdgeInsets.all(AppTheme.cardPad),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.heroNavy,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                    boxShadow: AppTheme.shadowLg,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.coral,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+                            const SizedBox(width: 5),
+                            Text('LIVE · SETT $set', style: AppText.monoSmLight),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(teamA.toUpperCase(),
+                                style: AppText.dispH2(18).copyWith(color: Colors.white),
+                                overflow: TextOverflow.ellipsis),
+                          ),
+                          Text('$scoreA', style: AppText.dispScore(32).copyWith(color: Colors.white)),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(teamB.toUpperCase(),
+                                style: AppText.dispH2(18).copyWith(color: Colors.white.withValues(alpha: 0.7)),
+                                overflow: TextOverflow.ellipsis),
+                          ),
+                          Text('$scoreB',
+                              style: AppText.dispScore(32).copyWith(color: Colors.white.withValues(alpha: 0.7))),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNextTourSection(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('tournaments').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox.shrink();
+
+        final docs = snapshot.data!.docs;
+        final upcoming = docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final status = (data['status'] ?? '') as String;
+          return status != 'completed' && status != 'finished';
+        }).toList();
+
+        if (upcoming.isEmpty) return const SizedBox.shrink();
+
+        upcoming.sort((a, b) {
+          final aDate = ((a.data() as Map<String, dynamic>)['start_date'] ?? '').toString();
+          final bDate = ((b.data() as Map<String, dynamic>)['start_date'] ?? '').toString();
+          return aDate.compareTo(bDate);
+        });
+
+        final doc = upcoming.first;
+        final data = doc.data() as Map<String, dynamic>;
+        final name = data['name'] ?? 'Neste Tour';
+        final date = data['start_date']?.toString() ?? 'Dato kommer';
+        final location = (data['location'] ?? '') as String;
+        final imageUrl = (data['image_url'] ?? '') as String;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionKicker('Neste Tour'),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
+              child: GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TournamentDetailsPage(tournamentId: doc.id, data: data),
+                  ),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: AppColors.heroNavy,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                    boxShadow: AppTheme.shadowLg,
+                    image: imageUrl.isNotEmpty
+                        ? DecorationImage(
+                            image: NetworkImage(imageUrl),
+                            fit: BoxFit.cover,
+                            colorFilter: ColorFilter.mode(
+                              AppColors.ink.withValues(alpha: 0.55),
+                              BlendMode.darken,
+                            ),
+                          )
+                        : null,
+                  ),
+                  padding: const EdgeInsets.all(AppTheme.cardPad + 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppColors.blue.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
+                                border: Border.all(color: AppColors.blueBright.withValues(alpha: 0.5)),
+                              ),
+                              child: Text('KOMMENDE', style: AppText.monoSmLight),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(name, style: AppText.dispH1(22).copyWith(color: Colors.white)),
+                            const SizedBox(height: 4),
+                            if (location.isNotEmpty)
+                              Row(
+                                children: [
+                                  const Icon(Icons.location_on, size: 11, color: Colors.white70),
+                                  const SizedBox(width: 3),
+                                  Text(location.toUpperCase(),
+                                      style: AppText.monoSm.copyWith(color: Colors.white70)),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(AppTheme.radiusChip),
+                            ),
+                            child: Text(date, style: AppText.monoSm.copyWith(color: Colors.white)),
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                            decoration: BoxDecoration(
+                              color: AppColors.coral,
+                              borderRadius: BorderRadius.circular(AppTheme.radiusChip),
+                              boxShadow: AppTheme.shadowCoral,
+                            ),
+                            child: Text('Se mer', style: AppText.uiCta.copyWith(fontSize: 13)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ── Fantasy summary ────────────────────────────────────────────
+
+  Widget _buildFantasySummary(BuildContext context) {
+    if (_teamName == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
+      child: GestureDetector(
+        onTap: () {
+          if (widget.onTabSelected != null) {
+            widget.onTabSelected!(1);
+          } else {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const FantasyPage()));
+          }
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.heroCoral,
+            borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+            boxShadow: AppTheme.shadowCoral,
+          ),
+          padding: const EdgeInsets.all(AppTheme.cardPad + 2),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusRow),
+                ),
+                child: const Icon(Icons.sports_volleyball, color: Colors.white, size: 26),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('DITT FANTASY-LAG', style: AppText.monoSmLight.copyWith(fontSize: 10)),
+                    const SizedBox(height: 3),
+                    Text(_teamName!, style: AppText.dispH2(20).copyWith(color: Colors.white)),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${_fantasyPoints ?? 0} poeng totalt',
+                      style: AppText.uiCaption.copyWith(color: Colors.white.withValues(alpha: 0.8)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusChip),
+                ),
+                child: Text(
+                  'Se laget',
+                  style: AppText.uiCta.copyWith(color: AppColors.coral, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Explore cards ──────────────────────────────────────────────
 
   Widget _buildCards(BuildContext context) {
     return Padding(
@@ -197,10 +514,10 @@ class HomePage extends StatelessWidget {
             icon: Icons.sports_volleyball,
             iconColor: AppColors.coral,
             onTap: () {
-              if (onTabSelected != null) {
-                onTabSelected!(1);
+              if (widget.onTabSelected != null) {
+                widget.onTabSelected!(1);
               } else {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const FantasyPage()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const FantasyPage()));
               }
             },
           ),
@@ -216,10 +533,12 @@ class HomePage extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const TournamentStatsPage(
-                  tournamentId: 'nt-season',
-                  tournamentName: 'Årets NT sesong',
-                )),
+                MaterialPageRoute(
+                  builder: (_) => const TournamentStatsPage(
+                    tournamentId: 'nt-season',
+                    tournamentName: 'Årets NT sesong',
+                  ),
+                ),
               );
             },
           ),
@@ -233,25 +552,15 @@ class HomePage extends StatelessWidget {
             icon: Icons.flag,
             iconColor: AppColors.green,
             onTap: () {
-              if (onTabSelected != null) {
-                onTabSelected!(2);
+              if (widget.onTabSelected != null) {
+                widget.onTabSelected!(2);
               } else {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const ToursPage()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ToursPage()));
               }
             },
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildKickerInline(String label) {
-    return Row(
-      children: [
-        Container(width: 14, height: 3, decoration: BoxDecoration(color: AppColors.coral, borderRadius: BorderRadius.circular(2))),
-        const SizedBox(width: 8),
-        Text(label.toUpperCase(), style: AppText.dispKicker()),
-      ],
     );
   }
 
@@ -278,7 +587,7 @@ class HomePage extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-          splashColor: AppColors.coral.withOpacity(0.08),
+          splashColor: AppColors.coral.withValues(alpha: 0.08),
           child: Padding(
             padding: const EdgeInsets.all(AppTheme.cardPad),
             child: Row(
@@ -287,7 +596,7 @@ class HomePage extends StatelessWidget {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.12),
+                    color: iconColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppTheme.radiusRow),
                   ),
                   child: Icon(icon, color: iconColor, size: 28),
@@ -319,6 +628,48 @@ class HomePage extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        title: Image.asset('assets/images/ntlogo.png', height: 60, fit: BoxFit.contain),
+        actions: const [ProfileAvatarWidget()],
+      ),
+      body: Column(
+        children: [
+          const SeasonHeroWidget(
+            title: 'NT',
+            description: 'Gjør deg klar for sesongen 2026!',
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  _buildSeasonTimeline(),
+                  const SizedBox(height: AppTheme.sectionGap),
+                  _buildLiveOrNextSection(context),
+                  const SizedBox(height: AppTheme.sectionGap),
+                  _buildFantasySummary(context),
+                  if (_teamName != null) const SizedBox(height: AppTheme.sectionGap),
+                  _buildCards(context),
+                  const SizedBox(height: 30),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
