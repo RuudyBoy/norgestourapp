@@ -116,7 +116,7 @@ class _FantasyLeaguesViewState extends State<FantasyLeaguesView> {
                           ? Center(child: Text('Du er ikke med i noen private ligaer ennå.', style: AppText.uiCaption))
                           : ListView.separated(
                               itemCount: _globalLeaderboard.length,
-                              separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.line),
+                              separatorBuilder: (_, _) => const Divider(height: 1, color: AppColors.line),
                               itemBuilder: (context, index) {
                                 final entry = _globalLeaderboard[index];
                                 final isCurrentUser = entry.userId == _currentUserId;

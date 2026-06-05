@@ -10,6 +10,7 @@ import 'pages/home_page.dart'; // Sjekk at mappen din heter 'pages' eller 'scree
 import 'pages/fantasy_page.dart';
 import 'pages/tours_page.dart';
 import 'pages/stats_root_page.dart';
+import 'pages/splash_page.dart';
 import 'theme/app_theme.dart';
 
 // --- 2. NYTT: Gjør main-funksjonen 'async' ---
@@ -39,10 +40,37 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-      home: const MainPage(),
+      home: const _AppRoot(),
     );
   }
 }
+
+// ── App root: shows splash once, then main ────────────────────────────────────
+
+class _AppRoot extends StatefulWidget {
+  const _AppRoot();
+
+  @override
+  State<_AppRoot> createState() => _AppRootState();
+}
+
+class _AppRootState extends State<_AppRoot> {
+  bool _splashDone = false;
+
+  void _onGetStarted() {
+    setState(() => _splashDone = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_splashDone) {
+      return SplashPage(onGetStarted: _onGetStarted);
+    }
+    return const MainPage();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});

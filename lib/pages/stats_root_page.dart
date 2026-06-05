@@ -141,6 +141,7 @@ class _StatsRootPageState extends State<StatsRootPage> {
               const SeasonHeroWidget(
                 title: 'STATS',
                 description: 'Hvem leder, og hvem har flest serveess?',
+                playerImage: 'assets/images/8.png',
               ),
               Expanded(
                 child: RefreshIndicator(

@@ -31,6 +31,7 @@ class ToursPage extends StatelessWidget {
           const SeasonHeroWidget(
             title: 'TOURS',
             description: 'Finn din neste turnering og meld deg på!',
+            playerImage: 'assets/images/3.png',
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(

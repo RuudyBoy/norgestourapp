@@ -3,7 +3,11 @@ import 'models.dart';
 import 'league_logic.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
-import '../../theme/app_theme.dart';
+// Deep navy palette for the sports-card theme
+const Color _bg       = Color(0xFF0B1220);
+const Color _surface  = Color(0xFF111C30);
+const Color _surface2 = Color(0xFF18253E);
+const Color _border   = Color(0xFF1E2E48);
 
 class FantasySquadView extends StatefulWidget {
   final Map<String, String?> selectedPlayers;
@@ -26,6 +30,7 @@ class FantasySquadView extends StatefulWidget {
 class _FantasySquadViewState extends State<FantasySquadView> {
   bool _isLoading = true;
   LeaderboardEntry? _bestManager;
+  String? _selectedRole; // null = show all
 
   @override
   void initState() {
@@ -53,14 +58,281 @@ class _FantasySquadViewState extends State<FantasySquadView> {
       case FantasyRole.set:     return 'LEGG';
       case FantasyRole.receive: return 'MOTTAK';
       case FantasyRole.defense: return 'FORSVAR';
-      case FantasyRole.serve:   return 'SERVE';
+      case FantasyRole.serve:   return 'SERV';
       default:                  return role.toUpperCase();
     }
   }
 
-  static Color _roleColor(String role) => AppColors.coral;
+  static Color _roleAccent(String role) {
+    switch (role) {
+      case FantasyRole.block:   return const Color(0xFF4C8BFF);
+      case FantasyRole.attack:  return AppColors.coral;
+      case FantasyRole.set:     return const Color(0xFF36C87A);
+      case FantasyRole.receive: return const Color(0xFFFFB72B);
+      case FantasyRole.defense: return const Color(0xFFAA6FFF);
+      case FantasyRole.serve:   return const Color(0xFF26D4CC);
+      default:                  return AppColors.coral;
+    }
+  }
 
-  Widget _buildPlayerSlot(BuildContext context, String role, String? playerId, double width) {
+  List<String> get _visibleRoles {
+    if (_selectedRole == null) return FantasyRole.all;
+    return [_selectedRole!];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double totalValue = 0;
+    int totalPoints = 0;
+    int filledSlots = 0;
+    for (var playerId in widget.selectedPlayers.values) {
+      if (playerId != null) {
+        final matches = widget.players.where((p) => p.id == playerId);
+        if (matches.isNotEmpty) {
+          final p = matches.first;
+          totalValue += p.price;
+          totalPoints += p.totalPoints;
+          filledSlots++;
+        }
+      }
+    }
+
+    final bestBlock   = widget.players.isNotEmpty ? _getBestForStat((p) => p.blocks)   : null;
+    final bestAttack  = widget.players.isNotEmpty ? _getBestForStat((p) => p.attacks)  : null;
+    final bestSet     = widget.players.isNotEmpty ? _getBestForStat((p) => p.sets)     : null;
+    final bestReceive = widget.players.isNotEmpty ? _getBestForStat((p) => p.receives) : null;
+    final bestDefense = widget.players.isNotEmpty ? _getBestForStat((p) => p.digs)     : null;
+    final bestServe   = widget.players.isNotEmpty ? _getBestForStat((p) => p.aces)     : null;
+    final bestPlayer  = widget.players.isNotEmpty
+        ? widget.players.reduce((a, b) => a.totalPoints > b.totalPoints ? a : b)
+        : null;
+
+    return Container(
+      color: _bg,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ── Top stats bar ──────────────────────────────────────────
+            _buildTopStatsBar(filledSlots, totalValue, totalPoints),
+
+            // ── Deadline banner ────────────────────────────────────────
+            _buildDeadlineBanner(),
+
+            // ── Role filter tabs ───────────────────────────────────────
+            _buildRoleTabs(),
+
+            const SizedBox(height: 16),
+
+            // ── Player card grid ───────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: _buildPlayerGrid(),
+            ),
+
+            const SizedBox(height: 28),
+
+            // ── Highlights sections ────────────────────────────────────
+            if (widget.players.isNotEmpty) ...[
+              _buildSectionHeader('Ukens Fantasy Manager'),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+                child: _buildManagerCard(),
+              ),
+              const SizedBox(height: 24),
+              _buildSectionHeader('Ukens Beste Spiller'),
+              if (bestPlayer != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+                  child: _buildBestPlayerCard(bestPlayer),
+                ),
+              const SizedBox(height: 24),
+              _buildSectionHeader('Ukens Lag'),
+              Padding(
+                padding: const EdgeInsets.only(left: 14, bottom: 6),
+                child: Text(
+                  'Spillerne med flest poeng i hver kategori',
+                  style: AppText.uiCaption.copyWith(color: AppColors.nightInk2),
+                ),
+              ),
+              if (bestAttack != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
+                  child: _buildBestTeamCard(
+                    bestAttack, bestBlock!, bestServe!,
+                    bestDefense!, bestReceive!, bestSet!,
+                  ),
+                ),
+              const SizedBox(height: 40),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopStatsBar(int filled, double totalValue, int totalPoints) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(14, 14, 14, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _border),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Row(
+        children: [
+          _buildStatCell(
+            icon: Icons.people_alt_rounded,
+            iconColor: AppColors.coral,
+            value: '$filled/${FantasyRole.all.length}',
+            label: 'Spillere',
+          ),
+          _buildDivider(),
+          _buildStatCell(
+            icon: Icons.account_balance_wallet_rounded,
+            iconColor: const Color(0xFF36C87A),
+            value: '\$${(50.0 - totalValue).toStringAsFixed(1)}m',
+            label: 'Budsjett igjen',
+          ),
+          _buildDivider(),
+          _buildStatCell(
+            icon: Icons.star_rounded,
+            iconColor: const Color(0xFFFFB72B),
+            value: totalPoints.toString(),
+            label: 'Totalt poeng',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCell({
+    required IconData icon,
+    required Color iconColor,
+    required String value,
+    required String label,
+  }) {
+    return Expanded(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: iconColor, size: 14),
+              const SizedBox(width: 5),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontFamily: 'RobotoMono',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 3),
+          Text(label, style: TextStyle(fontSize: 10, color: AppColors.nightInk2, fontFamily: 'RobotoMono')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(width: 1, height: 36, color: _border);
+  }
+
+  Widget _buildDeadlineBanner() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 14),
+      decoration: BoxDecoration(
+        color: AppColors.coral.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.coral.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.timer_outlined, color: AppColors.coral, size: 14),
+          const SizedBox(width: 8),
+          Text(
+            'Tidsfrist for neste runde: I morgen kl 18:00',
+            style: AppText.monoSm.copyWith(color: AppColors.coral, fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoleTabs() {
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+        children: [
+          _buildRoleTab(null, 'ALLE'),
+          ...FantasyRole.all.map((r) => _buildRoleTab(r, _roleLabel(r))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoleTab(String? role, String label) {
+    final isActive = _selectedRole == role;
+    final accent = role != null ? _roleAccent(role) : Colors.white;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedRole = role),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        decoration: BoxDecoration(
+          color: isActive ? accent.withValues(alpha: 0.18) : _surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? accent : _border,
+            width: isActive ? 1.5 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'RobotoMono',
+            fontSize: 10,
+            fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+            color: isActive ? accent : AppColors.nightInk2,
+            letterSpacing: 0.8,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlayerGrid() {
+    final roles = _visibleRoles;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 10,
+        childAspectRatio: 0.62,
+      ),
+      itemCount: roles.length,
+      itemBuilder: (context, i) => _buildPlayerCard(context, roles[i]),
+    );
+  }
+
+  Widget _buildPlayerCard(BuildContext context, String role) {
+    final playerId = widget.selectedPlayers[role];
     FantasyPlayer? player;
     if (playerId != null) {
       final matches = widget.players.where((p) => p.id == playerId);
@@ -68,9 +340,8 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     }
 
     final isLinked = player != null && player.id == widget.linkedPlayerId;
-    final cardW    = width * 0.22;
-    final cardH    = width * 0.28;
-    final color    = _roleColor(role);
+    final accent   = _roleAccent(role);
+    final filled   = player != null;
 
     return GestureDetector(
       onTap: () {
@@ -80,418 +351,250 @@ class _FantasySquadViewState extends State<FantasySquadView> {
           widget.onRoleTap(role);
         }
       },
-      child: SizedBox(
-        width: cardW,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Dark card
-                Container(
-                  width: cardW,
-                  height: cardH,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    gradient: player != null
-                        ? LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              const Color(0xFF1C1C2E),
-                              Color.lerp(const Color(0xFF1C1C2E), color, 0.35)!,
-                            ],
-                          )
-                        : const LinearGradient(
-                            colors: [Color(0xFF1C1C2E), Color(0xFF252535)],
-                          ),
-                    border: Border.all(
-                      color: player != null ? AppColors.coral.withValues(alpha: 0.7) : Colors.white.withValues(alpha: 0.15),
-                      width: 1.2,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: filled
+              ? LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    _surface2,
+                    Color.lerp(_surface2, accent, 0.2)!,
+                  ],
+                )
+              : const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [_surface, Color(0xFF0F1A2E)],
+                ),
+          border: Border.all(
+            color: filled ? accent.withValues(alpha: 0.5) : _border,
+            width: filled ? 1.5 : 1,
+          ),
+          boxShadow: filled
+              ? [BoxShadow(color: accent.withValues(alpha: 0.2), blurRadius: 12, spreadRadius: 0)]
+              : [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 6)],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(13),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Player image
+              if (filled && player.imageUrl.isNotEmpty)
+                Image.network(
+                  player.imageUrl,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.topCenter,
+                  errorBuilder: (_, _, _) => _emptySlotContent(accent),
+                )
+              else if (!filled)
+                _emptySlotContent(accent),
+
+              // Bottom gradient + info overlay
+              Positioned(
+                bottom: 0, left: 0, right: 0,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [Color(0xE6050D1A), Color(0x80050D1A), Colors.transparent],
+                      stops: [0.0, 0.55, 1.0],
                     ),
-                    boxShadow: player != null
-                        ? [BoxShadow(color: AppColors.coral.withValues(alpha: 0.3), blurRadius: 10, spreadRadius: 1)]
-                        : [],
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(9),
-                    child: Stack(
-                      children: [
-                        // Player image or placeholder
-                        if (player != null && player.imageUrl.isNotEmpty)
-                          Positioned.fill(
-                            child: Image.network(
-                              player.imageUrl,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Center(
-                                child: Icon(Icons.person, color: color, size: cardW * 0.40),
-                              ),
-                            ),
-                          )
-                        else
-                          Center(
-                            child: Icon(
-                              player != null ? Icons.person : Icons.person_add_outlined,
-                              color: player != null ? color : Colors.white.withValues(alpha: 0.4),
-                              size: cardW * 0.38,
-                            ),
+                  padding: const EdgeInsets.fromLTRB(8, 24, 8, 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (filled) ...[
+                        Text(
+                          isLinked ? 'MEG' : player.name.split(' ').last,
+                          style: const TextStyle(
+                            fontFamily: 'RobotoMono',
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
                           ),
-                        // Top-left role badge
-                        Positioned(
-                          top: 5,
-                          left: 5,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: color,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              _roleLabel(role),
-                              style: AppText.monoSmLight.copyWith(fontSize: 7, color: Colors.white, letterSpacing: 0.3),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          player.team,
+                          style: TextStyle(
+                            fontFamily: 'RobotoMono',
+                            fontSize: 9,
+                            color: AppColors.nightInk2,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 5),
+                        // Points pill
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: accent,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.5), blurRadius: 6)],
+                          ),
+                          child: Text(
+                            '${player.totalPoints} pts',
+                            style: const TextStyle(
+                              fontFamily: 'RobotoMono',
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
                             ),
                           ),
                         ),
-                        // Bottom gradient overlay
-                        if (player != null)
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                              height: cardH * 0.45,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [Colors.black.withValues(alpha: 0.85), Colors.transparent],
-                                ),
-                              ),
-                            ),
+                      ] else ...[
+                        const Icon(Icons.add_circle_outline, color: Colors.white38, size: 22),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Legg til',
+                          style: TextStyle(
+                            fontFamily: 'RobotoMono',
+                            fontSize: 10,
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
+                        ),
                       ],
+                    ],
+                  ),
+                ),
+              ),
+
+              // Role badge top-left
+              Positioned(
+                top: 8, left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: accent,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    _roleLabel(role),
+                    style: const TextStyle(
+                      fontFamily: 'RobotoMono',
+                      fontSize: 7.5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ),
-                // Glowing score badge centered at bottom edge
-                if (player != null)
-                  Positioned(
-                    bottom: -10,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: isLinked ? AppColors.coral : color,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(color: color.withValues(alpha: 0.7), blurRadius: 8, spreadRadius: 0),
-                          ],
-                        ),
-                        child: Text(
-                          '${player.totalPoints}p',
-                          style: AppText.monoSm.copyWith(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w900),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            // Name
-            Text(
-              player != null
-                  ? (isLinked ? 'MEG' : player.name.split(' ').last)
-                  : 'Legg til',
-              style: AppText.monoSmLight.copyWith(
-                fontSize: 9,
-                color: player != null ? Colors.white : Colors.white.withValues(alpha: 0.5),
               ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              textAlign: TextAlign.center,
-            ),
-          ],
+
+              // Swap icon top-right when filled
+              if (filled)
+                Positioned(
+                  top: 6, right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.swap_horiz, color: Colors.white54, size: 13),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final pitchHeight = width * 1.25;
-
-        double totalValue = 0;
-        int totalPoints = 0;
-        for (var playerId in widget.selectedPlayers.values) {
-          if (playerId != null) {
-            final matches = widget.players.where((p) => p.id == playerId);
-            if (matches.isNotEmpty) {
-              final p = matches.first;
-              totalValue += p.price;
-              totalPoints += p.totalPoints;
-            }
-          }
-        }
-
-        final bestBlock   = widget.players.isNotEmpty ? _getBestForStat((p) => p.blocks)   : null;
-        final bestAttack  = widget.players.isNotEmpty ? _getBestForStat((p) => p.attacks)  : null;
-        final bestSet     = widget.players.isNotEmpty ? _getBestForStat((p) => p.sets)     : null;
-        final bestReceive = widget.players.isNotEmpty ? _getBestForStat((p) => p.receives) : null;
-        final bestDefense = widget.players.isNotEmpty ? _getBestForStat((p) => p.digs)     : null;
-        final bestServe   = widget.players.isNotEmpty ? _getBestForStat((p) => p.aces)     : null;
-        final bestPlayer  = widget.players.isNotEmpty
-            ? widget.players.reduce((a, b) => a.totalPoints > b.totalPoints ? a : b)
-            : null;
-
-        return SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Stats header
-              Container(
-                padding: const EdgeInsets.all(AppTheme.cardPad),
-                margin: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 12, AppTheme.pageHPad, 0),
-                decoration: BoxDecoration(
-                  gradient: AppColors.heroNavy,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-                  boxShadow: AppTheme.shadowLg,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildStatItem('Poeng', totalPoints.toString()),
-                    Container(width: 1, height: 32, color: Colors.white.withOpacity(0.15)),
-                    _buildStatItem('Budsjett', '\$${(50.0 - totalValue).toStringAsFixed(1)}m'),
-                    Container(width: 1, height: 32, color: Colors.white.withOpacity(0.15)),
-                    _buildStatItem('Verdi', '\$${totalValue.toStringAsFixed(1)}m'),
-                  ],
-                ),
-              ),
-
-              // Deadline banner
-              Container(
-                margin: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 10, AppTheme.pageHPad, 0),
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
-                decoration: BoxDecoration(
-                  color: AppColors.coral.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusRow),
-                  border: Border.all(color: AppColors.coral.withOpacity(0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.timer_outlined, color: AppColors.coral, size: 15),
-                    const SizedBox(width: 8),
-                    Text('Tidsfrist for neste runde: I morgen kl 18:00',
-                        style: AppText.monoSm.copyWith(color: AppColors.coral)),
-                  ],
-                ),
-              ),
-
-              // Pitch area (fixed height)
-              Container(
-                height: pitchHeight,
-                margin: const EdgeInsets.all(AppTheme.pageHPad),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF16243F), Color(0xFF0B1420), Color(0xFF16243F)],
-                    stops: [0.0, 0.5, 1.0],
-                  ),
-                  border: Border.all(color: AppColors.coral.withOpacity(0.18), width: 1.2),
-                  boxShadow: AppTheme.shadowLg,
-                ),
-                child: Stack(
-                  children: [
-                    // Subtle radial glow in center
-                    Positioned.fill(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: RadialGradient(
-                              center: Alignment.center,
-                              radius: 0.75,
-                              colors: [
-                                AppColors.coral.withOpacity(0.07),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Faint horizontal divider line in middle
-                    Positioned(
-                      top: pitchHeight * 0.5 - 0.5,
-                      left: 24,
-                      right: 24,
-                      child: Container(
-                        height: 1,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.transparent,
-                              AppColors.coral.withOpacity(0.25),
-                              AppColors.coral.withOpacity(0.25),
-                              Colors.transparent,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Row 1 – Block (center top)
-                    Positioned(
-                      top: 16,
-                      left: 0,
-                      right: 0,
-                      child: Center(child: _buildPlayerSlot(context, FantasyRole.block, widget.selectedPlayers[FantasyRole.block], width)),
-                    ),
-                    // Row 2 – Attack (left) & Set (right)
-                    Positioned(
-                      top: pitchHeight * 0.26,
-                      left: width * 0.08,
-                      child: _buildPlayerSlot(context, FantasyRole.attack, widget.selectedPlayers[FantasyRole.attack], width),
-                    ),
-                    Positioned(
-                      top: pitchHeight * 0.26,
-                      right: width * 0.08,
-                      child: _buildPlayerSlot(context, FantasyRole.set, widget.selectedPlayers[FantasyRole.set], width),
-                    ),
-                    // Row 3 – Receive (left) & Defense (right)
-                    Positioned(
-                      top: pitchHeight * 0.52,
-                      left: width * 0.08,
-                      child: _buildPlayerSlot(context, FantasyRole.receive, widget.selectedPlayers[FantasyRole.receive], width),
-                    ),
-                    Positioned(
-                      top: pitchHeight * 0.52,
-                      right: width * 0.08,
-                      child: _buildPlayerSlot(context, FantasyRole.defense, widget.selectedPlayers[FantasyRole.defense], width),
-                    ),
-                    // Row 4 – Serve (center bottom)
-                    Positioned(
-                      bottom: 16,
-                      left: 0,
-                      right: 0,
-                      child: Center(child: _buildPlayerSlot(context, FantasyRole.serve, widget.selectedPlayers[FantasyRole.serve], width)),
-                    ),
-                  ],
-                ),
-              ),
-
-              // ── Highlights section ────────────────────────────────────
-              if (widget.players.isNotEmpty) ...[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 8, AppTheme.pageHPad, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text('Ukens Fantasy Manager', style: AppText.dispH2(20)),
-                      const SizedBox(height: 12),
-                      _buildManagerCard(),
-                      const SizedBox(height: 24),
-
-                      Text('Ukens Beste Spiller', style: AppText.dispH2(20)),
-                      const SizedBox(height: 12),
-                      if (bestPlayer != null) _buildBestPlayerCard(bestPlayer),
-                      const SizedBox(height: 24),
-
-                      Text('Ukens Lag', style: AppText.dispH2(20)),
-                      const SizedBox(height: 8),
-                      Text('Spillerne med flest poeng i hver kategori', style: AppText.uiCaption),
-                      const SizedBox(height: 12),
-                      if (bestAttack != null)
-                        Container(
-                          padding: const EdgeInsets.all(AppTheme.cardPad),
-                          decoration: BoxDecoration(
-                            color: AppColors.sand0,
-                            borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-                            boxShadow: AppTheme.shadowSm,
-                          ),
-                          child: Column(
-                            children: [
-                              _buildTeamRow(FantasyRole.attack,  bestAttack,  '${bestAttack.attacks} angrep'),
-                              const Divider(height: 20, color: AppColors.line),
-                              _buildTeamRow(FantasyRole.block,   bestBlock!,  '${bestBlock.blocks} blokker'),
-                              const Divider(height: 20, color: AppColors.line),
-                              _buildTeamRow(FantasyRole.serve,   bestServe!,  '${bestServe.aces} ess'),
-                              const Divider(height: 20, color: AppColors.line),
-                              _buildTeamRow(FantasyRole.defense, bestDefense!,'${bestDefense.digs} forsvar'),
-                              const Divider(height: 20, color: AppColors.line),
-                              _buildTeamRow(FantasyRole.receive, bestReceive!,'${bestReceive.receives} mottak'),
-                              const Divider(height: 20, color: AppColors.line),
-                              _buildTeamRow(FantasyRole.set,     bestSet!,    '${bestSet.sets} legg'),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        );
-      },
+  Widget _emptySlotContent(Color accent) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          center: Alignment.center,
+          radius: 0.8,
+          colors: [accent.withValues(alpha: 0.07), Colors.transparent],
+        ),
+      ),
     );
   }
 
-  Widget _buildStatItem(String label, String value) {
-    return Column(
-      children: [
-        Text(label, style: AppText.monoSmLight.copyWith(fontSize: 9.5)),
-        const SizedBox(height: 4),
-        Text(value, style: AppText.dispH2(18).copyWith(color: Colors.white)),
-      ],
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
+      child: Row(
+        children: [
+          Container(width: 3, height: 18, decoration: BoxDecoration(color: AppColors.coral, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(width: 10),
+          Text(title, style: AppText.dispH2(18).copyWith(color: Colors.white)),
+        ],
+      ),
     );
   }
 
   Widget _buildManagerCard() {
     if (_isLoading) {
-      return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: AppColors.coral)));
+      return Container(
+        height: 80,
+        decoration: BoxDecoration(color: _surface, borderRadius: BorderRadius.circular(14)),
+        child: const Center(child: CircularProgressIndicator(color: AppColors.coral, strokeWidth: 2)),
+      );
     }
     if (_bestManager == null) {
       return Container(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(color: AppColors.sand0, borderRadius: BorderRadius.circular(AppTheme.radiusCard)),
-        child: const Center(child: Text('Ingen data enda')),
+        decoration: BoxDecoration(color: _surface, borderRadius: BorderRadius.circular(14)),
+        child: Text('Ingen data enda', style: TextStyle(color: AppColors.nightInk2)),
       );
     }
     return Container(
-      padding: const EdgeInsets.all(AppTheme.cardPad),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [AppColors.coral, Color(0xFFD64A35)]),
-        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-        boxShadow: AppTheme.shadowLg,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFB8392B), AppColors.coral, Color(0xFF7D231A)],
+          stops: [0.0, 0.6, 1.2],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [BoxShadow(color: AppColors.coral.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 6))],
       ),
       child: Row(
         children: [
           Container(
-            width: 50,
-            height: 50,
-            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-            child: const Icon(Icons.emoji_events, color: AppColors.coral, size: 28),
+            width: 52, height: 52,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.5),
+            ),
+            child: const Icon(Icons.emoji_events_rounded, color: Colors.white, size: 28),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_bestManager!.teamName, style: AppText.dispH2(18).copyWith(color: Colors.white)),
-                Text(_bestManager!.managerName, style: AppText.uiCaption.copyWith(color: Colors.white.withOpacity(0.8))),
+                Text(_bestManager!.teamName, style: AppText.dispH2(17).copyWith(color: Colors.white)),
+                Text(_bestManager!.managerName, style: AppText.uiCaption.copyWith(color: Colors.white.withValues(alpha: 0.75))),
               ],
             ),
           ),
-          Text('${_bestManager!.totalPoints} pts', style: AppText.dispScore(24).copyWith(color: Colors.white)),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${_bestManager!.totalPoints}',
+                style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white),
+              ),
+              Text('pts', style: TextStyle(fontFamily: 'RobotoMono', fontSize: 11, color: Colors.white.withValues(alpha: 0.7))),
+            ],
+          ),
         ],
       ),
     );
@@ -499,42 +602,45 @@ class _FantasySquadViewState extends State<FantasySquadView> {
 
   Widget _buildBestPlayerCard(FantasyPlayer player) {
     return Container(
-      padding: const EdgeInsets.all(AppTheme.cardPad),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.sand0,
-        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-        boxShadow: AppTheme.shadowSm,
-        border: Border.all(color: AppColors.coral.withOpacity(0.3)),
+        color: _surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.coral.withValues(alpha: 0.3)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10)],
       ),
       child: Row(
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: 58, height: 58,
             decoration: BoxDecoration(
-              color: AppColors.sand2,
+              color: _surface2,
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.coral, width: 2),
             ),
             child: player.imageUrl.isNotEmpty
                 ? ClipOval(child: Image.network(player.imageUrl, fit: BoxFit.cover))
-                : const Icon(Icons.person, color: AppColors.ink3, size: 30),
+                : const Icon(Icons.person, color: AppColors.nightInk2, size: 30),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(player.name, style: AppText.dispH2(18)),
-                Text(player.team, style: AppText.uiCaption),
+                Text(player.name, style: AppText.dispH2(17).copyWith(color: Colors.white)),
+                const SizedBox(height: 2),
+                Text(player.team, style: AppText.uiCaption.copyWith(color: AppColors.nightInk2)),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('${player.totalPoints}', style: AppText.dispScore(24).copyWith(color: AppColors.coral)),
-              Text('Poeng', style: AppText.monoSmLight.copyWith(fontSize: 10)),
+              Text(
+                '${player.totalPoints}',
+                style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.coral),
+              ),
+              Text('poeng', style: AppText.monoSmLight.copyWith(fontSize: 10, color: AppColors.nightInk2)),
             ],
           ),
         ],
@@ -542,48 +648,96 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     );
   }
 
-  Widget _buildTeamRow(String role, FantasyPlayer player, String statText) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 70,
-          child: Text(role.toUpperCase(), style: AppText.monoSmLight.copyWith(fontSize: 10, color: AppColors.coral)),
-        ),
-        Container(
-          width: 40,
-          height: 40,
-          margin: const EdgeInsets.only(right: 12),
-          decoration: const BoxDecoration(color: AppColors.sand2, shape: BoxShape.circle),
-          child: player.imageUrl.isNotEmpty
-              ? ClipOval(child: Image.network(player.imageUrl, fit: BoxFit.cover))
-              : const Icon(Icons.person, color: AppColors.ink3, size: 20),
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildBestTeamCard(
+    FantasyPlayer bestAttack,
+    FantasyPlayer bestBlock,
+    FantasyPlayer bestServe,
+    FantasyPlayer bestDefense,
+    FantasyPlayer bestReceive,
+    FantasyPlayer bestSet,
+  ) {
+    final rows = [
+      (FantasyRole.attack,  bestAttack,  '${bestAttack.attacks} angrep'),
+      (FantasyRole.block,   bestBlock,   '${bestBlock.blocks} blokker'),
+      (FantasyRole.serve,   bestServe,   '${bestServe.aces} ess'),
+      (FantasyRole.defense, bestDefense, '${bestDefense.digs} forsvar'),
+      (FantasyRole.receive, bestReceive, '${bestReceive.receives} mottak'),
+      (FantasyRole.set,     bestSet,     '${bestSet.sets} legg'),
+    ];
+    return Container(
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _border),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10)],
+      ),
+      child: Column(
+        children: rows.asMap().entries.map((e) {
+          final isLast = e.key == rows.length - 1;
+          final (role, player, stat) = e.value;
+          return Column(
             children: [
-              Text(player.name, style: AppText.uiTitle),
-              Text(player.team, style: AppText.uiCaption.copyWith(fontSize: 12)),
+              _buildTeamRow(role, player, stat),
+              if (!isLast) Divider(height: 1, color: _border),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildTeamRow(String role, FantasyPlayer player, String statText) {
+    final accent = _roleAccent(role);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 52, height: 18,
+            decoration: BoxDecoration(color: accent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(5)),
+            alignment: Alignment.center,
+            child: Text(
+              _roleLabel(role),
+              style: TextStyle(fontFamily: 'RobotoMono', fontSize: 8.5, fontWeight: FontWeight.w700, color: accent, letterSpacing: 0.5),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            width: 38, height: 38,
+            decoration: BoxDecoration(color: _surface2, shape: BoxShape.circle, border: Border.all(color: accent.withValues(alpha: 0.4))),
+            child: player.imageUrl.isNotEmpty
+                ? ClipOval(child: Image.network(player.imageUrl, fit: BoxFit.cover))
+                : Icon(Icons.person, color: AppColors.nightInk3, size: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(player.name, style: AppText.uiTitle.copyWith(color: Colors.white, fontSize: 13)),
+                Text(player.team, style: AppText.uiCaption.copyWith(color: AppColors.nightInk2, fontSize: 11)),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(statText, style: TextStyle(fontFamily: 'RobotoMono', fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+              Text('${player.totalPoints} pts totalt', style: AppText.uiCaption.copyWith(color: AppColors.nightInk3, fontSize: 10)),
             ],
           ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(statText, style: AppText.uiBody.copyWith(fontWeight: FontWeight.w600)),
-            Text('${player.totalPoints} pts totalt', style: AppText.uiCaption.copyWith(fontSize: 11)),
-          ],
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   void _showPlayerOptions(BuildContext context, String role, FantasyPlayer player) {
+    final accent = _roleAccent(role);
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.sand0,
+      backgroundColor: _surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusCard)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return Padding(
@@ -592,55 +746,96 @@ class _FantasySquadViewState extends State<FantasySquadView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 36, height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(color: _border, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
               Row(
                 children: [
                   Container(
-                    width: 58,
-                    height: 58,
+                    width: 62, height: 62,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.coral, width: 2.5),
-                      color: AppColors.sand2,
+                      border: Border.all(color: accent, width: 2.5),
+                      color: _surface2,
                     ),
                     child: player.imageUrl.isNotEmpty
                         ? ClipOval(child: Image.network(player.imageUrl, fit: BoxFit.cover))
-                        : const Icon(Icons.person, color: AppColors.ink2, size: 32),
+                        : Icon(Icons.person, color: AppColors.nightInk2, size: 32),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(player.name, style: AppText.dispH2(18)),
-                        Text('${player.team} · $role', style: AppText.uiCaption),
+                        Text(player.name, style: AppText.dispH2(18).copyWith(color: Colors.white)),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(6)),
+                              child: Text(
+                                _roleLabel(role),
+                                style: const TextStyle(fontFamily: 'RobotoMono', fontSize: 9, fontWeight: FontWeight.w700, color: Colors.white),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(player.team, style: AppText.uiCaption.copyWith(color: AppColors.nightInk2)),
+                          ],
+                        ),
                       ],
                     ),
                   ),
-                  Text('${player.totalPoints} pts', style: AppText.dispScore(24).copyWith(color: AppColors.coral)),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${player.totalPoints}',
+                        style: TextStyle(fontFamily: 'RobotoMono', fontSize: 26, fontWeight: FontWeight.w900, color: accent),
+                      ),
+                      Text('pts', style: TextStyle(fontFamily: 'RobotoMono', fontSize: 11, color: AppColors.nightInk2)),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
-              Text('Poengoversikt:', style: AppText.dispKicker()),
+              Text('Poengoversikt', style: AppText.dispKicker().copyWith(color: AppColors.nightInk2)),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildDetailStat('Angrep', player.attacks.toString()),
-                  _buildDetailStat('Blokk', player.blocks.toString()),
-                  _buildDetailStat('Ess', player.aces.toString()),
-                  _buildDetailStat('Forsvar', player.digs.toString()),
-                ],
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                decoration: BoxDecoration(color: _bg, borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildDetailStat('Angrep',  player.attacks.toString(),  AppColors.coral),
+                    _buildDetailStat('Blokk',   player.blocks.toString(),   const Color(0xFF4C8BFF)),
+                    _buildDetailStat('Ess',     player.aces.toString(),     const Color(0xFF26D4CC)),
+                    _buildDetailStat('Forsvar', player.digs.toString(),     const Color(0xFFAA6FFF)),
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
                   onPressed: () {
                     Navigator.pop(context);
                     widget.onRoleTap(role);
                   },
-                  icon: const Icon(Icons.swap_horiz),
-                  label: const Text('Bytt Spiller'),
+                  icon: const Icon(Icons.swap_horiz, size: 20),
+                  label: const Text('Bytt Spiller', style: TextStyle(fontFamily: 'RobotoMono', fontWeight: FontWeight.w700, fontSize: 14)),
                 ),
               ),
             ],
@@ -650,11 +845,15 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     );
   }
 
-  Widget _buildDetailStat(String label, String value) {
+  Widget _buildDetailStat(String label, String value, Color color) {
     return Column(
       children: [
-        Text(value, style: AppText.dispH2(20)),
-        Text(label, style: AppText.uiCaption),
+        Text(
+          value,
+          style: TextStyle(fontFamily: 'RobotoMono', fontSize: 22, fontWeight: FontWeight.w900, color: color),
+        ),
+        const SizedBox(height: 3),
+        Text(label, style: AppText.uiCaption.copyWith(color: AppColors.nightInk2, fontSize: 11)),
       ],
     );
   }

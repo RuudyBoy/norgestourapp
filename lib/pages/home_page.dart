@@ -650,6 +650,7 @@ class _HomePageState extends State<HomePage> {
           const SeasonHeroWidget(
             title: 'NT',
             description: 'Gjør deg klar for sesongen 2026!',
+            playerImage: 'assets/images/2.png',
           ),
           Expanded(
             child: SingleChildScrollView(
