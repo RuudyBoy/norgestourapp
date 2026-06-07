@@ -549,7 +549,7 @@ class _HomePageState extends State<HomePage> {
             subtitle: 'Kamper & resultater',
             description: 'Følg kommende tours, liveresultater og sluttresultater for hele sesongen.',
             buttonText: 'Se tours',
-            icon: Icons.flag,
+            icon: Icons.emoji_events_rounded,
             iconColor: AppColors.green,
             onTap: () {
               if (widget.onTabSelected != null) {
@@ -635,29 +635,21 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        title: Image.asset('assets/images/ntlogo.png', height: 60, fit: BoxFit.contain),
-        actions: const [ProfileAvatarWidget()],
-      ),
-      body: Column(
-        children: [
-          const SeasonHeroWidget(
-            title: 'NT',
+      backgroundColor: AppColors.sand1,
+      body: CustomScrollView(
+        slivers: [
+          const SeasonHeroSliver(
+            pageTitle: 'Hjem',
             description: 'Gjør deg klar for sesongen 2026!',
-            playerImage: 'assets/images/2.png',
+            heroImage: 'assets/images/hero_bg.jpg',
+            actionImage: 'assets/images/player_action.png',
           ),
-          Expanded(
-            child: SingleChildScrollView(
+          SliverToBoxAdapter(
+            child: Transform.translate(
+              offset: const Offset(0, -20), // Skaper dybde/overlapping
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 16),
                   _buildSeasonTimeline(),
                   const SizedBox(height: AppTheme.sectionGap),
                   _buildLiveOrNextSection(context),
@@ -665,7 +657,7 @@ class _HomePageState extends State<HomePage> {
                   _buildFantasySummary(context),
                   if (_teamName != null) const SizedBox(height: AppTheme.sectionGap),
                   _buildCards(context),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 30 + 20), // Legg til 20 for å kompensere for offset
                 ],
               ),
             ),

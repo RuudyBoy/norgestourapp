@@ -186,11 +186,13 @@ class TournamentDetailsPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      _NavRow(
+                      _ActionCard(
                         icon: Icons.groups_rounded,
                         title: 'Lag',
                         subtitle: 'Se alle lag i turneringen',
-                        accentColor: AppColors.blue,
+                        description: 'Oversikt over alle lag og spillere som deltar i turneringen.',
+                        buttonText: 'Se lag',
+                        iconColor: AppColors.blue,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -203,11 +205,13 @@ class TournamentDetailsPage extends StatelessWidget {
                         isDark: isDark,
                       ),
                       const SizedBox(height: AppTheme.rowGap),
-                      _NavRow(
+                      _ActionCard(
                         icon: Icons.bar_chart_rounded,
                         title: 'Statistikk',
                         subtitle: 'Spillerstatistikk og toppscorer',
-                        accentColor: AppColors.coral,
+                        description: 'Dypdykk i spillerstatistikk, kamphistorikk og turneringsdata.',
+                        buttonText: 'Se stats',
+                        iconColor: AppColors.coral,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -220,20 +224,24 @@ class TournamentDetailsPage extends StatelessWidget {
                         isDark: isDark,
                       ),
                       const SizedBox(height: AppTheme.rowGap),
-                      _NavRow(
+                      _ActionCard(
                         icon: Icons.emoji_events_rounded,
                         title: 'Resultater',
                         subtitle: 'Sluttresultater og standings',
-                        accentColor: AppColors.green,
+                        description: 'Følg med på sluttresultater, rangeringer og hvem som vinner turneringen.',
+                        buttonText: 'Resultater',
+                        iconColor: AppColors.green,
                         onTap: () {},
                         isDark: isDark,
                       ),
                       const SizedBox(height: AppTheme.rowGap),
-                      _NavRow(
+                      _ActionCard(
                         icon: Icons.calendar_month_rounded,
                         title: 'Alle kamper',
                         subtitle: 'Fullt kampprogram',
-                        accentColor: AppColors.blueBright,
+                        description: 'Se alle kommende, pågående og fullførte kamper i turneringen.',
+                        buttonText: 'Kamper',
+                        iconColor: AppColors.blueBright,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -622,19 +630,23 @@ class _TeamBadge extends StatelessWidget {
 
 // ── Navigation row ────────────────────────────────────────────────────────────
 
-class _NavRow extends StatelessWidget {
+class _ActionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final Color accentColor;
+  final String description;
+  final String buttonText;
+  final Color iconColor;
   final VoidCallback onTap;
   final bool isDark;
 
-  const _NavRow({
+  const _ActionCard({
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.accentColor,
+    required this.description,
+    required this.buttonText,
+    required this.iconColor,
     required this.onTap,
     required this.isDark,
   });
@@ -643,47 +655,63 @@ class _NavRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final surface = isDark ? AppColors.nightSurface0 : AppColors.sand0;
 
-    return Material(
-      color: surface,
-      borderRadius: BorderRadius.circular(AppTheme.radiusRow),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+          splashColor: AppColors.coral.withValues(alpha: 0.08),
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.cardPad),
+            child: Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusRow),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 28),
                 ),
-                child: Icon(icon, color: accentColor, size: 22),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: AppText.uiTitle.copyWith(
-                        color: isDark ? AppColors.nightInk : AppColors.ink,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: AppText.dispH2(18).copyWith(color: isDark ? AppColors.nightInk : AppColors.ink)),
+                      const SizedBox(height: 2),
+                      Text(subtitle, style: AppText.monoSm),
+                      const SizedBox(height: 6),
+                      Text(
+                        description,
+                        style: AppText.uiCaption.copyWith(color: isDark ? AppColors.nightInk2 : AppColors.ink2),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(subtitle, style: AppText.uiCaption),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: isDark ? AppColors.nightInk3 : AppColors.ink3,
-                size: 20,
-              ),
-            ],
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: AppColors.coral,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusChip),
+                    boxShadow: AppTheme.shadowCoral,
+                  ),
+                  child: Text(buttonText, style: AppText.uiCta.copyWith(fontSize: 13, color: Colors.white)),
+                ),
+              ],
+            ),
           ),
         ),
       ),

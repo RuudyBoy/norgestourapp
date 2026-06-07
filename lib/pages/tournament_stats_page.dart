@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'stats_logic.dart'; 
 import 'stats_details_page.dart'; // Husk å lage/oppdatere denne filen (se under)
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class TournamentStatsPage extends StatefulWidget {
   final String tournamentId;
@@ -68,19 +70,20 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
     return totalStatsMap.values.toList();
   }
 
-@override
+  @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: isDark ? AppColors.nightSurface1 : AppColors.sand1,
       appBar: AppBar(
-        title: Text("Hall of Fame - ${widget.tournamentName}"),
-        backgroundColor: const Color(0xFF0A1931),
-        foregroundColor: Colors.white,
-        leadingWidth: 80,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: Image.asset('assets/images/ntlogo.png', fit: BoxFit.contain),
+        title: Text(
+          "Hall of Fame - ${widget.tournamentName}",
+          style: AppText.dispH2(18).copyWith(color: isDark ? AppColors.nightInk : AppColors.ink),
         ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: isDark ? AppColors.nightInk : AppColors.ink),
       ),
       body: FutureBuilder<List<PlayerMatchStats>>(
         future: _statsFuture,
@@ -89,13 +92,12 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            // Vi må også ha RefreshIndicator her, så man kan oppdatere hvis det var tomt først
             return RefreshIndicator(
               onRefresh: _refreshStats,
-              child: ListView( // Bruker ListView her for at man skal kunne dra ned
-                children: const [
-                  SizedBox(height: 200),
-                  Center(child: Text("Ingen stats registrert enda.")),
+              child: ListView(
+                children: [
+                  const SizedBox(height: 200),
+                  Center(child: Text("Ingen stats registrert enda.", style: AppText.uiCaption)),
                 ],
               ),
             );
@@ -132,8 +134,7 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
                 children: [
                   StatsCategoryCard(
                     title: "Toppscorer",
-                    icon: Icons.emoji_events,
-                    color: Colors.orange,
+                    color: AppColors.coral,
                     players: pointsList,
                     valueFormatter: (p) => "${p.totalPoints} p",
                     onTap: () => _navigateToDetails(context, allPlayers, "Toppscorer"),
@@ -142,8 +143,7 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
                   
                   StatsCategoryCard(
                     title: "Sideout-maskin",
-                    icon: Icons.compare_arrows,
-                    color: Colors.blueAccent,
+                    color: AppColors.blue,
                     players: sideoutList,
                     valueFormatter: (p) => "${p.sideoutPoints} p",
                     onTap: () => _navigateToDetails(context, allPlayers, "Sideout"),
@@ -152,8 +152,7 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
 
                   StatsCategoryCard(
                     title: "Blokk-monster",
-                    icon: Icons.front_hand,
-                    color: Colors.redAccent,
+                    color: AppColors.coralDeep,
                     players: blocksList,
                     valueFormatter: (p) => "${p.blocks} blk",
                     onTap: () => _navigateToDetails(context, allPlayers, "Blokk"),
@@ -162,8 +161,7 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
 
                   StatsCategoryCard(
                     title: "Legge-maestro",
-                    icon: Icons.sports_volleyball,
-                    color: Colors.green,
+                    color: AppColors.green,
                     players: settersList,
                     valueFormatter: (p) => p.settingEfficiency,
                     onTap: () => _navigateToDetails(context, allPlayers, "Legging"),
@@ -172,8 +170,7 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
 
                   StatsCategoryCard(
                     title: "Serve-Konge",
-                    icon: Icons.flash_on,
-                    color: Colors.deepPurple,
+                    color: AppColors.blueBright,
                     players: serverList,
                     valueFormatter: (p) => "${p.aces} ess",
                     onTap: () => _navigateToDetails(context, allPlayers, "Serve"),
@@ -211,7 +208,6 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
 // --- WIDGET FOR KORTENE (INGEN ENDRINGER HER, BARE KOPIER) ---
 class StatsCategoryCard extends StatelessWidget {
   final String title;
-  final IconData icon;
   final Color color;
   final List<PlayerMatchStats> players;
   final String Function(PlayerMatchStats) valueFormatter;
@@ -220,7 +216,6 @@ class StatsCategoryCard extends StatelessWidget {
   const StatsCategoryCard({
     super.key,
     required this.title,
-    required this.icon,
     required this.color,
     required this.players,
     required this.valueFormatter,
@@ -233,12 +228,16 @@ class StatsCategoryCard extends StatelessWidget {
 
     final winner = players[0];
     final runnersUp = players.length > 1 ? players.sublist(1, players.length > 5 ? 5 : players.length) : [];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface = isDark ? AppColors.nightSurface0 : AppColors.sand0;
+    final ink = isDark ? AppColors.nightInk : AppColors.ink;
+    final ink2 = isDark ? AppColors.nightInk2 : AppColors.ink2;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: surface,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 15, offset: const Offset(0, 5))
@@ -255,9 +254,7 @@ class StatsCategoryCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(icon, color: Colors.white),
-                  const SizedBox(width: 10),
-                  Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(title, style: AppText.uiTitle.copyWith(color: Colors.white, fontSize: 16)),
                   const Spacer(),
                   const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
                 ],
@@ -274,16 +271,16 @@ class StatsCategoryCard extends StatelessWidget {
                     backgroundColor: color.withValues(alpha: 0.1),
                     child: Text(
                       winner.playerName.isEmpty ? "?" : winner.playerName.substring(0, 1).toUpperCase(),
-                      style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: color),
+                      style: AppText.dispH2(30).copyWith(color: color),
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text(winner.playerName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  Text(winner.teamName, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                  Text(winner.playerName, style: AppText.dispH2(20).copyWith(color: ink)),
+                  Text(winner.teamName, style: AppText.uiCaption.copyWith(color: ink2)),
                   const SizedBox(height: 5),
                   Text(
                     valueFormatter(winner),
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: color),
+                    style: AppText.dispH1(24).copyWith(color: color),
                   ),
                 ],
               ),
@@ -293,9 +290,9 @@ class StatsCategoryCard extends StatelessWidget {
             if (runnersUp.isNotEmpty)
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
+                  color: isDark ? AppColors.nightSurface1 : AppColors.sand1,
                   borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
-                  border: Border(top: BorderSide(color: Colors.grey[200]!)),
+                  border: Border(top: BorderSide(color: AppColors.line)),
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Column(
@@ -306,10 +303,10 @@ class StatsCategoryCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                       child: Row(
                         children: [
-                          Text("$index.", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                          Text("$index.", style: AppText.uiTitle.copyWith(color: ink2)),
                           const SizedBox(width: 10),
-                          Expanded(child: Text(player.playerName, style: const TextStyle(fontWeight: FontWeight.w500))),
-                          Text(valueFormatter(player), style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Expanded(child: Text(player.playerName, style: AppText.uiTitle.copyWith(color: ink))),
+                          Text(valueFormatter(player), style: AppText.uiTitle.copyWith(color: ink)),
                         ],
                       ),
                     );

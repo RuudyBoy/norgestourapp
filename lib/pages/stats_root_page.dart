@@ -89,161 +89,149 @@ class _StatsRootPageState extends State<StatsRootPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leadingWidth: 80,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: Image.asset('assets/images/ntlogo.png', fit: BoxFit.contain),
-        ),
-        actions: const [ProfileAvatarWidget()],
-      ),
-      body: FutureBuilder<List<PlayerMatchStats>>(
-        future: _statsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.coral));
-          }
+      backgroundColor: AppColors.sand1,
+      body: RefreshIndicator(
+        onRefresh: _refreshStats,
+        color: AppColors.coral,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            const SeasonHeroSliver(
+              pageTitle: 'Stats',
+              title: 'STATS',
+              description: 'Hvem leder, og hvem har flest serveess?',
+              heroImage: 'assets/images/3.png',
+            ),
+            SliverToBoxAdapter(
+              child: FutureBuilder<List<PlayerMatchStats>>(
+                future: _statsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Padding(
+                      padding: EdgeInsets.all(40),
+                      child: Center(child: CircularProgressIndicator(color: AppColors.coral)),
+                    );
+                  }
 
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return RefreshIndicator(
-              onRefresh: _refreshStats,
-              color: AppColors.coral,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 200),
-                  Center(child: Text('Ingen statistikk registrert enda.')),
-                ],
-              ),
-            );
-          }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(40),
+                      child: Center(child: Text('Ingen statistikk registrert enda.')),
+                    );
+                  }
 
-          List<PlayerMatchStats> allPlayers = snapshot.data!;
+                  List<PlayerMatchStats> allPlayers = snapshot.data!;
 
-          final pointsList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
-          final sideoutList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.sideoutPoints.compareTo(a.sideoutPoints));
-          final blocksList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.blocks.compareTo(a.blocks));
-          final settersList = List<PlayerMatchStats>.from(allPlayers)
-            ..sort((a, b) {
-              double aPct = a.setAttempts == 0 ? 0 : (a.setAssists / a.setAttempts);
-              double bPct = b.setAttempts == 0 ? 0 : (b.setAssists / b.setAttempts);
-              return bPct.compareTo(aPct);
-            });
-          final serverList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.aces.compareTo(a.aces));
+                  final pointsList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
+                  final sideoutList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.sideoutPoints.compareTo(a.sideoutPoints));
+                  final blocksList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.blocks.compareTo(a.blocks));
+                  final settersList = List<PlayerMatchStats>.from(allPlayers)
+                    ..sort((a, b) {
+                      double aPct = a.setAttempts == 0 ? 0 : (a.setAssists / a.setAttempts);
+                      double bPct = b.setAttempts == 0 ? 0 : (b.setAssists / b.setAttempts);
+                      return bPct.compareTo(aPct);
+                    });
+                  final serverList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.aces.compareTo(a.aces));
 
-          return Column(
-            children: [
-              const SeasonHeroWidget(
-                title: 'STATS',
-                description: 'Hvem leder, og hvem har flest serveess?',
-                playerImage: 'assets/images/8.png',
-              ),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: _refreshStats,
-                  color: AppColors.coral,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, AppTheme.sectionGap, AppTheme.pageHPad, 32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                  // All players button
-                  GestureDetector(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PlayersListPage())),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: AppColors.heroNavy,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-                        boxShadow: AppTheme.shadowLg,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: AppTheme.cardPad),
-                      child: Row(
+                  return Transform.translate(
+                    offset: const Offset(0, -20),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 0, AppTheme.pageHPad, 32),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: AppColors.coral.withOpacity(0.2),
-                              shape: BoxShape.circle,
+                          // All players button
+                          GestureDetector(
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PlayersListPage())),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: AppColors.heroNavy,
+                                borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                                boxShadow: AppTheme.shadowLg,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: AppTheme.cardPad),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.coral.withOpacity(0.2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.groups_rounded, color: AppColors.coral, size: 26),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('ALLE SPILLERE', style: AppText.dispKicker(14).copyWith(color: Colors.white)),
+                                        const SizedBox(height: 3),
+                                        Text('Se alle registrerte spillere og profiler',
+                                            style: AppText.uiCaption.copyWith(color: Colors.white.withOpacity(0.6))),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+                                ],
+                              ),
                             ),
-                            child: const Icon(Icons.groups_rounded, color: AppColors.coral, size: 26),
                           ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('ALLE SPILLERE', style: AppText.dispKicker(14).copyWith(color: Colors.white)),
-                                const SizedBox(height: 3),
-                                Text('Se alle registrerte spillere og profiler',
-                                    style: AppText.uiCaption.copyWith(color: Colors.white.withOpacity(0.6))),
-                              ],
-                            ),
+                          const SizedBox(height: AppTheme.sectionGap),
+
+                          StatsCategoryCard(
+                            title: 'Toppscorer',
+                            icon: Icons.emoji_events,
+                            accentColor: AppColors.coral,
+                            players: pointsList,
+                            valueFormatter: (p) => '${p.totalPoints} p',
+                            onTap: () => _navigateToDetails(context, allPlayers, 'Toppscorer'),
                           ),
-                          const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+                          const SizedBox(height: AppTheme.rowGap),
+                          StatsCategoryCard(
+                            title: 'Sideout-maskin',
+                            icon: Icons.compare_arrows,
+                            accentColor: AppColors.blue,
+                            players: sideoutList,
+                            valueFormatter: (p) => '${p.sideoutPoints} p',
+                            onTap: () => _navigateToDetails(context, allPlayers, 'Sideout'),
+                          ),
+                          const SizedBox(height: AppTheme.rowGap),
+                          StatsCategoryCard(
+                            title: 'Blokk-monster',
+                            icon: Icons.front_hand,
+                            accentColor: AppColors.coral,
+                            players: blocksList,
+                            valueFormatter: (p) => '${p.blocks} blk',
+                            onTap: () => _navigateToDetails(context, allPlayers, 'Blokk'),
+                          ),
+                          const SizedBox(height: AppTheme.rowGap),
+                          StatsCategoryCard(
+                            title: 'Legge-maestro',
+                            icon: Icons.sports_volleyball,
+                            accentColor: AppColors.green,
+                            players: settersList,
+                            valueFormatter: (p) => p.settingEfficiency,
+                            onTap: () => _navigateToDetails(context, allPlayers, 'Legging'),
+                          ),
+                          const SizedBox(height: AppTheme.rowGap),
+                          StatsCategoryCard(
+                            title: 'Serve-Konge',
+                            icon: Icons.flash_on,
+                            accentColor: AppColors.blue,
+                            players: serverList,
+                            valueFormatter: (p) => '${p.aces} ess',
+                            onTap: () => _navigateToDetails(context, allPlayers, 'Serve'),
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: AppTheme.sectionGap),
-
-                  StatsCategoryCard(
-                    title: 'Toppscorer',
-                    icon: Icons.emoji_events,
-                    accentColor: AppColors.coral,
-                    players: pointsList,
-                    valueFormatter: (p) => '${p.totalPoints} p',
-                    onTap: () => _navigateToDetails(context, allPlayers, 'Toppscorer'),
-                  ),
-                  const SizedBox(height: AppTheme.rowGap),
-                  StatsCategoryCard(
-                    title: 'Sideout-maskin',
-                    icon: Icons.compare_arrows,
-                    accentColor: AppColors.blue,
-                    players: sideoutList,
-                    valueFormatter: (p) => '${p.sideoutPoints} p',
-                    onTap: () => _navigateToDetails(context, allPlayers, 'Sideout'),
-                  ),
-                  const SizedBox(height: AppTheme.rowGap),
-                  StatsCategoryCard(
-                    title: 'Blokk-monster',
-                    icon: Icons.front_hand,
-                    accentColor: AppColors.coral,
-                    players: blocksList,
-                    valueFormatter: (p) => '${p.blocks} blk',
-                    onTap: () => _navigateToDetails(context, allPlayers, 'Blokk'),
-                  ),
-                  const SizedBox(height: AppTheme.rowGap),
-                  StatsCategoryCard(
-                    title: 'Legge-maestro',
-                    icon: Icons.sports_volleyball,
-                    accentColor: AppColors.green,
-                    players: settersList,
-                    valueFormatter: (p) => p.settingEfficiency,
-                    onTap: () => _navigateToDetails(context, allPlayers, 'Legging'),
-                  ),
-                  const SizedBox(height: AppTheme.rowGap),
-                  StatsCategoryCard(
-                    title: 'Serve-Konge',
-                    icon: Icons.flash_on,
-                    accentColor: AppColors.blue,
-                    players: serverList,
-                    valueFormatter: (p) => '${p.aces} ess',
-                    onTap: () => _navigateToDetails(context, allPlayers, 'Serve'),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
-                ),
-              ),
-            ],
-          );
-        },
+          ],
+        ),
       ),
     );
   }
@@ -274,104 +262,224 @@ class StatsCategoryCard extends StatelessWidget {
     final winner = players[0];
     final runnersUp = players.length > 1 ? players.sublist(1, players.length > 5 ? 5 : players.length) : [];
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.sand0,
-          borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-          boxShadow: AppTheme.shadowSm,
+    final valString = valueFormatter(winner);
+    String bigNum = valString;
+    String labelText = '';
+    if (valString.contains(' ')) {
+      final parts = valString.split(' ');
+      bigNum = parts[0];
+      labelText = parts.sublist(1).join(' ').toUpperCase();
+    } else {
+      if (valString.endsWith('%')) {
+        bigNum = valString.substring(0, valString.length - 1);
+        labelText = '%';
+      }
+    }
+
+    final nameParts = winner.playerName.split(' ');
+    final firstName = nameParts.first;
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Header / Title
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          child: Row(
+            children: [
+              Icon(icon, color: accentColor, size: 22),
+              const SizedBox(width: 8),
+              Text(title.toUpperCase(), style: AppText.dispKicker(16).copyWith(color: AppColors.ink)),
+            ],
+          ),
         ),
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: AppTheme.cardPad),
-              decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.10),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.radiusCard)),
-              ),
-              child: Row(
-                children: [
-                  Icon(icon, color: accentColor, size: 20),
-                  const SizedBox(width: 10),
-                  Text(title, style: AppText.dispKicker(14).copyWith(color: AppColors.ink)),
-                  const Spacer(),
-                  Icon(Icons.arrow_forward_ios, color: AppColors.ink3, size: 14),
-                ],
-              ),
-            ),
 
-            // Winner
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 38,
-                    backgroundColor: accentColor.withOpacity(0.15),
-                    backgroundImage: winner.imageUrl.isNotEmpty ? NetworkImage(winner.imageUrl) : null,
-                    child: winner.imageUrl.isEmpty
-                        ? Text(
-                            winner.playerName.isEmpty ? '?' : winner.playerName.substring(0, 1).toUpperCase(),
-                            style: AppText.dispScore(28).copyWith(color: accentColor),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(winner.playerName, style: AppText.uiTitle.copyWith(fontSize: 17)),
-                  if (winner.teamName.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(winner.teamName, style: AppText.uiCaption),
-                  ],
-                  const SizedBox(height: 8),
-                  Text(valueFormatter(winner), style: AppText.dispScore(28).copyWith(color: accentColor)),
-                ],
-              ),
+        // PREMIER LEAGUE STYLE CARD
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            height: 280, // tall card
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1B1B1B), // Dark background
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: AppTheme.shadowLg,
             ),
-
-            // Runners up
-            if (runnersUp.isNotEmpty)
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.sand1,
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppTheme.radiusCard)),
+            child: Stack(
+              children: [
+                // Vertical stripes background
+                Positioned(
+                  left: 100, top: 0, bottom: 0, width: 25,
+                  child: Container(color: accentColor),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Column(
-                  children: runnersUp.asMap().entries.map((entry) {
-                    final index = entry.key + 2;
-                    final player = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppTheme.cardPad, vertical: 7),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 22,
-                            child: Text('$index.', style: AppText.monoMd.copyWith(color: AppColors.ink3)),
-                          ),
-                          if (player.imageUrl.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: CircleAvatar(
-                                radius: 12,
-                                backgroundImage: NetworkImage(player.imageUrl),
-                                backgroundColor: AppColors.sand2,
-                              ),
-                            )
-                          else
-                            const SizedBox(width: 8),
-                          Expanded(child: Text(player.playerName, style: AppText.uiTitle.copyWith(fontSize: 13))),
-                          Text(valueFormatter(player), style: AppText.monoMd.copyWith(fontWeight: FontWeight.w700, color: AppColors.ink)),
-                        ],
+                Positioned(
+                  left: 125, top: 0, bottom: 0, width: 25,
+                  child: Container(color: Colors.white),
+                ),
+                
+                // Player Image Cutout on right
+                if (winner.imageUrl.isNotEmpty)
+                  Positioned(
+                    right: 0, bottom: 50, top: 20, width: 200,
+                    child: ShaderMask(
+                      shaderCallback: (rect) {
+                        return const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.black, Colors.transparent],
+                          stops: [0.75, 1.0],
+                        ).createShader(rect);
+                      },
+                      blendMode: BlendMode.dstIn,
+                      child: Image.network(
+                        winner.imageUrl, 
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                        errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 150, color: Colors.white.withOpacity(0.05)),
                       ),
-                    );
-                  }).toList(),
+                    ),
+                  )
+                else
+                  Positioned(
+                    right: 10, bottom: 50, top: 20, width: 180,
+                    child: Icon(Icons.person, size: 150, color: Colors.white.withOpacity(0.05)),
+                  ),
+                
+                // Text Overlay (Left Side)
+                Positioned(
+                  left: 20, top: 24,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(firstName.toUpperCase(), 
+                        style: AppText.dispScore(22).copyWith(color: accentColor, height: 1.1)
+                      ),
+                      if (lastName.isNotEmpty)
+                        Text(lastName.toUpperCase(), 
+                          style: AppText.dispScore(22).copyWith(color: Colors.white, height: 1.1)
+                        ),
+                      const SizedBox(height: 6),
+                      Text(winner.teamName.isNotEmpty ? winner.teamName.toUpperCase() : 'SPILLER', 
+                        style: AppText.monoMd.copyWith(color: Colors.white70, fontSize: 11)
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-          ],
+                
+                // Big Number (Right Side, Top)
+                Positioned(
+                  right: 20, top: 24,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(bigNum, 
+                        style: AppText.dispScore(42).copyWith(color: Colors.white, height: 1.0)
+                      ),
+                      Text(labelText, 
+                        style: AppText.dispKicker(14).copyWith(color: Colors.white, height: 1.2)
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Bottom small stats
+                Positioned(
+                  left: 0, right: 0, bottom: 0,
+                  child: Container(
+                    height: 56,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.4),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildSmallStat('KILLS', winner.kills.toString()),
+                        _buildSmallStat('BLOKK', winner.blocks.toString()),
+                        _buildSmallStat('ESS', winner.aces.toString()),
+                        _buildSmallStat('FEIL', (winner.attackErrors + winner.serviceErrors).toString()),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
+        
+        // Runners Up List Below Card
+        if (runnersUp.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.sand0,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: AppTheme.shadowSm,
+            ),
+            child: Column(
+              children: [
+                ...runnersUp.asMap().entries.map((entry) {
+                  final index = entry.key + 2;
+                  final player = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.cardPad, vertical: 10),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          child: Text('$index.', style: AppText.monoMd.copyWith(color: AppColors.ink3, fontWeight: FontWeight.bold)),
+                        ),
+                        if (player.imageUrl.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 12.0),
+                            child: CircleAvatar(
+                              radius: 14,
+                              backgroundImage: NetworkImage(player.imageUrl),
+                              backgroundColor: AppColors.sand2,
+                            ),
+                          )
+                        else
+                          const SizedBox(width: 8),
+                        Expanded(child: Text(player.playerName, style: AppText.uiTitle.copyWith(fontSize: 14))),
+                        Text(valueFormatter(player), style: AppText.monoMd.copyWith(fontWeight: FontWeight.w700, color: AppColors.ink)),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                // Link to full list
+                Divider(height: 1, color: AppColors.sand2),
+                InkWell(
+                  onTap: onTap,
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Se hele topplisten', style: AppText.uiTitle.copyWith(color: accentColor, fontSize: 13)),
+                        const SizedBox(width: 4),
+                        Icon(Icons.arrow_forward_ios, size: 12, color: accentColor),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildSmallStat(String label, String value) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(label, style: AppText.uiCaption.copyWith(color: Colors.white70, fontSize: 10, letterSpacing: 0.5)),
+        const SizedBox(height: 2),
+        Text(value, style: AppText.uiTitle.copyWith(color: Colors.white, fontSize: 15)),
+      ],
     );
   }
 }

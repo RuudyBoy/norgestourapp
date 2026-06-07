@@ -153,11 +153,6 @@ class _FantasyPageState extends State<FantasyPage> {
           foregroundColor: AppColors.ink,
           elevation: 0,
           scrolledUnderElevation: 0,
-          leadingWidth: 80,
-          leading: Padding(
-            padding: const EdgeInsets.only(left: 16.0),
-            child: Image.asset('assets/images/ntlogo.png', fit: BoxFit.contain),
-          ),
           actions: const [ProfileAvatarWidget()],
           bottom: TabBar(
             indicatorColor: AppColors.coral,

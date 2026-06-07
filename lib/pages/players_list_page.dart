@@ -24,12 +24,6 @@ class _PlayersListPageState extends State<PlayersListPage> {
           icon: const Icon(Icons.arrow_back_ios, size: 18),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Image.asset('assets/images/ntlogo.png', width: 40, fit: BoxFit.contain),
-          ),
-        ],
       ),
       body: Column(
         children: [

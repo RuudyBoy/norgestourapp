@@ -32,6 +32,8 @@ class PlayerDetailPage extends StatelessWidget {
     final blocks = playerData['blocks']?.toString() ?? '0';
     final wins = playerData['wins']?.toString() ?? '0';
     final assists = playerData['assists']?.toString() ?? '0';
+    final top3 = playerData['top_3']?.toString() ?? '0';
+    final firstPlaces = playerData['first_places']?.toString() ?? '0';
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -183,8 +185,8 @@ class PlayerDetailPage extends StatelessWidget {
                       children: [
                         _buildDetailedStat(wins, 'Seiere', AppColors.ink),
                         _buildDetailedStat(assists, 'Assists', AppColors.ink),
-                        _buildDetailedStat('0', 'Gule kort', Colors.amber.shade700),
-                        _buildDetailedStat('0', 'Røde kort', AppColors.coral),
+                        _buildDetailedStat(top3, 'Topp 3', AppColors.ink),
+                        _buildDetailedStat(firstPlaces, '1. Plass', Colors.amber.shade700),
                       ],
                     ),
                   ),

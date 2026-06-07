@@ -13,59 +13,53 @@ class ToursPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leadingWidth: 80,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: Image.asset('assets/images/ntlogo.png', fit: BoxFit.contain),
-        ),
-        actions: const [ProfileAvatarWidget()],
-      ),
-      body: Column(
-        children: [
-          const SeasonHeroWidget(
+      backgroundColor: AppColors.sand1,
+      body: CustomScrollView(
+        slivers: [
+          const SeasonHeroSliver(
+            pageTitle: 'Tours',
             title: 'TOURS',
             description: 'Finn din neste turnering og meld deg på!',
-            playerImage: 'assets/images/3.png',
+            heroImage: 'assets/images/3.png',
           ),
-          Expanded(
+          SliverToBoxAdapter(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance.collection('tournaments').snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: AppColors.coral));
+                  return const Padding(padding: EdgeInsets.all(40), child: Center(child: CircularProgressIndicator(color: AppColors.coral)));
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('Noe gikk galt.', style: AppText.uiBody));
+                  return Padding(padding: const EdgeInsets.all(40), child: Center(child: Text('Noe gikk galt.', style: AppText.uiBody)));
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(child: Text('Ingen turneringer funnet.', style: AppText.uiBody));
+                  return Padding(padding: const EdgeInsets.all(40), child: Center(child: Text('Ingen turneringer funnet.', style: AppText.uiBody)));
                 }
 
                 final tournaments = snapshot.data!.docs;
 
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppTheme.pageHPad, AppTheme.sectionGap,
-                    AppTheme.pageHPad, 32,
-                  ),
-                  itemCount: tournaments.length,
-                  itemBuilder: (context, index) {
-                    final doc = tournaments[index];
-                    final data = doc.data() as Map<String, dynamic>;
-                    final name = data['name'] ?? 'Ukjent Navn';
-                    final date = data['start_date']?.toString() ?? 'Dato kommer';
-                    final imageUrl = data['image_url'] ?? '';
-                    final location = data['location'] ?? '';
-                    final status = data['status'] ?? '';
+                return Transform.translate(
+                  offset: const Offset(0, -20),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppTheme.pageHPad, 0,
+                      AppTheme.pageHPad, 32,
+                    ),
+                    itemCount: tournaments.length,
+                    itemBuilder: (context, index) {
+                      final doc = tournaments[index];
+                      final data = doc.data() as Map<String, dynamic>;
+                      final name = data['name'] ?? 'Ukjent Navn';
+                      final date = data['start_date']?.toString() ?? 'Dato kommer';
+                      final imageUrl = data['image_url'] ?? '';
+                      final location = data['location'] ?? '';
+                      final status = data['status'] ?? '';
 
-                    return _buildTourCard(context, doc.id, data, name, date, imageUrl, location, status);
-                  },
+                      return _buildTourCard(context, doc.id, data, name, date, imageUrl, location, status);
+                    },
+                  ),
                 );
               },
             ),

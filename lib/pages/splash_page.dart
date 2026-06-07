@@ -76,22 +76,18 @@ class _SplashPageState extends State<SplashPage>
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // ── Background image ─────────────────────────────────────
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/bakgrunn.png',
-              fit: BoxFit.cover,
+      body: SizedBox.expand(
+        child: Stack(
+          children: [
+            // ── Background image ─────────────────────────────────────
+            Positioned.fill(
+              child: Image.asset(
+                'assets/images/bakgrunn.png',
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
 
-          // ── Dark overlay for text readability ────────────────────
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.45),
-            ),
-          ),
+          // ── Dark overlay removed per user request ────────────────
 
           // ── Player cutout image ──────────────────────────────────
           Positioned(
@@ -105,7 +101,7 @@ class _SplashPageState extends State<SplashPage>
                 child: SizedBox(
                   height: size.height * 0.72,
                   child: Image.asset(
-                    'assets/images/4.png',
+                    'assets/images/1.png',
                     fit: BoxFit.contain,
                     alignment: Alignment.bottomCenter,
                   ),
@@ -144,12 +140,7 @@ class _SplashPageState extends State<SplashPage>
                 horizontal: AppTheme.pageHPad,
                 vertical: 18,
               ),
-              child: Image.asset(
-                'assets/images/ntlogo.png',
-                height: 48,
-                fit: BoxFit.contain,
-                alignment: Alignment.centerLeft,
-              ),
+              child: const SizedBox(height: 48),
             ),
           ),
 
@@ -236,6 +227,7 @@ class _SplashPageState extends State<SplashPage>
             ),
           ),
         ],
+      ),
       ),
     );
   }
