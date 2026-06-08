@@ -78,7 +78,7 @@ class MatchStatsPage extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text('SO = Sideout  ·  MOT = Mottaksfeil', style: AppText.monoSm),
+                      Text('SO = Sideout  ·  BP = Overgang  ·  MOT % = Gode mottak', style: AppText.monoSm),
                       const SizedBox(height: 16),
                       _buildStatsTable(players),
                     ],
@@ -176,53 +176,62 @@ class MatchStatsPage extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.all(14),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (p.imageUrl.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 10.0),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundImage: NetworkImage(p.imageUrl),
-                      backgroundColor: AppColors.sand2,
-                    ),
-                  )
-                else
-                  Padding(
-                    padding: const EdgeInsets.only(right: 10.0),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundColor: AppColors.sand2,
-                      child: Text(
-                        p.playerName.isEmpty ? '?' : p.playerName.substring(0, 1).toUpperCase(),
-                        style: AppText.dispKicker(14).copyWith(color: AppColors.ink2),
+                Row(
+                  children: [
+                    if (p.imageUrl.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 10.0),
+                        child: CircleAvatar(
+                          radius: 18,
+                          backgroundImage: NetworkImage(p.imageUrl),
+                          backgroundColor: AppColors.sand2,
+                        ),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.only(right: 10.0),
+                        child: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: AppColors.sand2,
+                          child: Text(
+                            p.playerName.isEmpty ? '?' : p.playerName.substring(0, 1).toUpperCase(),
+                            style: AppText.dispKicker(14).copyWith(color: AppColors.ink2),
+                          ),
+                        ),
+                      ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(p.playerName, style: AppText.uiTitle, overflow: TextOverflow.ellipsis),
+                          Text(p.teamName, style: AppText.uiCaption, overflow: TextOverflow.ellipsis),
+                        ],
                       ),
                     ),
-                  ),
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(p.playerName, style: AppText.uiTitle, overflow: TextOverflow.ellipsis),
-                      Text(p.teamName, style: AppText.uiCaption, overflow: TextOverflow.ellipsis),
-                    ],
-                  ),
+                    _buildMiniStat('TOT', p.totalPoints.toString(), color: AppColors.coral),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 3,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildMiniStat('TOT', p.totalPoints.toString(), color: AppColors.coral),
-                      _buildMiniStat('ANG', '${p.kills}/${p.attackErrors}', color: AppColors.ink),
-                      _buildMiniStat('SO', '${p.sideoutPoints}', color: AppColors.ink),
-                      _buildMiniStat('LEGG', p.settingEfficiency, color: AppColors.ink),
-                      _buildMiniStat('MOT', '${p.receptionErrors}',
-                          color: p.receptionErrors > 0 ? AppColors.coral : AppColors.ink3),
-                    ],
-                  ),
+                const SizedBox(height: 12),
+                Divider(color: AppColors.ink.withOpacity(0.1), height: 1),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.start,
+                  children: [
+                    _buildMiniStat('ANG', '${p.kills}/${p.attackErrors}', color: AppColors.ink),
+                    _buildMiniStat('SO', '${p.sideoutPoints}', color: AppColors.ink),
+                    _buildMiniStat('BP', '${p.overgangsPoeng}', color: AppColors.ink),
+                    _buildMiniStat('BLK', '${p.blocks}', color: AppColors.ink),
+                    _buildMiniStat('ESS', '${p.aces}', color: AppColors.ink),
+                    _buildMiniStat('SRV', '${p.serviceErrors}', color: p.serviceErrors > 0 ? AppColors.coral : AppColors.ink),
+                    _buildMiniStat('MOT %', p.receptionEfficiency, color: AppColors.ink),
+                    _buildMiniStat('LEGG', p.settingEfficiency, color: AppColors.ink),
+                    _buildMiniStat('TEK', '${p.technicalErrors}', color: p.technicalErrors > 0 ? AppColors.coral : AppColors.ink),
+                  ],
                 ),
               ],
             ),
@@ -233,12 +242,15 @@ class MatchStatsPage extends StatelessWidget {
   }
 
   Widget _buildMiniStat(String label, String value, {required Color color}) {
-    return Column(
-      children: [
-        Text(label, style: AppText.monoSm),
-        const SizedBox(height: 3),
-        Text(value, style: AppText.dispKicker(13).copyWith(color: color)),
-      ],
+    return SizedBox(
+      width: 52,
+      child: Column(
+        children: [
+          Text(label, style: AppText.monoSm, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 3),
+          Text(value, style: AppText.dispKicker(13).copyWith(color: color), textAlign: TextAlign.center),
+        ],
+      ),
     );
   }
 }

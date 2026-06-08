@@ -13,9 +13,10 @@ class PlayerMatchStats {
   int receptionErrors = 0;
   int setAssists = 0;
   int setAttempts = 0;
-  int sideoutPoints = 0; 
+  int sideoutPoints = 0;
+  int technicalErrors = 0; // NYTT
 
-  // NYTT: Kart for å lagre detaljer (f.eks. {"Hardtangrep: Linje": 3, "Blokk ut": 2})
+  // Kart for å lagre detaljer
   Map<String, int> killDetails = {};
   Map<String, int> aceDetails = {};
   Map<String, int> attackErrorDetails = {};
@@ -24,9 +25,18 @@ class PlayerMatchStats {
 
   int get totalPoints => kills + blocks + aces;
   
+  int get overgangsPoeng => (killDetails['Forsvar'] ?? 0) + (killDetails['Blokktrekk'] ?? 0);
+  
   String get settingEfficiency {
     if (setAttempts == 0) return "-";
     int pct = ((setAssists / setAttempts) * 100).round();
+    return "$pct%";
+  }
+
+  String get receptionEfficiency {
+    int totalReceptions = sideoutPoints + receptionErrors;
+    if (totalReceptions == 0) return "-";
+    int pct = ((sideoutPoints / totalReceptions) * 100).round();
     return "$pct%";
   }
 }
@@ -36,13 +46,20 @@ Map<String, PlayerMatchStats> calculateMatchStats(List<Map<String, dynamic>> eve
 
   for (var event in events) {
     String pKey = event['player_name'] ?? 'Ukjent';
+    // Ignorer "Lag" for å unngå en fiktiv spiller for motstanderfeil
+    if (pKey == 'Lag' || pKey.toLowerCase() == 'lag') continue;
+
     String team = event['team'] ?? '';
     String action = event['action'] ?? '';
     String phase = event['phase'] ?? '';
-    String? subType = event['sub_type']; // Henter den nye detaljen
+    String? subType = event['sub_type']; 
 
     if (!statsMap.containsKey(pKey)) {
-      statsMap[pKey] = PlayerMatchStats(playerName: pKey, teamName: team, imageUrl: event['image_url'] ?? event['image'] ?? event['photoUrl'] ?? event['photo_url'] ?? event['picture'] ?? '');
+      statsMap[pKey] = PlayerMatchStats(
+        playerName: pKey, 
+        teamName: team, 
+        imageUrl: event['image_url'] ?? event['image'] ?? event['photoUrl'] ?? event['photo_url'] ?? event['picture'] ?? ''
+      );
     }
 
     final stats = statsMap[pKey]!;
@@ -76,6 +93,7 @@ Map<String, PlayerMatchStats> calculateMatchStats(List<Map<String, dynamic>> eve
       case 'Reception Error': stats.receptionErrors++; break;
       case 'Set Assist': stats.setAssists++; break;
       case 'Set Attempt': stats.setAttempts++; break;
+      case 'Technical Error': stats.technicalErrors++; break; // NYTT
     }
   }
   return statsMap;
