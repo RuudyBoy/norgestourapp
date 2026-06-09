@@ -91,7 +91,10 @@ class _PlayersListPageState extends State<PlayersListPage> {
                       ),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: AppColors.sand0,
+                          image: const DecorationImage(
+                            image: AssetImage('assets/images/card_bg.png'),
+                            fit: BoxFit.cover,
+                          ),
                           borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                           boxShadow: AppTheme.shadowSm,
                         ),
@@ -125,8 +128,8 @@ class _PlayersListPageState extends State<PlayersListPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text(firstName, style: AppText.uiCaption, maxLines: 1, overflow: TextOverflow.ellipsis),
-                                    Text(lastName, style: AppText.uiTitle.copyWith(fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    Text(firstName, style: AppText.uiCaption.copyWith(color: Colors.white70), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    Text(lastName, style: AppText.uiTitle.copyWith(fontSize: 15, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
                                     const SizedBox(height: 5),
                                     Row(
                                       children: [
@@ -141,7 +144,7 @@ class _PlayersListPageState extends State<PlayersListPage> {
                                             child: Text(jersey, style: AppText.monoSm.copyWith(color: Colors.white, fontSize: 9)),
                                           ),
                                         Expanded(
-                                          child: Text(position, style: AppText.monoSm, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                          child: Text(position, style: AppText.monoSm.copyWith(color: Colors.white70), maxLines: 1, overflow: TextOverflow.ellipsis),
                                         ),
                                       ],
                                     ),

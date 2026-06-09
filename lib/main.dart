@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
         return Container(
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/images/hero_bg.jpg'),
+              image: AssetImage('assets/images/hero_bg.png'),
               fit: BoxFit.cover,
             ),
           ),

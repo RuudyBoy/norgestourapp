@@ -71,7 +71,14 @@ class PlayerDetailPage extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   // Background gradient
-                  Container(decoration: const BoxDecoration(gradient: AppColors.heroNavy)),
+                  Container(
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/hero_bg.png'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
 
                   // Watermark text
                   Positioned(
@@ -143,7 +150,10 @@ class PlayerDetailPage extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: AppTheme.cardPad),
                       decoration: BoxDecoration(
-                        color: AppColors.sand0,
+                        image: const DecorationImage(
+                          image: AssetImage('assets/images/card_bg.png'),
+                          fit: BoxFit.cover,
+                        ),
                         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                         boxShadow: AppTheme.shadowLg,
                       ),
@@ -176,7 +186,10 @@ class PlayerDetailPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 18, horizontal: AppTheme.cardPad),
                     decoration: BoxDecoration(
-                      color: AppColors.sand0,
+                      image: const DecorationImage(
+                        image: AssetImage('assets/images/card_bg.png'),
+                        fit: BoxFit.cover,
+                      ),
                       borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                       boxShadow: AppTheme.shadowSm,
                     ),
@@ -197,16 +210,19 @@ class PlayerDetailPage extends StatelessWidget {
                     const SizedBox(height: 12),
                     Container(
                       decoration: BoxDecoration(
-                        color: AppColors.sand0,
+                        image: const DecorationImage(
+                          image: AssetImage('assets/images/card_bg.png'),
+                          fit: BoxFit.cover,
+                        ),
                         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                         boxShadow: AppTheme.shadowSm,
                       ),
                       child: Column(
                         children: [
                           if (height.isNotEmpty) _buildListTile('Høyde', '$height cm'),
-                          if (weight.isNotEmpty) ...[const Divider(height: 1), _buildListTile('Vekt', '$weight kg')],
-                          if (birthDate.isNotEmpty) ...[const Divider(height: 1), _buildListTile('Født', birthDate)],
-                          if (nationality.isNotEmpty) ...[const Divider(height: 1), _buildListTile('Nasjonalitet', nationality)],
+                          if (weight.isNotEmpty) ...[const Divider(height: 1, color: Colors.white24), _buildListTile('Vekt', '$weight kg')],
+                          if (birthDate.isNotEmpty) ...[const Divider(height: 1, color: Colors.white24), _buildListTile('Født', birthDate)],
+                          if (nationality.isNotEmpty) ...[const Divider(height: 1, color: Colors.white24), _buildListTile('Nasjonalitet', nationality)],
                         ],
                       ),
                     ),
@@ -236,9 +252,9 @@ class PlayerDetailPage extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: AppText.monoSm),
+        Text(label, style: AppText.monoSm.copyWith(color: Colors.white70)),
         const SizedBox(height: 6),
-        Text(value, style: AppText.dispScore(26)),
+        Text(value, style: AppText.dispScore(26).copyWith(color: Colors.white)),
       ],
     );
   }
@@ -246,9 +262,9 @@ class PlayerDetailPage extends StatelessWidget {
   Widget _buildDetailedStat(String value, String label, Color valueColor) {
     return Column(
       children: [
-        Text(value, style: AppText.dispH2(22).copyWith(color: valueColor)),
+        Text(value, style: AppText.dispH2(22).copyWith(color: valueColor == AppColors.ink ? Colors.white : valueColor)),
         const SizedBox(height: 4),
-        Text(label, style: AppText.monoSm, textAlign: TextAlign.center),
+        Text(label, style: AppText.monoSm.copyWith(color: Colors.white70), textAlign: TextAlign.center),
       ],
     );
   }
@@ -259,8 +275,8 @@ class PlayerDetailPage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: AppText.uiCaption),
-          Text(value, style: AppText.uiTitle),
+          Text(title, style: AppText.uiCaption.copyWith(color: Colors.white70)),
+          Text(value, style: AppText.uiTitle.copyWith(color: Colors.white)),
         ],
       ),
     );

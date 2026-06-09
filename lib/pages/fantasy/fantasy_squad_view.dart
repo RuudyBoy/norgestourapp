@@ -14,6 +14,7 @@ class FantasySquadView extends StatefulWidget {
   final List<FantasyPlayer> players;
   final Function(String role) onRoleTap;
   final String? linkedPlayerId;
+  final String teamName;
 
   const FantasySquadView({
     super.key,
@@ -21,6 +22,7 @@ class FantasySquadView extends StatefulWidget {
     required this.players,
     required this.onRoleTap,
     this.linkedPlayerId,
+    required this.teamName,
   });
 
   @override
@@ -30,7 +32,7 @@ class FantasySquadView extends StatefulWidget {
 class _FantasySquadViewState extends State<FantasySquadView> {
   bool _isLoading = true;
   LeaderboardEntry? _bestManager;
-  String? _selectedRole; // null = show all
+  LeaderboardEntry? _bestManager;
 
   @override
   void initState() {
@@ -67,10 +69,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     return AppColors.coral;
   }
 
-  List<String> get _visibleRoles {
-    if (_selectedRole == null) return FantasyRole.all;
-    return [_selectedRole!];
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -100,19 +99,27 @@ class _FantasySquadViewState extends State<FantasySquadView> {
         : null;
 
     return Container(
-      color: _bg,
+      color: Colors.transparent,
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── Top stats bar ──────────────────────────────────────────
-            _buildTopStatsBar(filledSlots, totalValue, totalPoints),
+            _buildTopStatsBar(totalValue, totalPoints),
 
-            // ── Deadline banner ────────────────────────────────────────
-            _buildDeadlineBanner(),
+            const SizedBox(height: 24),
 
-            // ── Role filter tabs ───────────────────────────────────────
-            _buildRoleTabs(),
+            // ── Team Name Header ───────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Center(
+                child: Text(
+                  widget.teamName,
+                  style: AppText.dispH2(26).copyWith(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
 
             const SizedBox(height: 16),
 
@@ -121,6 +128,9 @@ class _FantasySquadViewState extends State<FantasySquadView> {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: _buildPlayerGrid(),
             ),
+
+            // ── Deadline banner ────────────────────────────────────────
+            _buildDeadlineBanner(),
 
             const SizedBox(height: 28),
 
@@ -163,160 +173,108 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     );
   }
 
-  Widget _buildTopStatsBar(int filled, double totalValue, int totalPoints) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(14, 14, 14, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _border),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 4)),
-        ],
-      ),
+  Widget _buildTopStatsBar(double totalValue, int totalPoints) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
       child: Row(
         children: [
-          _buildStatCell(
-            icon: Icons.people_alt_rounded,
-            iconColor: AppColors.coral,
-            value: '$filled/${FantasyRole.all.length}',
-            label: 'Spillere',
-          ),
-          _buildDivider(),
-          _buildStatCell(
+          _buildStatCard(
             icon: Icons.account_balance_wallet_rounded,
             iconColor: const Color(0xFF36C87A),
             value: '\$${(50.0 - totalValue).toStringAsFixed(1)}m',
-            label: 'Budsjett igjen',
+            label: 'BUDSJETT',
           ),
-          _buildDivider(),
-          _buildStatCell(
+          const SizedBox(width: 12),
+          _buildStatCard(
             icon: Icons.star_rounded,
             iconColor: const Color(0xFFFFB72B),
             value: totalPoints.toString(),
-            label: 'Totalt poeng',
+            label: 'POENG',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatCell({
+  Widget _buildStatCard({
     required IconData icon,
     required Color iconColor,
     required String value,
     required String label,
   }) {
     return Expanded(
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: iconColor, size: 14),
-              const SizedBox(width: 5),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontFamily: 'RobotoMono',
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
-                ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _border),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 4)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: iconColor, size: 16),
+                const SizedBox(width: 6),
+                Text(label, style: TextStyle(fontSize: 10, color: AppColors.nightInk2, fontFamily: 'RobotoMono', fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                fontFamily: 'RobotoMono',
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: -0.5,
               ),
-            ],
-          ),
-          const SizedBox(height: 3),
-          Text(label, style: TextStyle(fontSize: 10, color: AppColors.nightInk2, fontFamily: 'RobotoMono')),
-        ],
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  Widget _buildDivider() {
-    return Container(width: 1, height: 36, color: _border);
   }
 
   Widget _buildDeadlineBanner() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(14, 10, 14, 0),
-      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 14),
-      decoration: BoxDecoration(
-        color: AppColors.coral.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.coral.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.timer_outlined, color: AppColors.coral, size: 14),
-          const SizedBox(width: 8),
-          Text(
-            'Tidsfrist for neste runde: I morgen kl 18:00',
-            style: AppText.monoSm.copyWith(color: AppColors.coral, fontSize: 11),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRoleTabs() {
-    return SizedBox(
-      height: 40,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
-        children: [
-          _buildRoleTab(null, 'ALLE'),
-          ...FantasyRole.all.map((r) => _buildRoleTab(r, _roleLabel(r))),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRoleTab(String? role, String label) {
-    final isActive = _selectedRole == role;
-    final accent = role != null ? _roleAccent(role) : Colors.white;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedRole = role),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(14, 16, 14, 0),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: isActive ? accent.withValues(alpha: 0.18) : _surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isActive ? accent : _border,
-            width: isActive ? 1.5 : 1,
-          ),
+          color: AppColors.coral.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.coral.withValues(alpha: 0.35)),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontFamily: 'RobotoMono',
-            fontSize: 10,
-            fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-            color: isActive ? accent : AppColors.nightInk2,
-            letterSpacing: 0.8,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.timer_outlined, color: AppColors.coral, size: 14),
+            const SizedBox(width: 8),
+            Text(
+              'Frist: I morgen kl 18:00',
+              style: AppText.monoSm.copyWith(color: AppColors.coral, fontSize: 11),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildPlayerGrid() {
-    final roles = _visibleRoles;
+    final roles = FantasyRole.all;
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 10,
-        childAspectRatio: 0.85,
+        crossAxisCount: 2,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: 0.72,
       ),
       itemCount: roles.length,
       itemBuilder: (context, i) => _buildPlayerCard(context, roles[i]),
@@ -332,8 +290,9 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     }
 
     final isLinked = player != null && player.id == widget.linkedPlayerId;
-    final accent   = _roleAccent(role);
     final filled   = player != null;
+    final roleName = _roleLabel(role);
+    final roleAbbr = roleName.length >= 3 ? roleName.substring(0, 3) : roleName;
 
     return GestureDetector(
       onTap: () {
@@ -343,174 +302,161 @@ class _FantasySquadViewState extends State<FantasySquadView> {
           widget.onRoleTap(role);
         }
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          gradient: filled
-              ? LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    _surface2,
-                    Color.lerp(_surface2, accent, 0.2)!,
-                  ],
-                )
-              : const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [_surface, Color(0xFF0F1A2E)],
-                ),
+          color: const Color(0xFF1E1E1E), // Dark card background
+          borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: filled ? accent.withValues(alpha: 0.5) : _border,
-            width: filled ? 1.5 : 1,
+            color: Colors.white.withValues(alpha: 0.15),
+            width: 1,
           ),
-          boxShadow: filled
-              ? [BoxShadow(color: accent.withValues(alpha: 0.2), blurRadius: 12, spreadRadius: 0)]
-              : [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 6)],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(13),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Player image
-              if (filled && player.imageUrl.isNotEmpty)
-                Image.network(
-                  player.imageUrl,
-                  fit: BoxFit.cover,
-                  alignment: Alignment.topCenter,
-                  errorBuilder: (_, _, _) => _emptySlotContent(accent),
-                )
-              else if (!filled)
-                _emptySlotContent(accent),
-
-              // Bottom gradient + info overlay
-              Positioned(
-                bottom: 0, left: 0, right: 0,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [Color(0xE6050D1A), Color(0x80050D1A), Colors.transparent],
-                      stops: [0.0, 0.55, 1.0],
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 1. Image section
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (filled && player.imageUrl.isNotEmpty)
+                    Image.network(
+                      player.imageUrl,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.topCenter,
+                      errorBuilder: (_, _, _) => _emptySlotContent(),
+                    )
+                  else if (!filled)
+                    _emptySlotContent(),
+                  
+                  // Top-right swap icon if filled
+                  if (filled)
+                    Positioned(
+                      top: 6, right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.swap_horiz, color: Colors.white70, size: 14),
+                      ),
                     ),
-                  ),
-                  padding: const EdgeInsets.fromLTRB(8, 24, 8, 8),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (filled) ...[
-                        Text(
-                          isLinked ? 'MEG' : player.name.split(' ').last,
-                          style: const TextStyle(
-                            fontFamily: 'RobotoMono',
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          player.team,
-                          style: TextStyle(
-                            fontFamily: 'RobotoMono',
-                            fontSize: 9,
-                            color: AppColors.nightInk2,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 5),
-                        // Points pill
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: accent,
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.5), blurRadius: 6)],
-                          ),
-                          child: Text(
-                            '${player.totalPoints} pts',
-                            style: const TextStyle(
-                              fontFamily: 'RobotoMono',
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        const Icon(Icons.add_circle_outline, color: Colors.white38, size: 22),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Legg til',
-                          style: TextStyle(
-                            fontFamily: 'RobotoMono',
-                            fontSize: 10,
-                            color: Colors.white.withValues(alpha: 0.5),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
+                ],
               ),
-
-              // Role badge top-left
-              Positioned(
-                top: 8, left: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: accent,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    _roleLabel(role),
+            ),
+            
+            // 2. Info Strip
+            Container(
+              height: 26,
+              color: Colors.black.withValues(alpha: 0.4),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children: [
+                  Text(
+                    roleAbbr,
                     style: const TextStyle(
                       fontFamily: 'RobotoMono',
-                      fontSize: 7.5,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white70,
                     ),
                   ),
-                ),
+                  const Spacer(),
+                  if (filled) ...[
+                    const Icon(Icons.sports_volleyball, size: 12, color: Colors.white70),
+                    const Spacer(),
+                    Text(
+                      '${player.totalPoints} PTS',
+                      style: const TextStyle(
+                        fontFamily: 'RobotoMono',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ] else ...[
+                    const Icon(Icons.sports_volleyball, size: 12, color: Colors.white30),
+                    const Spacer(),
+                  ],
+                ],
               ),
-
-              // Swap icon top-right when filled
-              if (filled)
-                Positioned(
-                  top: 6, right: 6,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      shape: BoxShape.circle,
+            ),
+            
+            // 3. Name and Subtext section
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (filled) ...[
+                    Text(
+                      isLinked ? 'MEG' : player.name.split(' ').last,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        height: 1.1,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    child: const Icon(Icons.swap_horiz, color: Colors.white54, size: 13),
-                  ),
-                ),
-            ],
-          ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            player.team,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.white.withValues(alpha: 0.6),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const Icon(Icons.info, size: 14, color: Colors.lightBlue),
+                      ],
+                    ),
+                  ] else ...[
+                    Center(
+                      child: Text(
+                        roleName,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _emptySlotContent(Color accent) {
+  Widget _emptySlotContent() {
     return Container(
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          center: Alignment.center,
-          radius: 0.8,
-          colors: [accent.withValues(alpha: 0.07), Colors.transparent],
+      color: const Color(0xFF2A2A2A),
+      child: Center(
+        child: Icon(
+          Icons.person,
+          size: 70,
+          color: Colors.white.withValues(alpha: 0.1),
         ),
       ),
     );

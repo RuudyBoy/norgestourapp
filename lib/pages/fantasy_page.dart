@@ -246,7 +246,7 @@ class _FantasyPageState extends State<FantasyPage> {
                           Text('Fantasy', style: AppText.dispH2(28)),
                           const SizedBox(height: 2),
                           Text(
-                            _teamName ?? '',
+                            'Sett opp ditt drømmelag',
                             style: AppText.dispKicker(14).copyWith(color: AppColors.coral),
                           ),
                         ],
@@ -259,6 +259,7 @@ class _FantasyPageState extends State<FantasyPage> {
                             selectedPlayers: selectedPlayers,
                             players: players,
                             linkedPlayerId: _linkedPlayerId,
+                            teamName: _teamName ?? 'Mitt Lag',
                             onRoleTap: (role) => _openPlayerSelection(role, players, ownershipPercentages),
                           ),
                           FantasyLeaguesView(players: players),

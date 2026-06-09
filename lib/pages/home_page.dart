@@ -245,7 +245,10 @@ class _HomePageState extends State<HomePage> {
                   margin: const EdgeInsets.only(right: AppTheme.rowGap),
                   padding: const EdgeInsets.all(AppTheme.cardPad),
                   decoration: BoxDecoration(
-                    gradient: AppColors.heroNavy,
+                    image: const DecorationImage(
+                      image: AssetImage('assets/images/card_bg.png'),
+                      fit: BoxFit.cover,
+                    ),
                     borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                     boxShadow: AppTheme.shadowLg,
                   ),
@@ -347,7 +350,6 @@ class _HomePageState extends State<HomePage> {
                 ),
                 child: Container(
                   decoration: BoxDecoration(
-                    gradient: AppColors.heroNavy,
                     borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                     boxShadow: AppTheme.shadowLg,
                     image: imageUrl.isNotEmpty
@@ -359,7 +361,10 @@ class _HomePageState extends State<HomePage> {
                               BlendMode.darken,
                             ),
                           )
-                        : null,
+                        : const DecorationImage(
+                            image: AssetImage('assets/images/card_bg.png'),
+                            fit: BoxFit.cover,
+                          ),
                   ),
                   padding: const EdgeInsets.all(AppTheme.cardPad + 4),
                   child: Row(
@@ -444,7 +449,10 @@ class _HomePageState extends State<HomePage> {
         },
         child: Container(
           decoration: BoxDecoration(
-            gradient: AppColors.heroCoral,
+            image: const DecorationImage(
+              image: AssetImage('assets/images/card_bg.png'),
+              fit: BoxFit.cover,
+            ),
             borderRadius: BorderRadius.circular(AppTheme.radiusCard),
             boxShadow: AppTheme.shadowCoral,
           ),
@@ -577,7 +585,10 @@ class _HomePageState extends State<HomePage> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.sand0,
+        image: const DecorationImage(
+          image: AssetImage('assets/images/card_bg.png'),
+          fit: BoxFit.cover,
+        ),
         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
         boxShadow: AppTheme.shadowSm,
       ),
@@ -606,11 +617,11 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: AppText.dispH2(18)),
+                      Text(title, style: AppText.dispH2(18).copyWith(color: Colors.white)),
                       const SizedBox(height: 2),
-                      Text(subtitle, style: AppText.monoSm),
+                      Text(subtitle, style: AppText.monoSm.copyWith(color: Colors.white70)),
                       const SizedBox(height: 6),
-                      Text(description, style: AppText.uiCaption, maxLines: 2, overflow: TextOverflow.ellipsis),
+                      Text(description, style: AppText.uiCaption.copyWith(color: Colors.white70), maxLines: 2, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),

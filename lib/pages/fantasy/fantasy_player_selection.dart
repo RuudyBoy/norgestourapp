@@ -84,13 +84,13 @@ class FantasyPlayerSelection extends StatelessWidget {
     });
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1220),
+      backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
           // ── Header ────────────────────────────────────────────────
           SliverAppBar(
             pinned: true,
-            backgroundColor: const Color(0xFF0B1220),
+            backgroundColor: Colors.transparent,
             elevation: 0,
             leading: Padding(
               padding: const EdgeInsets.only(left: 12),
