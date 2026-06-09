@@ -48,7 +48,7 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
       final typedList = eventsList.cast<Map<String, dynamic>>();
       final matchStats = calculateMatchStats(typedList);
 
-      matchStats.forEach((playerName, s) {
+      matchStats.players.forEach((playerName, s) {
         if (!totalStatsMap.containsKey(playerName)) {
           totalStatsMap[playerName] = PlayerMatchStats(
             playerName: playerName, 
@@ -75,7 +75,6 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Scaffold(
-      backgroundColor: isDark ? AppColors.nightSurface1 : AppColors.sand1,
       appBar: AppBar(
         title: Text(
           "Hall of Fame - ${widget.tournamentName}",

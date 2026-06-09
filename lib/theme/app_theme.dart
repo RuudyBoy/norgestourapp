@@ -49,7 +49,7 @@ class AppTheme {
     final base = ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      scaffoldBackgroundColor: AppColors.sand1,
+      scaffoldBackgroundColor: Colors.transparent,
       primaryColor: AppColors.coral,
       colorScheme: ColorScheme.light(
         primary:        AppColors.coral,
@@ -69,7 +69,7 @@ class AppTheme {
 
       // app bar
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.sand1,
+        backgroundColor: Colors.transparent,
         foregroundColor: AppColors.ink,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -166,7 +166,7 @@ class AppTheme {
     final base = ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: AppColors.nightSurface1,
+      scaffoldBackgroundColor: Colors.transparent,
       primaryColor: AppColors.coral,
       colorScheme: ColorScheme.dark(
         primary:        AppColors.coral,
@@ -179,7 +179,7 @@ class AppTheme {
       textTheme: _textTheme(AppColors.nightInk),
       fontFamily: GoogleFonts.schibstedGrotesk().fontFamily,
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.nightSurface1,
+        backgroundColor: Colors.transparent,
         foregroundColor: AppColors.nightInk,
         elevation: 0,
         scrolledUnderElevation: 0,

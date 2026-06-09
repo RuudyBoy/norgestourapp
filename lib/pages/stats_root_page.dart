@@ -48,7 +48,7 @@ class _StatsRootPageState extends State<StatsRootPage> {
       final typedList = eventsList.cast<Map<String, dynamic>>();
       final matchStats = calculateMatchStats(typedList);
 
-      matchStats.forEach((playerName, s) {
+      matchStats.players.forEach((playerName, s) {
         if (!totalStatsMap.containsKey(playerName)) {
           totalStatsMap[playerName] = PlayerMatchStats(
             playerName: playerName,
@@ -89,7 +89,6 @@ class _StatsRootPageState extends State<StatsRootPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.sand1,
       body: RefreshIndicator(
         onRefresh: _refreshStats,
         color: AppColors.coral,
@@ -97,10 +96,10 @@ class _StatsRootPageState extends State<StatsRootPage> {
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             const SeasonHeroSliver(
-              pageTitle: 'Stats',
+              pageTitle: 'Statistikk',
               title: 'STATS',
-              description: 'Hvem leder, og hvem har flest serveess?',
-              heroImage: 'assets/images/3.png',
+              description: 'Dypdykk i tallene fra sesongen.',
+              actionImage: 'assets/images/player_action.png',
             ),
             SliverToBoxAdapter(
               child: FutureBuilder<List<PlayerMatchStats>>(
@@ -133,21 +132,22 @@ class _StatsRootPageState extends State<StatsRootPage> {
                     });
                   final serverList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.aces.compareTo(a.aces));
 
-                  return Transform.translate(
-                    offset: const Offset(0, -20),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 0, AppTheme.pageHPad, 32),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 16, AppTheme.pageHPad, 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                           // All players button
                           GestureDetector(
                             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PlayersListPage())),
                             child: Container(
                               decoration: BoxDecoration(
-                                gradient: AppColors.heroNavy,
                                 borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                                 boxShadow: AppTheme.shadowLg,
+                                image: const DecorationImage(
+                                  image: AssetImage('assets/images/card_bg.png'),
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 18, horizontal: AppTheme.cardPad),
                               child: Row(
@@ -225,9 +225,8 @@ class _StatsRootPageState extends State<StatsRootPage> {
                           ),
                         ],
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
               ),
             ),
           ],
@@ -302,21 +301,15 @@ class StatsCategoryCard extends StatelessWidget {
             height: 280, // tall card
             clipBehavior: Clip.hardEdge,
             decoration: BoxDecoration(
-              color: const Color(0xFF1B1B1B), // Dark background
               borderRadius: BorderRadius.circular(16),
               boxShadow: AppTheme.shadowLg,
+              image: const DecorationImage(
+                image: AssetImage('assets/images/card_bg.png'),
+                fit: BoxFit.cover,
+              ),
             ),
             child: Stack(
               children: [
-                // Vertical stripes background
-                Positioned(
-                  left: 100, top: 0, bottom: 0, width: 25,
-                  child: Container(color: accentColor),
-                ),
-                Positioned(
-                  left: 125, top: 0, bottom: 0, width: 25,
-                  child: Container(color: Colors.white),
-                ),
                 
                 // Player Image Cutout on right
                 if (winner.imageUrl.isNotEmpty)

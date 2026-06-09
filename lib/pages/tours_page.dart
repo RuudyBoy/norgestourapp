@@ -13,14 +13,12 @@ class ToursPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.sand1,
       body: CustomScrollView(
         slivers: [
           const SeasonHeroSliver(
             pageTitle: 'Tours',
             title: 'TOURS',
             description: 'Finn din neste turnering og meld deg på!',
-            heroImage: 'assets/images/3.png',
           ),
           SliverToBoxAdapter(
             child: StreamBuilder<QuerySnapshot>(
@@ -157,10 +155,15 @@ class ToursPage extends StatelessWidget {
                 else
                   Container(
                     height: 100,
-                    decoration: BoxDecoration(gradient: AppColors.heroNavy),
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/card_bg.png'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                     child: Center(
                       child: Text(name.toUpperCase(),
-                          style: AppText.dispH2(24).copyWith(color: Colors.white.withOpacity(0.3))),
+                          style: AppText.dispH2(24).copyWith(color: Colors.white)),
                     ),
                   ),
                 Padding(

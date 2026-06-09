@@ -15,7 +15,6 @@ class MatchesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text("Kamper - $tournamentName"),
         backgroundColor: const Color(0xFF0A1931),

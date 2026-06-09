@@ -14,7 +14,6 @@ class TeamsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text("Lag - $tournamentName"),
         backgroundColor: const Color(0xFF0A1931),

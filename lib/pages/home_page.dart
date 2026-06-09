@@ -635,13 +635,11 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.sand1,
       body: CustomScrollView(
         slivers: [
           const SeasonHeroSliver(
             pageTitle: 'Hjem',
             description: 'Gjør deg klar for sesongen 2026!',
-            heroImage: 'assets/images/hero_bg.jpg',
             actionImage: 'assets/images/player_action.png',
           ),
           SliverToBoxAdapter(

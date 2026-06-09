@@ -64,15 +64,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
   }
 
   static Color _roleAccent(String role) {
-    switch (role) {
-      case FantasyRole.block:   return const Color(0xFF4C8BFF);
-      case FantasyRole.attack:  return AppColors.coral;
-      case FantasyRole.set:     return const Color(0xFF36C87A);
-      case FantasyRole.receive: return const Color(0xFFFFB72B);
-      case FantasyRole.defense: return const Color(0xFFAA6FFF);
-      case FantasyRole.serve:   return const Color(0xFF26D4CC);
-      default:                  return AppColors.coral;
-    }
+    return AppColors.coral;
   }
 
   List<String> get _visibleRoles {
@@ -324,7 +316,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
         crossAxisCount: 3,
         mainAxisSpacing: 12,
         crossAxisSpacing: 10,
-        childAspectRatio: 0.62,
+        childAspectRatio: 0.85,
       ),
       itemCount: roles.length,
       itemBuilder: (context, i) => _buildPlayerCard(context, roles[i]),
@@ -555,11 +547,9 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFB8392B), AppColors.coral, Color(0xFF7D231A)],
-          stops: [0.0, 0.6, 1.2],
+        image: const DecorationImage(
+          image: AssetImage('assets/images/card_bg.png'),
+          fit: BoxFit.cover,
         ),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [BoxShadow(color: AppColors.coral.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 6))],
@@ -604,7 +594,10 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _surface,
+        image: const DecorationImage(
+          image: AssetImage('assets/images/card_bg.png'),
+          fit: BoxFit.cover,
+        ),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.coral.withValues(alpha: 0.3)),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10)],
@@ -666,7 +659,10 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     ];
     return Container(
       decoration: BoxDecoration(
-        color: _surface,
+        image: const DecorationImage(
+          image: AssetImage('assets/images/card_bg.png'),
+          fit: BoxFit.cover,
+        ),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _border),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10)],

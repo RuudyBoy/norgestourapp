@@ -40,6 +40,17 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
+      builder: (context, child) {
+        return Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/hero_bg.jpg'),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: child,
+        );
+      },
       home: const _AppRoot(),
     );
   }

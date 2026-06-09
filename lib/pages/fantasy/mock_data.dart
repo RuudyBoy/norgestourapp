@@ -20,7 +20,7 @@ Future<List<FantasyPlayer>> fetchFantasyPlayers() async {
     final typedList = eventsList.cast<Map<String, dynamic>>();
     final matchStats = calculateMatchStats(typedList);
 
-    matchStats.forEach((playerName, s) {
+    matchStats.players.forEach((playerName, s) {
       final key = playerName.trim().toLowerCase();
       if (!totalStatsMap.containsKey(key)) {
         totalStatsMap[key] = PlayerMatchStats(

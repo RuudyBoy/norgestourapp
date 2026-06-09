@@ -82,7 +82,7 @@ class _SplashPageState extends State<SplashPage>
             // ── Background image ─────────────────────────────────────
             Positioned.fill(
               child: Image.asset(
-                'assets/images/bakgrunn.png',
+                'assets/images/splash_bg.png',
                 fit: BoxFit.cover,
               ),
             ),
@@ -99,7 +99,7 @@ class _SplashPageState extends State<SplashPage>
               child: FadeTransition(
                 opacity: _playerFade,
                 child: SizedBox(
-                  height: size.height * 0.72,
+                  height: size.height * 0.90,
                   child: Image.asset(
                     'assets/images/1.png',
                     fit: BoxFit.contain,
@@ -123,9 +123,9 @@ class _SplashPageState extends State<SplashPage>
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    Colors.black.withValues(alpha: 0.6),
-                    Colors.black.withValues(alpha: 0.85),
-                    Colors.black,
+                    Color(0xFF0B1220).withValues(alpha: 0.6),
+                    Color(0xFF0B1220).withValues(alpha: 0.85),
+                    Color(0xFF0B1220),
                   ],
                   stops: const [0.0, 0.28, 0.52, 1.0],
                 ),
@@ -202,8 +202,8 @@ class _SplashPageState extends State<SplashPage>
                           child: ElevatedButton(
                             onPressed: widget.onGetStarted,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: AppColors.ink,
+                              backgroundColor: AppColors.coral,
+                              foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(

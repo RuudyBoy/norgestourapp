@@ -17,7 +17,7 @@ class SeasonHeroSliver extends StatelessWidget {
     required this.pageTitle,
     this.title = 'NT',
     required this.description,
-    this.heroImage = 'assets/images/hero_bg.jpg', // Standard bakgrunn
+    this.heroImage = 'assets/images/hero_card_bg.png', // Standard bakgrunn
     this.actionImage, // Endret til null som standard
     this.actionWidget = const ProfileAvatarWidget(),
   });
@@ -27,7 +27,7 @@ class SeasonHeroSliver extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 340, // Litt ekstra høyde for å få plass til tittel + badge
       pinned: true,
-      backgroundColor: AppColors.sand1,
+      backgroundColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
@@ -39,7 +39,7 @@ class SeasonHeroSliver extends StatelessWidget {
           Text(
             'NT | ${pageTitle.toUpperCase()}',
             style: AppText.monoSm.copyWith(
-              color: AppColors.ink, // Endret til mørk farge i tilfelle bildet er lyst i toppen
+              color: Colors.white.withOpacity(0.8), // Hvit for mørk bg
               fontSize: 10,
               letterSpacing: 1.0,
             ),
@@ -65,16 +65,29 @@ class SeasonHeroSliver extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.sand1.withOpacity(0.4), // Lysere i toppen så logo synes, men bildet ikke forsvinner i svart
+                    Colors.black.withOpacity(0.5), // Mørkere i toppen for hvit tekst
                     Colors.transparent,
                     Colors.transparent,
-                    AppColors.sand1, // Fader pent inn i bakgrunnen nederst
+                    Colors.transparent, // Fader til gjennomsiktig for å vise global bakgrunn
                   ],
                   stops: const [0.0, 0.25, 0.65, 1.0],
                 ),
               ),
             ),
             
+            // ── Foreground Player Cutout ──────────────────────────────
+            if (actionImage != null)
+              Positioned(
+                right: -10, // Litt utenfor kanten for dynamikk
+                bottom: 0, // Kuttet står flatt på bunnen
+                height: 320, // Størrelsen på spilleren
+                child: Image.asset(
+                  actionImage!,
+                  fit: BoxFit.contain,
+                  alignment: Alignment.bottomRight,
+                ),
+              ),
+
             // ── Text Content ──────────────────────────────────────────
             Positioned(
               left: AppTheme.pageHPad,
@@ -105,7 +118,7 @@ class SeasonHeroSliver extends StatelessWidget {
                   Text(
                     title,
                     style: AppText.dispH1(42).copyWith(
-                      color: AppColors.ink,
+                      color: Colors.white,
                       height: 0.95,
                     ),
                   ),
@@ -115,26 +128,13 @@ class SeasonHeroSliver extends StatelessWidget {
                   Text(
                     description,
                     style: AppText.dispH2(20).copyWith(
-                      color: AppColors.ink.withOpacity(0.8),
+                      color: Colors.white.withOpacity(0.8),
                       height: 1.1,
                     ),
                   ),
                 ],
               ),
             ),
-            
-            // ── Foreground Player Cutout ──────────────────────────────
-            if (actionImage != null)
-              Positioned(
-                right: -10, // Litt utenfor kanten for dynamikk
-                bottom: 0, // Kuttet står flatt på bunnen
-                height: 320, // Størrelsen på spilleren
-                child: Image.asset(
-                  actionImage!,
-                  fit: BoxFit.contain,
-                  alignment: Alignment.bottomRight,
-                ),
-              ),
           ],
         ),
       ),

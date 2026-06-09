@@ -26,7 +26,6 @@ class TournamentDetailsPage extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.nightSurface1 : AppColors.sand1,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
