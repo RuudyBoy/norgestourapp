@@ -240,7 +240,7 @@ class TournamentDetailsPage extends StatelessWidget {
                         subtitle: 'Fullt kampprogram',
                         description: 'Se alle kommende, pågående og fullførte kamper i turneringen.',
                         buttonText: 'Kamper',
-                        iconColor: AppColors.blueBright,
+                        iconColor: AppColors.blue,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -330,13 +330,13 @@ class _MatchesSection extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.nightSurface0 : AppColors.sand0,
+                    gradient: AppColors.cardInk,
                     borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                   ),
                   child: Center(
                     child: Text(
                       'Ingen kamper satt opp enda',
-                      style: AppText.uiCaption,
+                      style: AppText.uiCaption.copyWith(color: Colors.white70),
                     ),
                   ),
                 ),
@@ -652,13 +652,11 @@ class _ActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final surface = isDark ? AppColors.nightSurface0 : AppColors.sand0;
-
     return Container(
-      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+        gradient: AppColors.cardInk,
+        borderRadius: BorderRadius.circular(AppTheme.radiusRow),
         boxShadow: AppTheme.shadowSm,
       ),
       child: Material(
@@ -676,23 +674,23 @@ class _ActionCard extends StatelessWidget {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.12),
+                    color: Colors.white.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppTheme.radiusRow),
                   ),
-                  child: Icon(icon, color: iconColor, size: 28),
+                  child: Icon(icon, color: Colors.white, size: 28),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: AppText.dispH2(18).copyWith(color: isDark ? AppColors.nightInk : AppColors.ink)),
+                      Text(title, style: AppText.dispH2(18).copyWith(color: AppColors.sand2)),
                       const SizedBox(height: 2),
-                      Text(subtitle, style: AppText.monoSm),
+                      Text(subtitle, style: AppText.monoSm.copyWith(color: Colors.white.withValues(alpha: 0.7))),
                       const SizedBox(height: 6),
                       Text(
                         description,
-                        style: AppText.uiCaption.copyWith(color: isDark ? AppColors.nightInk2 : AppColors.ink2),
+                        style: AppText.uiCaption.copyWith(color: Colors.white.withValues(alpha: 0.7)),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -703,11 +701,10 @@ class _ActionCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                   decoration: BoxDecoration(
-                    color: AppColors.coral,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(AppTheme.radiusChip),
-                    boxShadow: AppTheme.shadowCoral,
                   ),
-                  child: Text(buttonText, style: AppText.uiCta.copyWith(fontSize: 13, color: Colors.white)),
+                  child: Text(buttonText, style: AppText.uiCta.copyWith(fontSize: 13, color: AppColors.ink)),
                 ),
               ],
             ),

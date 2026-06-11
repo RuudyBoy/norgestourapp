@@ -8,7 +8,6 @@ import 'tournament_stats_page.dart';
 import 'match_stats_page.dart';
 import 'tour_detail_page.dart';
 import 'fantasy/mock_data.dart';
-import '../widgets/profile_avatar_widget.dart';
 import '../widgets/season_hero_widget.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -245,12 +244,8 @@ class _HomePageState extends State<HomePage> {
                   margin: const EdgeInsets.only(right: AppTheme.rowGap),
                   padding: const EdgeInsets.all(AppTheme.cardPad),
                   decoration: BoxDecoration(
-                    image: const DecorationImage(
-                      image: AssetImage('assets/images/card_bg.png'),
-                      fit: BoxFit.cover,
-                    ),
+                    gradient: AppColors.cardInk,
                     borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-                    boxShadow: AppTheme.shadowLg,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -350,6 +345,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 child: Container(
                   decoration: BoxDecoration(
+                    gradient: AppColors.cardInk,
                     borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                     boxShadow: AppTheme.shadowLg,
                     image: imageUrl.isNotEmpty
@@ -361,10 +357,7 @@ class _HomePageState extends State<HomePage> {
                               BlendMode.darken,
                             ),
                           )
-                        : const DecorationImage(
-                            image: AssetImage('assets/images/card_bg.png'),
-                            fit: BoxFit.cover,
-                          ),
+                        : null,
                   ),
                   padding: const EdgeInsets.all(AppTheme.cardPad + 4),
                   child: Row(
@@ -378,12 +371,12 @@ class _HomePageState extends State<HomePage> {
                               decoration: BoxDecoration(
                                 color: AppColors.blue.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
-                                border: Border.all(color: AppColors.blueBright.withValues(alpha: 0.5)),
+                                border: Border.all(color: AppColors.blue.withValues(alpha: 0.5)),
                               ),
                               child: Text('KOMMENDE', style: AppText.monoSmLight),
                             ),
                             const SizedBox(height: 10),
-                            Text(name, style: AppText.dispH1(22).copyWith(color: Colors.white)),
+                            Text(name, style: AppText.dispH1(22).copyWith(color: AppColors.sand2)),
                             const SizedBox(height: 4),
                             if (location.isNotEmpty)
                               Row(
@@ -413,11 +406,10 @@ class _HomePageState extends State<HomePage> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                             decoration: BoxDecoration(
-                              color: AppColors.coral,
+                              gradient: AppColors.cardInk,
                               borderRadius: BorderRadius.circular(AppTheme.radiusChip),
-                              boxShadow: AppTheme.shadowCoral,
                             ),
-                            child: Text('Se mer', style: AppText.uiCta.copyWith(fontSize: 13)),
+                            child: Text('Se mer', style: AppText.uiCta.copyWith(fontSize: 13, color: Colors.white)),
                           ),
                         ],
                       ),
@@ -429,77 +421,6 @@ class _HomePageState extends State<HomePage> {
           ],
         );
       },
-    );
-  }
-
-  // ── Fantasy summary ────────────────────────────────────────────
-
-  Widget _buildFantasySummary(BuildContext context) {
-    if (_teamName == null) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
-      child: GestureDetector(
-        onTap: () {
-          if (widget.onTabSelected != null) {
-            widget.onTabSelected!(1);
-          } else {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const FantasyPage()));
-          }
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            image: const DecorationImage(
-              image: AssetImage('assets/images/card_bg.png'),
-              fit: BoxFit.cover,
-            ),
-            borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-            boxShadow: AppTheme.shadowCoral,
-          ),
-          padding: const EdgeInsets.all(AppTheme.cardPad + 2),
-          child: Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusRow),
-                ),
-                child: const Icon(Icons.sports_volleyball, color: Colors.white, size: 26),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('DITT FANTASY-LAG', style: AppText.monoSmLight.copyWith(fontSize: 10)),
-                    const SizedBox(height: 3),
-                    Text(_teamName!, style: AppText.dispH2(20).copyWith(color: Colors.white)),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${_fantasyPoints ?? 0} poeng totalt',
-                      style: AppText.uiCaption.copyWith(color: Colors.white.withValues(alpha: 0.8)),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusChip),
-                ),
-                child: Text(
-                  'Se laget',
-                  style: AppText.uiCta.copyWith(color: AppColors.coral, fontSize: 13),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -515,10 +436,18 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 12),
           _buildActionCard(
             context: context,
-            title: 'Fantasy',
-            subtitle: 'Bygg drømmelaget ditt',
-            description: 'Velg spillere, styr budsjettet og konkurrèr mot andre basert på ekte prestasjoner.',
-            buttonText: 'Spill nå',
+            title: _teamName != null ? _teamName! : 'Fantasy',
+            subtitle: _teamName != null ? 'Ditt drømmelag' : 'Bygg drømmelaget ditt',
+            description: _teamName != null
+                ? '${_fantasyPoints ?? 0} poeng totalt. Sjekk hvordan du ligger an mot resten av Norge!'
+                : 'Velg spillere, styr budsjettet og konkurrèr mot andre basert på ekte prestasjoner.',
+            buttonText: _teamName != null ? 'Se laget' : 'Spill nå',
+            cardGradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppColors.coral, AppColors.coralDeep],
+            ),
+            textColor: AppColors.ink,
             icon: Icons.sports_volleyball,
             iconColor: AppColors.coral,
             onTap: () {
@@ -536,8 +465,10 @@ class _HomePageState extends State<HomePage> {
             subtitle: 'Sesongstats & rangeringer',
             description: 'Dypdykk i spillerstatistikk, kamphistorikk og sesongdata.',
             buttonText: 'Se stats',
+            cardGradient: AppColors.cardInk,
+            textColor: Colors.white,
             icon: Icons.bar_chart,
-            iconColor: AppColors.blue,
+            iconColor: AppColors.ink,
             onTap: () {
               Navigator.push(
                 context,
@@ -557,6 +488,8 @@ class _HomePageState extends State<HomePage> {
             subtitle: 'Kamper & resultater',
             description: 'Følg kommende tours, liveresultater og sluttresultater for hele sesongen.',
             buttonText: 'Se tours',
+            cardGradient: AppColors.cardInk,
+            textColor: Colors.white,
             icon: Icons.emoji_events_rounded,
             iconColor: AppColors.green,
             onTap: () {
@@ -578,6 +511,8 @@ class _HomePageState extends State<HomePage> {
     required String subtitle,
     required String description,
     required String buttonText,
+    required Gradient cardGradient,
+    required Color textColor,
     required IconData icon,
     required Color iconColor,
     required VoidCallback onTap,
@@ -585,10 +520,7 @@ class _HomePageState extends State<HomePage> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        image: const DecorationImage(
-          image: AssetImage('assets/images/card_bg.png'),
-          fit: BoxFit.cover,
-        ),
+        gradient: cardGradient,
         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
         boxShadow: AppTheme.shadowSm,
       ),
@@ -598,7 +530,7 @@ class _HomePageState extends State<HomePage> {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-          splashColor: AppColors.coral.withValues(alpha: 0.08),
+          splashColor: Colors.white.withValues(alpha: 0.2),
           child: Padding(
             padding: const EdgeInsets.all(AppTheme.cardPad),
             child: Row(
@@ -607,21 +539,21 @@ class _HomePageState extends State<HomePage> {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.12),
+                    color: textColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppTheme.radiusRow),
                   ),
-                  child: Icon(icon, color: iconColor, size: 28),
+                  child: Icon(icon, color: textColor, size: 28),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: AppText.dispH2(18).copyWith(color: Colors.white)),
+                      Text(title, style: AppText.dispH2(18).copyWith(color: textColor == Colors.white ? AppColors.sand2 : textColor)),
                       const SizedBox(height: 2),
-                      Text(subtitle, style: AppText.monoSm.copyWith(color: Colors.white70)),
+                      Text(subtitle, style: AppText.monoSm.copyWith(color: textColor.withValues(alpha: 0.7))),
                       const SizedBox(height: 6),
-                      Text(description, style: AppText.uiCaption.copyWith(color: Colors.white70), maxLines: 2, overflow: TextOverflow.ellipsis),
+                      Text(description, style: AppText.uiCaption.copyWith(color: textColor.withValues(alpha: 0.7)), maxLines: 2, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
@@ -629,11 +561,10 @@ class _HomePageState extends State<HomePage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                   decoration: BoxDecoration(
-                    color: AppColors.coral,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(AppTheme.radiusChip),
-                    boxShadow: AppTheme.shadowCoral,
                   ),
-                  child: Text(buttonText, style: AppText.uiCta.copyWith(fontSize: 13)),
+                  child: Text(buttonText, style: AppText.uiCta.copyWith(fontSize: 13, color: AppColors.ink)),
                 ),
               ],
             ),
@@ -663,8 +594,6 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: AppTheme.sectionGap),
                   _buildLiveOrNextSection(context),
                   const SizedBox(height: AppTheme.sectionGap),
-                  _buildFantasySummary(context),
-                  if (_teamName != null) const SizedBox(height: AppTheme.sectionGap),
                   _buildCards(context),
                   const SizedBox(height: 30 + 20), // Legg til 20 for å kompensere for offset
                 ],

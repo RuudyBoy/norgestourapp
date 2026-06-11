@@ -32,7 +32,6 @@ class FantasySquadView extends StatefulWidget {
 class _FantasySquadViewState extends State<FantasySquadView> {
   bool _isLoading = true;
   LeaderboardEntry? _bestManager;
-  LeaderboardEntry? _bestManager;
 
   @override
   void initState() {
@@ -66,6 +65,9 @@ class _FantasySquadViewState extends State<FantasySquadView> {
   }
 
   static Color _roleAccent(String role) {
+    if (role == FantasyRole.block || role == FantasyRole.receive || role == FantasyRole.serve) {
+      return AppColors.blueBright;
+    }
     return AppColors.coral;
   }
 
@@ -304,7 +306,11 @@ class _FantasySquadViewState extends State<FantasySquadView> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E), // Dark card background
+          gradient: AppColors.cardInk,
+          image: const DecorationImage(
+            image: AssetImage('assets/images/card_bg.png'),
+            fit: BoxFit.cover,
+          ),
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
             color: Colors.white.withValues(alpha: 0.15),
@@ -347,7 +353,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
                           color: Colors.black.withValues(alpha: 0.5),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.swap_horiz, color: Colors.white70, size: 14),
+                        child: Icon(Icons.swap_horiz, color: _roleAccent(role).withValues(alpha: 0.9), size: 14),
                       ),
                     ),
                 ],
@@ -404,7 +410,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                        color: AppColors.sand2,
                         height: 1.1,
                       ),
                       maxLines: 1,
@@ -451,7 +457,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
 
   Widget _emptySlotContent() {
     return Container(
-      color: const Color(0xFF2A2A2A),
+      color: Colors.transparent,
       child: Center(
         child: Icon(
           Icons.person,
@@ -516,7 +522,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_bestManager!.teamName, style: AppText.dispH2(17).copyWith(color: Colors.white)),
+                Text(_bestManager!.teamName, style: AppText.dispH2(17).copyWith(color: AppColors.sand0)),
                 Text(_bestManager!.managerName, style: AppText.uiCaption.copyWith(color: Colors.white.withValues(alpha: 0.75))),
               ],
             ),
@@ -566,7 +572,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(player.name, style: AppText.dispH2(17).copyWith(color: Colors.white)),
+                Text(player.name, style: AppText.dispH2(17).copyWith(color: AppColors.sand0)),
                 const SizedBox(height: 2),
                 Text(player.team, style: AppText.uiCaption.copyWith(color: AppColors.nightInk2)),
               ],
@@ -656,7 +662,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(player.name, style: AppText.uiTitle.copyWith(color: Colors.white, fontSize: 13)),
+                Text(player.name, style: AppText.uiTitle.copyWith(color: AppColors.sand2, fontSize: 13)),
                 Text(player.team, style: AppText.uiCaption.copyWith(color: AppColors.nightInk2, fontSize: 11)),
               ],
             ),
@@ -714,7 +720,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(player.name, style: AppText.dispH2(18).copyWith(color: Colors.white)),
+                        Text(player.name, style: AppText.dispH2(18).copyWith(color: AppColors.sand2)),
                         const SizedBox(height: 3),
                         Row(
                           children: [

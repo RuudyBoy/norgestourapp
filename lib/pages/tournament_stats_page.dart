@@ -236,7 +236,7 @@ class StatsCategoryCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: surface,
+          gradient: AppColors.cardInk,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 15, offset: const Offset(0, 5))
@@ -274,8 +274,8 @@ class StatsCategoryCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text(winner.playerName, style: AppText.dispH2(20).copyWith(color: ink)),
-                  Text(winner.teamName, style: AppText.uiCaption.copyWith(color: ink2)),
+                  Text(winner.playerName, style: AppText.dispH2(20).copyWith(color: Colors.white)),
+                  Text(winner.teamName, style: AppText.uiCaption.copyWith(color: Colors.white70)),
                   const SizedBox(height: 5),
                   Text(
                     valueFormatter(winner),
@@ -289,9 +289,9 @@ class StatsCategoryCard extends StatelessWidget {
             if (runnersUp.isNotEmpty)
               Container(
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.nightSurface1 : AppColors.sand1,
+                  color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
-                  border: Border(top: BorderSide(color: AppColors.line)),
+                  border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Column(
@@ -302,10 +302,10 @@ class StatsCategoryCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                       child: Row(
                         children: [
-                          Text("$index.", style: AppText.uiTitle.copyWith(color: ink2)),
+                          Text("$index.", style: AppText.uiTitle.copyWith(color: Colors.white70)),
                           const SizedBox(width: 10),
-                          Expanded(child: Text(player.playerName, style: AppText.uiTitle.copyWith(color: ink))),
-                          Text(valueFormatter(player), style: AppText.uiTitle.copyWith(color: ink)),
+                          Expanded(child: Text(player.playerName, style: AppText.uiTitle.copyWith(color: Colors.white))),
+                          Text(valueFormatter(player), style: AppText.uiTitle.copyWith(color: Colors.white)),
                         ],
                       ),
                     );

@@ -76,8 +76,9 @@ class MatchStatsPage extends StatelessWidget {
             List<Map<String, dynamic>> enrichedEvents = [];
             for (var event in eventsList) {
               String pointTo = event['point_to'] ?? 'none';
-              if (pointTo == 'home') homeScore++;
-              else if (pointTo == 'away') awayScore++;
+              if (pointTo == 'home') {
+                homeScore++;
+              } else if (pointTo == 'away') awayScore++;
               
               enrichedEvents.add({
                 ...event,
@@ -275,7 +276,7 @@ class MatchStatsPage extends StatelessWidget {
         return Container(
           margin: const EdgeInsets.only(bottom: AppTheme.rowGap),
           decoration: BoxDecoration(
-            color: AppColors.sand0,
+            gradient: AppColors.cardInk,
             borderRadius: BorderRadius.circular(AppTheme.radiusRow),
             border: Border(
               left: BorderSide(color: isTeamA ? AppColors.blue : AppColors.coral, width: 3),
@@ -295,7 +296,7 @@ class MatchStatsPage extends StatelessWidget {
                         child: CircleAvatar(
                           radius: 18,
                           backgroundImage: NetworkImage(p.imageUrl),
-                          backgroundColor: AppColors.sand2,
+                          backgroundColor: Colors.white.withValues(alpha: 0.1),
                         ),
                       )
                     else
@@ -303,10 +304,10 @@ class MatchStatsPage extends StatelessWidget {
                         padding: const EdgeInsets.only(right: 10.0),
                         child: CircleAvatar(
                           radius: 18,
-                          backgroundColor: AppColors.sand2,
+                          backgroundColor: Colors.white.withValues(alpha: 0.1),
                           child: Text(
                             p.playerName.isEmpty ? '?' : p.playerName.substring(0, 1).toUpperCase(),
-                            style: AppText.dispKicker(14).copyWith(color: AppColors.ink2),
+                            style: AppText.dispKicker(14).copyWith(color: Colors.white70),
                           ),
                         ),
                       ),
@@ -314,15 +315,15 @@ class MatchStatsPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(p.playerName, style: AppText.uiTitle, overflow: TextOverflow.ellipsis),
-                          Text(p.teamName, style: AppText.uiCaption, overflow: TextOverflow.ellipsis),
+                          Text(p.playerName, style: AppText.uiTitle.copyWith(color: Colors.white), overflow: TextOverflow.ellipsis),
+                          Text(p.teamName, style: AppText.uiCaption.copyWith(color: AppColors.nightInk2), overflow: TextOverflow.ellipsis),
                         ],
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                Divider(color: AppColors.ink.withOpacity(0.1), height: 1),
+                Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
                 const SizedBox(height: 12),
                 
                 // Full names stat list
@@ -350,8 +351,8 @@ class MatchStatsPage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppText.uiCaption),
-          Text(value, style: AppText.uiTitle.copyWith(color: isNegative ? AppColors.coral : AppColors.ink)),
+          Text(label, style: AppText.uiCaption.copyWith(color: AppColors.nightInk2)),
+          Text(value, style: AppText.uiTitle.copyWith(color: isNegative ? AppColors.coral : Colors.white)),
         ],
       ),
     );
@@ -378,8 +379,9 @@ class MatchStatsPage extends StatelessWidget {
         final awayScore = event['current_away'] ?? 0;
 
         String title = '$pName $action';
-        if (action == 'Kill') title = '$pName angrep';
-        else if (action == 'Block') title = '$pName blokk';
+        if (action == 'Kill') {
+          title = '$pName angrep';
+        } else if (action == 'Block') title = '$pName blokk';
         else if (action == 'Ace') title = '$pName serve-ess';
         else if (action == 'Attack Error') title = '$pName angrepsfeil';
         else if (action == 'Service Error') title = '$pName servefeil';
@@ -395,7 +397,7 @@ class MatchStatsPage extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            gradient: AppColors.cardInk,
             borderRadius: BorderRadius.circular(AppTheme.radiusRow),
             border: Border(left: BorderSide(color: isA ? AppColors.blue : AppColors.coral, width: 3)),
             boxShadow: AppTheme.shadowSm,
@@ -403,15 +405,15 @@ class MatchStatsPage extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Text(title, style: AppText.uiBody),
+                child: Text(title, style: AppText.uiBody.copyWith(color: Colors.white)),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.sand0,
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: Text('$homeScore - $awayScore', style: AppText.monoMd.copyWith(fontWeight: FontWeight.bold)),
+                child: Text('$homeScore - $awayScore', style: AppText.monoMd.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ],
           ),

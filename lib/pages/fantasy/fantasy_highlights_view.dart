@@ -143,7 +143,7 @@ class _FantasyHighlightsViewState extends State<FantasyHighlightsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_bestManager!.teamName, style: AppText.dispH2(18).copyWith(color: Colors.white)),
+                Text(_bestManager!.teamName, style: AppText.dispH2(18).copyWith(color: AppColors.sand2)),
                 Text(_bestManager!.managerName, style: AppText.uiCaption.copyWith(color: Colors.white.withOpacity(0.8))),
               ],
             ),
@@ -182,7 +182,7 @@ class _FantasyHighlightsViewState extends State<FantasyHighlightsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(player.name, style: AppText.dispH2(18)),
+                Text(player.name, style: AppText.dispH2(18).copyWith(color: AppColors.sand2)),
                 Text(player.team, style: AppText.uiCaption),
               ],
             ),
@@ -222,7 +222,7 @@ class _FantasyHighlightsViewState extends State<FantasyHighlightsView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(player.name, style: AppText.uiTitle),
+              Text(player.name, style: AppText.uiTitle.copyWith(color: AppColors.sand2)),
               Text(player.team, style: AppText.uiCaption.copyWith(fontSize: 12)),
             ],
           ),

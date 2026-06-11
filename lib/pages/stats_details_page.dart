@@ -159,7 +159,7 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
             margin: const EdgeInsets.only(bottom: AppTheme.rowGap),
             padding: const EdgeInsets.all(AppTheme.cardPad),
             decoration: BoxDecoration(
-              color: AppColors.sand0,
+              gradient: AppColors.cardInk,
               borderRadius: BorderRadius.circular(AppTheme.radiusRow),
               border: isTop3
                   ? Border(left: BorderSide(color: AppColors.coral, width: 3))
@@ -174,7 +174,7 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
                     '#${index + 1}',
                     style: isTop3
                         ? AppText.dispH2(16).copyWith(color: AppColors.coral)
-                        : AppText.monoMd.copyWith(color: AppColors.ink3),
+                        : AppText.monoMd.copyWith(color: Colors.white70),
                   ),
                 ),
                 if (p.imageUrl.isNotEmpty)
@@ -183,7 +183,7 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
                     child: CircleAvatar(
                       radius: 18,
                       backgroundImage: NetworkImage(p.imageUrl),
-                      backgroundColor: AppColors.sand2,
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
                     ),
                   )
                 else
@@ -191,10 +191,10 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
                     padding: const EdgeInsets.only(right: 10.0),
                     child: CircleAvatar(
                       radius: 18,
-                      backgroundColor: AppColors.sand2,
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
                       child: Text(
                         p.playerName.isEmpty ? '?' : p.playerName.substring(0, 1).toUpperCase(),
-                        style: AppText.dispKicker(14).copyWith(color: AppColors.ink2),
+                        style: AppText.dispKicker(14).copyWith(color: Colors.white70),
                       ),
                     ),
                   ),
@@ -203,8 +203,8 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(p.playerName, style: AppText.uiTitle, overflow: TextOverflow.ellipsis),
-                      Text(p.teamName, style: AppText.uiCaption, overflow: TextOverflow.ellipsis),
+                      Text(p.playerName, style: AppText.uiTitle.copyWith(color: Colors.white), overflow: TextOverflow.ellipsis),
+                      Text(p.teamName, style: AppText.uiCaption.copyWith(color: Colors.white70), overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
@@ -231,13 +231,13 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
   Widget _buildMiniStat(String label, String value, {bool isHighlight = false}) {
     return Column(
       children: [
-        Text(label, style: AppText.monoSm.copyWith(color: isHighlight ? AppColors.coral : AppColors.ink3)),
+        Text(label, style: AppText.monoSm.copyWith(color: isHighlight ? AppColors.coral : Colors.white54)),
         const SizedBox(height: 3),
         Text(
           value,
           style: isHighlight
               ? AppText.dispKicker(14).copyWith(color: AppColors.coral)
-              : AppText.uiTitle.copyWith(fontSize: 13),
+              : AppText.uiTitle.copyWith(fontSize: 13, color: Colors.white),
         ),
       ],
     );

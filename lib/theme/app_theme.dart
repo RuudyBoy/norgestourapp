@@ -111,7 +111,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.coral,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.ink,
           minimumSize: const Size.fromHeight(52),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusButton)),
           textStyle: AppText.uiCta,
@@ -202,7 +202,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.coral,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.nightSurface0,
           minimumSize: const Size.fromHeight(52),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusButton)),
           textStyle: AppText.uiCta,

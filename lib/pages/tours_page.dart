@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'tour_detail_page.dart';
-import '../widgets/profile_avatar_widget.dart';
 import '../widgets/season_hero_widget.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -89,7 +88,7 @@ class ToursPage extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
         child: Material(
-          color: AppColors.sand0,
+          color: AppColors.ink,
           child: InkWell(
             onTap: () {
               Navigator.push(
@@ -184,10 +183,10 @@ class ToursPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(name, style: AppText.dispH2(20)),
+                            Text(name, style: AppText.dispH2(20).copyWith(color: AppColors.sand2)),
                             const SizedBox(height: 3),
                             if (location.isNotEmpty)
-                              Text(location.toUpperCase(), style: AppText.monoSm),
+                              Text(location.toUpperCase(), style: AppText.monoSm.copyWith(color: Colors.white70)),
                           ],
                         ),
                       ),
@@ -197,13 +196,13 @@ class ToursPage extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: AppColors.sand2,
+                              color: Colors.white.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(AppTheme.radiusChip),
                             ),
-                            child: Text(date, style: AppText.monoSm.copyWith(color: AppColors.ink2)),
+                            child: Text(date, style: AppText.monoSm.copyWith(color: Colors.white)),
                           ),
                           const SizedBox(height: 8),
-                          const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.ink3),
+                          const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white54),
                         ],
                       ),
                     ],

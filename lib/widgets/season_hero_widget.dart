@@ -118,7 +118,7 @@ class SeasonHeroSliver extends StatelessWidget {
                   Text(
                     title,
                     style: AppText.dispH1(42).copyWith(
-                      color: Colors.white,
+                      color: AppColors.sand2,
                       height: 0.95,
                     ),
                   ),

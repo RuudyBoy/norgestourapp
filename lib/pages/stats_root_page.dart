@@ -406,7 +406,7 @@ class StatsCategoryCard extends StatelessWidget {
           const SizedBox(height: 12),
           Container(
             decoration: BoxDecoration(
-              color: AppColors.sand0,
+              gradient: AppColors.cardInk,
               borderRadius: BorderRadius.circular(12),
               boxShadow: AppTheme.shadowSm,
             ),
@@ -421,7 +421,7 @@ class StatsCategoryCard extends StatelessWidget {
                       children: [
                         SizedBox(
                           width: 24,
-                          child: Text('$index.', style: AppText.monoMd.copyWith(color: AppColors.ink3, fontWeight: FontWeight.bold)),
+                          child: Text('$index.', style: AppText.monoMd.copyWith(color: Colors.white70, fontWeight: FontWeight.bold)),
                         ),
                         if (player.imageUrl.isNotEmpty)
                           Padding(
@@ -429,19 +429,19 @@ class StatsCategoryCard extends StatelessWidget {
                             child: CircleAvatar(
                               radius: 14,
                               backgroundImage: NetworkImage(player.imageUrl),
-                              backgroundColor: AppColors.sand2,
+                              backgroundColor: Colors.white.withValues(alpha: 0.1),
                             ),
                           )
                         else
                           const SizedBox(width: 8),
-                        Expanded(child: Text(player.playerName, style: AppText.uiTitle.copyWith(fontSize: 14))),
-                        Text(valueFormatter(player), style: AppText.monoMd.copyWith(fontWeight: FontWeight.w700, color: AppColors.ink)),
+                        Expanded(child: Text(player.playerName, style: AppText.uiTitle.copyWith(fontSize: 14, color: Colors.white))),
+                        Text(valueFormatter(player), style: AppText.monoMd.copyWith(fontWeight: FontWeight.w700, color: Colors.white)),
                       ],
                     ),
                   );
-                }).toList(),
+                }),
                 // Link to full list
-                Divider(height: 1, color: AppColors.sand2),
+                Divider(height: 1, color: Colors.white.withValues(alpha: 0.1)),
                 InkWell(
                   onTap: onTap,
                   borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
@@ -450,9 +450,9 @@ class StatsCategoryCard extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Se hele topplisten', style: AppText.uiTitle.copyWith(color: accentColor, fontSize: 13)),
+                        Text('Vis alle', style: AppText.uiTitle.copyWith(color: Colors.white)),
                         const SizedBox(width: 4),
-                        Icon(Icons.arrow_forward_ios, size: 12, color: accentColor),
+                        const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white54),
                       ],
                     ),
                   ),

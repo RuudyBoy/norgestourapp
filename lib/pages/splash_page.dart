@@ -203,7 +203,6 @@ class _SplashPageState extends State<SplashPage>
                             onPressed: widget.onGetStarted,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.coral,
-                              foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(
