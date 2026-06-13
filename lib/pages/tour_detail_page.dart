@@ -7,6 +7,7 @@ import 'teams_page.dart';
 import 'matches_page.dart';
 import 'tournament_stats_page.dart';
 import 'match_stats_page.dart';
+import 'results_page.dart';
 
 class TournamentDetailsPage extends StatelessWidget {
   final String tournamentId;
@@ -224,13 +225,21 @@ class TournamentDetailsPage extends StatelessWidget {
                       ),
                       const SizedBox(height: AppTheme.rowGap),
                       _ActionCard(
-                        icon: Icons.emoji_events_rounded,
-                        title: 'Resultater',
-                        subtitle: 'Sluttresultater og standings',
-                        description: 'Følg med på sluttresultater, rangeringer og hvem som vinner turneringen.',
-                        buttonText: 'Resultater',
+                        icon: Icons.account_tree_rounded,
+                        title: 'Kampoppsett',
+                        subtitle: 'Puljespill og sluttspill',
+                        description: 'Følg med på kampoppsettet, sluttresultater, rangeringer og hvem som vinner turneringen.',
+                        buttonText: 'Kampoppsett',
                         iconColor: AppColors.green,
-                        onTap: () {},
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ResultsPage(
+                              tournamentId: tournamentId,
+                              tournamentName: name,
+                            ),
+                          ),
+                        ),
                         isDark: isDark,
                       ),
                       const SizedBox(height: AppTheme.rowGap),
@@ -684,7 +693,7 @@ class _ActionCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: AppText.dispH2(18).copyWith(color: AppColors.sand2)),
+                      Text(title, style: AppText.dispH2(18).copyWith(color: AppColors.coral)),
                       const SizedBox(height: 2),
                       Text(subtitle, style: AppText.monoSm.copyWith(color: Colors.white.withValues(alpha: 0.7))),
                       const SizedBox(height: 6),

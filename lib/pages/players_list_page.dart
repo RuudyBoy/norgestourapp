@@ -91,10 +91,7 @@ class _PlayersListPageState extends State<PlayersListPage> {
                       ),
                       child: Container(
                         decoration: BoxDecoration(
-                          image: const DecorationImage(
-                            image: AssetImage('assets/images/card_bg.png'),
-                            fit: BoxFit.cover,
-                          ),
+                          gradient: AppColors.cardInk,
                           borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                           boxShadow: AppTheme.shadowSm,
                         ),
@@ -105,19 +102,22 @@ class _PlayersListPageState extends State<PlayersListPage> {
                               flex: 3,
                               child: ClipRRect(
                                 borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.radiusCard)),
-                                child: imageUrl.isNotEmpty
-                                    ? Image.network(
-                                        imageUrl,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => Container(
-                                          color: AppColors.sand2,
-                                          child: const Icon(Icons.person, size: 50, color: AppColors.ink3),
-                                        ),
-                                      )
-                                    : Container(
-                                        color: AppColors.sand2,
-                                        child: const Icon(Icons.person, size: 50, color: AppColors.ink3),
-                                      ),
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    image: DecorationImage(
+                                      image: AssetImage('assets/images/hero_card_bg.png'),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  child: imageUrl.isNotEmpty
+                                      ? Image.network(
+                                          imageUrl,
+                                          fit: BoxFit.contain,
+                                          alignment: Alignment.bottomCenter,
+                                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, size: 50, color: Colors.white54),
+                                        )
+                                      : const Icon(Icons.person, size: 50, color: Colors.white54),
+                                ),
                               ),
                             ),
                             Expanded(
@@ -128,7 +128,7 @@ class _PlayersListPageState extends State<PlayersListPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text(firstName, style: AppText.uiCaption.copyWith(color: Colors.white70), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    Text(firstName, style: AppText.uiCaption.copyWith(color: AppColors.coral), maxLines: 1, overflow: TextOverflow.ellipsis),
                                     Text(lastName, style: AppText.uiTitle.copyWith(fontSize: 15, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
                                     const SizedBox(height: 5),
                                     Row(

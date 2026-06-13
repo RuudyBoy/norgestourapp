@@ -61,21 +61,23 @@ class _FantasyLeaguesViewState extends State<FantasyLeaguesView> {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.coral, foregroundColor: Colors.white),
                     onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Kommer snart!')),
                     ),
                     icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Lag Liga'),
+                    label: const Text('Lag Liga', style: TextStyle(color: Colors.white)),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.coral, foregroundColor: Colors.white),
                     onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Kommer snart!')),
                     ),
                     icon: const Icon(Icons.group_add, size: 16),
-                    label: const Text('Bli med'),
+                    label: const Text('Bli med', style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],

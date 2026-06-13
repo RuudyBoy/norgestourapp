@@ -549,7 +549,7 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: AppText.dispH2(18).copyWith(color: textColor == Colors.white ? AppColors.sand2 : textColor)),
+                      Text(title, style: AppText.dispH2(18).copyWith(color: textColor == Colors.white ? AppColors.coral : textColor)),
                       const SizedBox(height: 2),
                       Text(subtitle, style: AppText.monoSm.copyWith(color: textColor.withValues(alpha: 0.7))),
                       const SizedBox(height: 6),
@@ -561,10 +561,10 @@ class _HomePageState extends State<HomePage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.coral,
                     borderRadius: BorderRadius.circular(AppTheme.radiusChip),
                   ),
-                  child: Text(buttonText, style: AppText.uiCta.copyWith(fontSize: 13, color: AppColors.ink)),
+                  child: Text(buttonText, style: AppText.uiCta.copyWith(fontSize: 13, color: Colors.white)),
                 ),
               ],
             ),

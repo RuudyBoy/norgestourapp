@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'stats_logic.dart';
 import 'stats_details_page.dart';
 import 'players_list_page.dart';
-import '../widgets/profile_avatar_widget.dart';
 import '../widgets/season_hero_widget.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -48,15 +47,32 @@ class _StatsRootPageState extends State<StatsRootPage> {
       final typedList = eventsList.cast<Map<String, dynamic>>();
       final matchStats = calculateMatchStats(typedList);
 
-      matchStats.players.forEach((playerName, s) {
-        if (!totalStatsMap.containsKey(playerName)) {
-          totalStatsMap[playerName] = PlayerMatchStats(
-            playerName: playerName,
+      matchStats.players.forEach((originalPlayerName, s) {
+        String finalPlayerName = originalPlayerName;
+        String foundImage = playerImages[originalPlayerName] ?? '';
+
+        if (foundImage.isEmpty) {
+          final mParts = originalPlayerName.toLowerCase().split(' ');
+          if (mParts.isNotEmpty) {
+            for (var pName in playerImages.keys) {
+              final pParts = pName.toLowerCase().split(' ');
+              if (pParts.isNotEmpty && pParts.first == mParts.first && pParts.last == mParts.last) {
+                foundImage = playerImages[pName]!;
+                finalPlayerName = pName;
+                break;
+              }
+            }
+          }
+        }
+
+        if (!totalStatsMap.containsKey(finalPlayerName)) {
+          totalStatsMap[finalPlayerName] = PlayerMatchStats(
+            playerName: finalPlayerName,
             teamName: s.teamName,
-            imageUrl: playerImages[playerName] ?? s.imageUrl,
+            imageUrl: foundImage.isNotEmpty ? foundImage : s.imageUrl,
           );
         }
-        final total = totalStatsMap[playerName]!;
+        final total = totalStatsMap[finalPlayerName]!;
         total.kills += s.kills;
         total.attackErrors += s.attackErrors;
         total.blocks += s.blocks;
@@ -89,6 +105,7 @@ class _StatsRootPageState extends State<StatsRootPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: RefreshIndicator(
         onRefresh: _refreshStats,
         color: AppColors.coral,
@@ -99,7 +116,7 @@ class _StatsRootPageState extends State<StatsRootPage> {
               pageTitle: 'Statistikk',
               title: 'STATS',
               description: 'Dypdykk i tallene fra sesongen.',
-              actionImage: 'assets/images/player_action.png',
+              actionImage: 'assets/images/4.png',
             ),
             SliverToBoxAdapter(
               child: FutureBuilder<List<PlayerMatchStats>>(
@@ -113,9 +130,9 @@ class _StatsRootPageState extends State<StatsRootPage> {
                   }
 
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.all(40),
-                      child: Center(child: Text('Ingen statistikk registrert enda.')),
+                    return Padding(
+                      padding: const EdgeInsets.all(40),
+                      child: Center(child: Text('Ingen statistikk registrert enda.', style: AppText.uiCaption.copyWith(color: Colors.white70))),
                     );
                   }
 
@@ -144,10 +161,7 @@ class _StatsRootPageState extends State<StatsRootPage> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                                 boxShadow: AppTheme.shadowLg,
-                                image: const DecorationImage(
-                                  image: AssetImage('assets/images/card_bg.png'),
-                                  fit: BoxFit.cover,
-                                ),
+                                gradient: AppColors.cardInk,
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 18, horizontal: AppTheme.cardPad),
                               child: Row(
@@ -327,8 +341,8 @@ class StatsCategoryCard extends StatelessWidget {
                       blendMode: BlendMode.dstIn,
                       child: Image.network(
                         winner.imageUrl, 
-                        fit: BoxFit.cover,
-                        alignment: Alignment.topCenter,
+                        fit: BoxFit.contain,
+                        alignment: Alignment.bottomRight,
                         errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 150, color: Colors.white.withOpacity(0.05)),
                       ),
                     ),

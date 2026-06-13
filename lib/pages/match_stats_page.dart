@@ -22,15 +22,18 @@ class MatchStatsPage extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
+        backgroundColor: AppColors.ink,
         appBar: AppBar(
-          title: Text('KAMPFAKTA', style: AppText.dispH2(18)),
+          backgroundColor: AppColors.ink,
+          iconTheme: const IconThemeData(color: Colors.white),
+          title: Text('KAMPFAKTA', style: AppText.dispH2(18).copyWith(color: Colors.white)),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios, size: 18),
             onPressed: () => Navigator.pop(context),
           ),
           bottom: TabBar(
             labelColor: AppColors.coral,
-            unselectedLabelColor: AppColors.ink2,
+            unselectedLabelColor: Colors.white54,
             indicatorColor: AppColors.coral,
             labelStyle: AppText.uiTab,
             tabs: const [
@@ -201,7 +204,7 @@ class MatchStatsPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Text(teamAName, style: AppText.uiTitle.copyWith(color: AppColors.blue), overflow: TextOverflow.ellipsis)),
+              Expanded(child: Text(teamAName, style: AppText.uiTitle.copyWith(color: AppColors.coral), overflow: TextOverflow.ellipsis)),
               Expanded(child: Text(teamBName, style: AppText.uiTitle.copyWith(color: AppColors.coral), textAlign: TextAlign.right, overflow: TextOverflow.ellipsis)),
             ],
           ),
@@ -229,9 +232,9 @@ class MatchStatsPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('$valA', style: AppText.uiTitle),
-              Text(label, style: AppText.uiCaption),
-              Text('$valB', style: AppText.uiTitle),
+              Text('$valA', style: AppText.uiTitle.copyWith(color: Colors.white)),
+              Text(label, style: AppText.uiCaption.copyWith(color: Colors.white70)),
+              Text('$valB', style: AppText.uiTitle.copyWith(color: Colors.white)),
             ],
           ),
           const SizedBox(height: 8),
@@ -242,7 +245,7 @@ class MatchStatsPage extends StatelessWidget {
                 child: Container(
                   height: 8,
                   decoration: BoxDecoration(
-                    color: valA > 0 ? AppColors.blue : AppColors.sand2,
+                    color: valA > 0 ? AppColors.blue : Colors.white12,
                     borderRadius: const BorderRadius.only(topLeft: Radius.circular(4), bottomLeft: Radius.circular(4)),
                   ),
                 ),
@@ -253,7 +256,7 @@ class MatchStatsPage extends StatelessWidget {
                 child: Container(
                   height: 8,
                   decoration: BoxDecoration(
-                    color: valB > 0 ? AppColors.coral : AppColors.sand2,
+                    color: valB > 0 ? AppColors.coral : Colors.white12,
                     borderRadius: const BorderRadius.only(topRight: Radius.circular(4), bottomRight: Radius.circular(4)),
                   ),
                 ),
@@ -315,7 +318,23 @@ class MatchStatsPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(p.playerName, style: AppText.uiTitle.copyWith(color: Colors.white), overflow: TextOverflow.ellipsis),
+                          RichText(
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: p.playerName.split(' ').first + (p.playerName.split(' ').length > 1 ? ' ' : ''),
+                                  style: AppText.uiTitle.copyWith(color: AppColors.coral),
+                                ),
+                                if (p.playerName.split(' ').length > 1)
+                                  TextSpan(
+                                    text: p.playerName.split(' ').skip(1).join(' '),
+                                    style: AppText.uiTitle.copyWith(color: Colors.white),
+                                  ),
+                              ],
+                            ),
+                          ),
                           Text(p.teamName, style: AppText.uiCaption.copyWith(color: AppColors.nightInk2), overflow: TextOverflow.ellipsis),
                         ],
                       ),

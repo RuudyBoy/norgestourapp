@@ -82,7 +82,7 @@ class _SplashPageState extends State<SplashPage>
             // ── Background image ─────────────────────────────────────
             Positioned.fill(
               child: Image.asset(
-                'assets/images/splash_bg.png',
+                'assets/images/hero_card_bg.png',
                 fit: BoxFit.cover,
               ),
             ),
@@ -99,9 +99,9 @@ class _SplashPageState extends State<SplashPage>
               child: FadeTransition(
                 opacity: _playerFade,
                 child: SizedBox(
-                  height: size.height * 0.90,
+                  height: size.height * 1.0,
                   child: Image.asset(
-                    'assets/images/1.png',
+                    'assets/images/2.png',
                     fit: BoxFit.contain,
                     alignment: Alignment.bottomCenter,
                   ),
@@ -212,7 +212,7 @@ class _SplashPageState extends State<SplashPage>
                             child: Text(
                               'Kom i gang!',
                               style: AppText.uiCta.copyWith(
-                                color: AppColors.ink,
+                                color: Colors.white,
                                 fontSize: 16,
                               ),
                             ),

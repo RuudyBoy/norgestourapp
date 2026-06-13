@@ -93,8 +93,11 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.ink,
       appBar: AppBar(
-        title: Text('FULL OVERSIKT', style: AppText.dispH2(18)),
+        backgroundColor: AppColors.ink,
+        title: Text('FULL OVERSIKT', style: AppText.dispH2(18).copyWith(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -131,13 +134,13 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.coral : AppColors.sand2,
+            color: isSelected ? AppColors.coral : Colors.white12,
             borderRadius: BorderRadius.circular(AppTheme.radiusChip),
           ),
           child: Text(
             text,
             style: AppText.monoSm.copyWith(
-              color: isSelected ? Colors.white : AppColors.ink2,
+              color: isSelected ? Colors.white : Colors.white70,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -172,9 +175,7 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
                   width: 28,
                   child: Text(
                     '#${index + 1}',
-                    style: isTop3
-                        ? AppText.dispH2(16).copyWith(color: AppColors.coral)
-                        : AppText.monoMd.copyWith(color: Colors.white70),
+                    style: AppText.dispH2(16).copyWith(color: AppColors.coral),
                   ),
                 ),
                 if (p.imageUrl.isNotEmpty)
@@ -203,7 +204,23 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(p.playerName, style: AppText.uiTitle.copyWith(color: Colors.white), overflow: TextOverflow.ellipsis),
+                      RichText(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: p.playerName.split(' ').first + (p.playerName.split(' ').length > 1 ? ' ' : ''),
+                              style: AppText.uiTitle.copyWith(color: AppColors.coral),
+                            ),
+                            if (p.playerName.split(' ').length > 1)
+                              TextSpan(
+                                text: p.playerName.split(' ').skip(1).join(' '),
+                                style: AppText.uiTitle.copyWith(color: Colors.white),
+                              ),
+                          ],
+                        ),
+                      ),
                       Text(p.teamName, style: AppText.uiCaption.copyWith(color: Colors.white70), overflow: TextOverflow.ellipsis),
                     ],
                   ),

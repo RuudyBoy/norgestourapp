@@ -18,6 +18,7 @@ class ToursPage extends StatelessWidget {
             pageTitle: 'Tours',
             title: 'TOURS',
             description: 'Finn din neste turnering og meld deg på!',
+            actionImage: 'assets/images/7.png',
           ),
           SliverToBoxAdapter(
             child: StreamBuilder<QuerySnapshot>(
@@ -183,7 +184,7 @@ class ToursPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(name, style: AppText.dispH2(20).copyWith(color: AppColors.sand2)),
+                            Text(name, style: AppText.dispH2(20).copyWith(color: AppColors.coral)),
                             const SizedBox(height: 3),
                             if (location.isNotEmpty)
                               Text(location.toUpperCase(), style: AppText.monoSm.copyWith(color: Colors.white70)),

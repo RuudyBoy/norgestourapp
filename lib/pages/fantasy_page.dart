@@ -121,6 +121,7 @@ class _FantasyPageState extends State<FantasyPage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.coral),
                     onPressed: isLoading ? null : () async {
                       final name = controller.text.trim();
                       if (name.isEmpty) return;
@@ -130,9 +131,7 @@ class _FantasyPageState extends State<FantasyPage> {
                         _currentUserId = null; // force reload
                       });
                     },
-                    child: isLoading
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : Text('Lagre Navn', style: AppText.uiCta),
+                    child: isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : Text('Start sesongen!', style: AppText.uiCta.copyWith(color: Colors.white)),
                   ),
                 ),
               ],
@@ -196,8 +195,9 @@ class _FantasyPageState extends State<FantasyPage> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.coral),
                           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage())),
-                          child: Text('Logg inn', style: AppText.uiCta),
+                          child: Text('Logg inn', style: AppText.uiCta.copyWith(color: Colors.white)),
                         ),
                       ),
                     ],

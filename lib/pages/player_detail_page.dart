@@ -18,7 +18,6 @@ class PlayerDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final firstName = playerData['first_name'] ?? '';
     final lastName = playerData['last_name'] ?? '';
-    final fullName = '$firstName $lastName';
     final position = playerData['position'] ?? 'Ukjent posisjon';
     final team = playerData['team'] ?? 'Ukjent lag';
     final imageUrl = playerData['image_url'] ?? playerData['image'] ?? playerData['photoUrl'] ?? playerData['photo_url'] ?? playerData['picture'] ?? '';
@@ -68,13 +67,14 @@ class PlayerDetailPage extends StatelessWidget {
             SizedBox(
               height: 460,
               child: Stack(
+                clipBehavior: Clip.none,
                 fit: StackFit.expand,
                 children: [
                   // Background gradient
                   Container(
                     decoration: const BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage('assets/images/hero_bg.png'),
+                        image: AssetImage('assets/images/hero_card_bg.png'),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -101,12 +101,12 @@ class PlayerDetailPage extends StatelessWidget {
                   if (imageUrl.isNotEmpty)
                     Positioned(
                       bottom: 60,
-                      left: 0,
                       right: 0,
                       child: Image.network(
                         imageUrl,
                         height: 360,
                         fit: BoxFit.contain,
+                        alignment: Alignment.bottomRight,
                         errorBuilder: (context, error, stackTrace) => const SizedBox(),
                       ),
                     ),
@@ -135,7 +135,8 @@ class PlayerDetailPage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        Text(fullName, style: AppText.dispH1(30).copyWith(color: Colors.white)),
+                        Text(firstName.toUpperCase(), style: AppText.dispH1(30).copyWith(color: AppColors.coral, height: 1.0)),
+                        Text(lastName.toUpperCase(), style: AppText.dispH1(30).copyWith(color: Colors.white, height: 1.0)),
                         const SizedBox(height: 4),
                         Text(position.toUpperCase(), style: AppText.monoSmLight),
                       ],
@@ -144,16 +145,13 @@ class PlayerDetailPage extends StatelessWidget {
 
                   // Floating stat card
                   Positioned(
-                    bottom: 0,
+                    bottom: -45,
                     left: AppTheme.pageHPad,
                     right: AppTheme.pageHPad,
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: AppTheme.cardPad),
                       decoration: BoxDecoration(
-                        image: const DecorationImage(
-                          image: AssetImage('assets/images/card_bg.png'),
-                          fit: BoxFit.cover,
-                        ),
+                        gradient: AppColors.cardInk,
                         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                         boxShadow: AppTheme.shadowLg,
                       ),
@@ -173,7 +171,7 @@ class PlayerDetailPage extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: AppTheme.sectionGap),
+            const SizedBox(height: AppTheme.sectionGap + 45),
 
             // --- DETAILS ---
             Padding(
@@ -186,19 +184,16 @@ class PlayerDetailPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 18, horizontal: AppTheme.cardPad),
                     decoration: BoxDecoration(
-                      image: const DecorationImage(
-                        image: AssetImage('assets/images/card_bg.png'),
-                        fit: BoxFit.cover,
-                      ),
+                      gradient: AppColors.cardInk,
                       borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                       boxShadow: AppTheme.shadowSm,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildDetailedStat(wins, 'Seiere', AppColors.ink),
-                        _buildDetailedStat(assists, 'Assists', AppColors.ink),
-                        _buildDetailedStat(top3, 'Topp 3', AppColors.ink),
+                        _buildDetailedStat(wins, 'Seiere', AppColors.coral),
+                        _buildDetailedStat(assists, 'Assists', AppColors.coral),
+                        _buildDetailedStat(top3, 'Topp 3', AppColors.coral),
                         _buildDetailedStat(firstPlaces, '1. Plass', Colors.amber.shade700),
                       ],
                     ),
@@ -210,10 +205,7 @@ class PlayerDetailPage extends StatelessWidget {
                     const SizedBox(height: 12),
                     Container(
                       decoration: BoxDecoration(
-                        image: const DecorationImage(
-                          image: AssetImage('assets/images/card_bg.png'),
-                          fit: BoxFit.cover,
-                        ),
+                        gradient: AppColors.cardInk,
                         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                         boxShadow: AppTheme.shadowSm,
                       ),
@@ -254,7 +246,7 @@ class PlayerDetailPage extends StatelessWidget {
       children: [
         Text(label, style: AppText.monoSm.copyWith(color: Colors.white70)),
         const SizedBox(height: 6),
-        Text(value, style: AppText.dispScore(26).copyWith(color: Colors.white)),
+        Text(value, style: AppText.dispScore(26).copyWith(color: AppColors.coral)),
       ],
     );
   }
@@ -276,7 +268,7 @@ class PlayerDetailPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title, style: AppText.uiCaption.copyWith(color: Colors.white70)),
-          Text(value, style: AppText.uiTitle.copyWith(color: Colors.white)),
+          Text(value, style: AppText.uiTitle.copyWith(color: AppColors.coral)),
         ],
       ),
     );
