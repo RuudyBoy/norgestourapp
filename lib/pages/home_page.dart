@@ -226,6 +226,16 @@ class _HomePageState extends State<HomePage> {
               final scoreB = data['away_score'] ?? 0;
               final set = data['current_set'] ?? 1;
 
+              final startTime = data['start_time']?.toString() ?? '';
+              final matchType = data['group']?.toString() ?? '';
+              final court = data['court']?.toString() ?? 'TBD';
+
+              String rightInfo = '';
+              if (startTime.isNotEmpty && matchType.isNotEmpty) rightInfo = '$startTime • $matchType';
+              else if (startTime.isNotEmpty) rightInfo = '$startTime • $court';
+              else if (matchType.isNotEmpty) rightInfo = matchType;
+              else rightInfo = court;
+
               return GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -250,20 +260,26 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.coral,
-                          borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
-                            const SizedBox(width: 5),
-                            Text('LIVE · SETT $set', style: AppText.monoSmLight),
-                          ],
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.coral,
+                              borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+                                const SizedBox(width: 5),
+                                Text('LIVE · SETT $set', style: AppText.monoSmLight),
+                              ],
+                            ),
+                          ),
+                          Text(rightInfo.toUpperCase(), style: AppText.monoSm.copyWith(color: Colors.white70)),
+                        ],
                       ),
                       const Spacer(),
                       Row(

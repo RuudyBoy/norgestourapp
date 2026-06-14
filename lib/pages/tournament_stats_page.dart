@@ -9,11 +9,13 @@ import '../theme/app_theme.dart';
 class TournamentStatsPage extends StatefulWidget {
   final String tournamentId;
   final String tournamentName;
+  final bool isEmbedded;
 
   const TournamentStatsPage({
     super.key,
     required this.tournamentId,
     required this.tournamentName,
+    this.isEmbedded = false,
   });
 
   @override
@@ -105,20 +107,9 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    return Scaffold(
-      backgroundColor: AppColors.ink,
-      appBar: AppBar(
-        title: Text(
-          "Hall of Fame - ${widget.tournamentName}",
-          style: AppText.dispH2(18).copyWith(color: Colors.white),
-        ),
-        backgroundColor: AppColors.ink,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: FutureBuilder<List<PlayerMatchStats>>(
-        future: _statsFuture,
-        builder: (context, snapshot) {
+    final content = FutureBuilder<List<PlayerMatchStats>>(
+      future: _statsFuture,
+      builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -151,6 +142,14 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
                double bPct = b.setAttempts == 0 ? 0 : (b.setAssists / b.setAttempts);
                return bPct.compareTo(aPct);
             });
+          final mottakList = List<PlayerMatchStats>.from(allPlayers)
+            ..sort((a, b) {
+               double aPct = (a.sideoutPoints + a.receptionErrors) == 0 ? 0 : (a.sideoutPoints / (a.sideoutPoints + a.receptionErrors));
+               double bPct = (b.sideoutPoints + b.receptionErrors) == 0 ? 0 : (b.sideoutPoints / (b.sideoutPoints + b.receptionErrors));
+               return bPct.compareTo(aPct);
+            });
+          final forsvarList = List<PlayerMatchStats>.from(allPlayers)
+            ..sort((a, b) => b.overgangsPoeng.compareTo(a.overgangsPoeng));
           final serverList = List<PlayerMatchStats>.from(allPlayers)
             ..sort((a, b) => b.aces.compareTo(a.aces));
 
@@ -212,13 +211,48 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
                     valueFormatter: (p) => '${p.aces} ess',
                     onTap: () => _navigateToDetails(context, allPlayers, 'Serve'),
                   ),
+                  const SizedBox(height: AppTheme.rowGap),
+
+                  StatsCategoryCard(
+                    title: 'Mottak-mester',
+                    icon: Icons.shield,
+                    accentColor: AppColors.blue,
+                    players: mottakList,
+                    valueFormatter: (p) => p.receptionEfficiency,
+                    onTap: () => _navigateToDetails(context, allPlayers, 'Mottak'),
+                  ),
+                  const SizedBox(height: AppTheme.rowGap),
+
+                  StatsCategoryCard(
+                    title: 'Forsvars-klippe',
+                    icon: Icons.security,
+                    accentColor: AppColors.coral,
+                    players: forsvarList,
+                    valueFormatter: (p) => '${p.overgangsPoeng} f.poeng',
+                    onTap: () => _navigateToDetails(context, allPlayers, 'Forsvar'),
+                  ),
                   const SizedBox(height: 40),
                 ],
               ),
             ),
           );
         },
+      );
+
+    if (widget.isEmbedded) return content;
+
+    return Scaffold(
+      backgroundColor: AppColors.ink,
+      appBar: AppBar(
+        title: Text(
+          "Hall of Fame - ${widget.tournamentName}",
+          style: AppText.dispH2(18).copyWith(color: Colors.white),
+        ),
+        backgroundColor: AppColors.ink,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
+      body: content,
     );
   }
 

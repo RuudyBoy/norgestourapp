@@ -43,33 +43,36 @@ class MatchStatsPage extends StatelessWidget {
             ],
           ),
         ),
-        body: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('matches')
-              .doc(matchId)
-              .collection('events')
-              .orderBy('timestamp', descending: false)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
+        body: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance.collection('matches').doc(matchId).snapshots(),
+          builder: (context, matchSnapshot) {
+            if (!matchSnapshot.hasData) {
               return const Center(child: CircularProgressIndicator(color: AppColors.coral));
             }
+            
+            final matchData = matchSnapshot.data!.data() as Map<String, dynamic>? ?? {};
+            final int matchHomeScore = matchData['home_score'] ?? 0;
+            final int matchAwayScore = matchData['away_score'] ?? 0;
+            final int currentSet = matchData['current_set'] ?? 1;
+            final int homeSets = matchData['home_sets'] ?? 0;
+            final int awaySets = matchData['away_sets'] ?? 0;
+            final List pastSets = matchData['past_sets'] ?? [];
 
-            final docs = snapshot.data!.docs;
-            if (docs.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.sports_volleyball, size: 48, color: AppColors.ink3),
-                    const SizedBox(height: 12),
-                    Text('Ingen data enda.', style: AppText.uiBody),
-                  ],
-                ),
-              );
-            }
+            return StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('matches')
+                  .doc(matchId)
+                  .collection('events')
+                  .orderBy('timestamp', descending: false)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator(color: AppColors.coral));
+                }
 
-            final eventsList = docs.map((d) => d.data() as Map<String, dynamic>).toList();
+                final docs = snapshot.data!.docs;
+                // Tillater å vise scoreboard selv om events er tom
+                final eventsList = docs.map((d) => d.data() as Map<String, dynamic>).toList();
             
             // Re-calculate the current score by iterating events (in chronological order)
             int homeScore = 0;
@@ -107,7 +110,7 @@ class MatchStatsPage extends StatelessWidget {
 
             return Column(
               children: [
-                _buildScoreboardHero(homeScore, awayScore),
+                _buildScoreboardHero(matchHomeScore, matchAwayScore, currentSet, homeSets, awaySets, pastSets),
                 Expanded(
                   child: TabBarView(
                     children: [
@@ -125,13 +128,15 @@ class MatchStatsPage extends StatelessWidget {
               ],
             );
           },
-        ),
+        );
+      },
+    ),
       ),
     );
   }
 
   // --- SCOREBOARD HERO ---
-  Widget _buildScoreboardHero(int homeScore, int awayScore) {
+  Widget _buildScoreboardHero(int matchHomeScore, int matchAwayScore, int currentSet, int homeSets, int awaySets, List pastSets) {
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.heroNavy),
       padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 20, AppTheme.pageHPad, 24),
@@ -156,21 +161,21 @@ class MatchStatsPage extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Text('NORGES TOUR', style: AppText.monoSmLight),
+              Text('SETT $currentSet', style: AppText.monoSmLight),
             ],
           ),
           const SizedBox(height: 16),
-          _buildScoreRow(teamAName, homeScore, isLeading: true),
+          _buildScoreRow(teamAName, homeSets, matchHomeScore, isLeading: true),
           const SizedBox(height: 8),
           Divider(color: Colors.white.withOpacity(0.10), height: 1),
           const SizedBox(height: 8),
-          _buildScoreRow(teamBName, awayScore, isLeading: false),
+          _buildScoreRow(teamBName, awaySets, matchAwayScore, isLeading: false),
         ],
       ),
     );
   }
 
-  Widget _buildScoreRow(String teamName, int score, {required bool isLeading}) {
+  Widget _buildScoreRow(String teamName, int sets, int score, {required bool isLeading}) {
     return Row(
       children: [
         Container(
@@ -190,6 +195,15 @@ class MatchStatsPage extends StatelessWidget {
             ],
           ),
         ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text('$sets', style: AppText.dispScore(20).copyWith(color: Colors.white70)),
+        ),
+        const SizedBox(width: 16),
         Text('$score', style: AppText.dispScore(36).copyWith(color: Colors.white)),
       ],
     );

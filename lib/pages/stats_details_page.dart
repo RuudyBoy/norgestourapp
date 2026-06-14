@@ -86,6 +86,14 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
           double bPct = b.setAttempts == 0 ? 0 : (b.setAssists / b.setAttempts);
           return bPct.compareTo(aPct);
         });
+      } else if (criteria == 'Mottak') {
+        sortedPlayers.sort((a, b) {
+          double aPct = (a.sideoutPoints + a.receptionErrors) == 0 ? 0 : (a.sideoutPoints / (a.sideoutPoints + a.receptionErrors));
+          double bPct = (b.sideoutPoints + b.receptionErrors) == 0 ? 0 : (b.sideoutPoints / (b.sideoutPoints + b.receptionErrors));
+          return bPct.compareTo(aPct);
+        });
+      } else if (criteria == 'Forsvar') {
+        sortedPlayers.sort((a, b) => b.overgangsPoeng.compareTo(a.overgangsPoeng));
       }
     });
   }
@@ -115,6 +123,8 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
                   _sortChip('Sideout', () => _sortPlayers('Sideout'), currentSort == 'Sideout'),
                   _sortChip('Blokk', () => _sortPlayers('Blokk'), currentSort == 'Blokk'),
                   _sortChip('Legg', () => _sortPlayers('Legging'), currentSort == 'Legging'),
+                  _sortChip('Mottak', () => _sortPlayers('Mottak'), currentSort == 'Mottak'),
+                  _sortChip('Forsvar', () => _sortPlayers('Forsvar'), currentSort == 'Forsvar'),
                 ],
               ),
             ),
@@ -226,7 +236,7 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
                   ),
                 ),
                 Expanded(
-                  flex: 4,
+                  flex: 5,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
@@ -234,6 +244,8 @@ class _StatsDetailsPageState extends State<StatsDetailsPage> {
                       _buildMiniStat('SO', p.sideoutPoints.toString(), isHighlight: currentSort == 'Sideout'),
                       _buildMiniStat('BLK', p.blocks.toString(), isHighlight: currentSort == 'Blokk'),
                       _buildMiniStat('LEGG', p.settingEfficiency, isHighlight: currentSort == 'Legging'),
+                      _buildMiniStat('MOT', p.receptionEfficiency, isHighlight: currentSort == 'Mottak'),
+                      _buildMiniStat('FOR', p.overgangsPoeng.toString(), isHighlight: currentSort == 'Forsvar'),
                     ],
                   ),
                 ),

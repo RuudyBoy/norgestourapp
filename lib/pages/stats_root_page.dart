@@ -148,7 +148,14 @@ class _StatsRootPageState extends State<StatsRootPage> {
                       return bPct.compareTo(aPct);
                     });
                   final serverList = List<PlayerMatchStats>.from(allPlayers)..sort((a, b) => b.aces.compareTo(a.aces));
-
+                  final mottakList = List<PlayerMatchStats>.from(allPlayers)
+                    ..sort((a, b) {
+                      double aPct = (a.sideoutPoints + a.receptionErrors) == 0 ? 0 : (a.sideoutPoints / (a.sideoutPoints + a.receptionErrors));
+                      double bPct = (b.sideoutPoints + b.receptionErrors) == 0 ? 0 : (b.sideoutPoints / (b.sideoutPoints + b.receptionErrors));
+                      return bPct.compareTo(aPct);
+                    });
+                  final forsvarList = List<PlayerMatchStats>.from(allPlayers)
+                    ..sort((a, b) => b.overgangsPoeng.compareTo(a.overgangsPoeng));
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 16, AppTheme.pageHPad, 32),
                     child: Column(
@@ -236,6 +243,24 @@ class _StatsRootPageState extends State<StatsRootPage> {
                             players: serverList,
                             valueFormatter: (p) => '${p.aces} ess',
                             onTap: () => _navigateToDetails(context, allPlayers, 'Serve'),
+                          ),
+                          const SizedBox(height: AppTheme.rowGap),
+                          StatsCategoryCard(
+                            title: 'Mottak-mester',
+                            icon: Icons.shield,
+                            accentColor: AppColors.coralDeep,
+                            players: mottakList,
+                            valueFormatter: (p) => p.receptionEfficiency,
+                            onTap: () => _navigateToDetails(context, allPlayers, 'Mottak'),
+                          ),
+                          const SizedBox(height: AppTheme.rowGap),
+                          StatsCategoryCard(
+                            title: 'Forsvars-klippe',
+                            icon: Icons.security,
+                            accentColor: AppColors.green,
+                            players: forsvarList,
+                            valueFormatter: (p) => '${p.overgangsPoeng} f.poeng',
+                            onTap: () => _navigateToDetails(context, allPlayers, 'Forsvar'),
                           ),
                         ],
                       ),
