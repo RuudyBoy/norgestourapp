@@ -11,21 +11,23 @@ Future<List<FantasyPlayer>> fetchFantasyPlayers() async {
   final matchesSnapshot = await FirebaseFirestore.instance.collection('matches').get();
   
   Map<String, PlayerMatchStats> totalStatsMap = {};
-  
-  for (var matchDoc in matchesSnapshot.docs) {
-    final eventsSnapshot = await matchDoc.reference.collection('events').get();
+
+  final allEventSnapshots = await Future.wait(
+    matchesSnapshot.docs.map((m) => m.reference.collection('events').get()),
+  );
+
+  for (final eventsSnapshot in allEventSnapshots) {
     if (eventsSnapshot.docs.isEmpty) continue;
 
-    final eventsList = eventsSnapshot.docs.map((d) => d.data()).toList();
-    final typedList = eventsList.cast<Map<String, dynamic>>();
+    final typedList = eventsSnapshot.docs.map((d) => d.data()).toList();
     final matchStats = calculateMatchStats(typedList);
 
     matchStats.players.forEach((playerName, s) {
       final key = playerName.trim().toLowerCase();
       if (!totalStatsMap.containsKey(key)) {
         totalStatsMap[key] = PlayerMatchStats(
-          playerName: playerName, 
-          teamName: s.teamName
+          playerName: playerName,
+          teamName: s.teamName,
         );
       }
       final total = totalStatsMap[key]!;
