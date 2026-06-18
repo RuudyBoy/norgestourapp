@@ -9,6 +9,7 @@ import 'tournament_stats_page.dart';
 import 'match_stats_page.dart';
 import 'groups_page.dart';
 import 'playoffs_page.dart';
+import 'tournament_registration_page.dart';
 
 class TournamentDetailsPage extends StatelessWidget {
   final String tournamentId;
@@ -20,16 +21,127 @@ class TournamentDetailsPage extends StatelessWidget {
     required this.data,
   });
 
+  bool _isRegistrationOpen() {
+    final regStatus = data['registration_status'] as String? ?? '';
+    final deadline = data['registration_deadline'] as String?;
+    if (regStatus != 'open') return false;
+    if (deadline == null) return true;
+    // Parse DD.MM.YYYY
+    try {
+      final parts = deadline.split('.');
+      if (parts.length == 3) {
+        final d = DateTime(
+          int.parse(parts[2]),
+          int.parse(parts[1]),
+          int.parse(parts[0]),
+          23, 59,
+        );
+        return DateTime.now().isBefore(d);
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  void _showRegistrationCategoryPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(ctx).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Velg klasse",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text("Hvilken klasse vil du melde på til?",
+                style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+            const SizedBox(height: 16),
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('categories')
+                  .where('tournament_id', isEqualTo: tournamentId)
+                  .snapshots(),
+              builder: (ctx, snap) {
+                if (!snap.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final cats = snap.data!.docs;
+                if (cats.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text("Ingen klasser funnet for denne turneringen."),
+                  );
+                }
+                return Column(
+                  children: cats.map((cat) {
+                    final catData = cat.data() as Map<String, dynamic>;
+                    final catName = catData['name'] as String? ?? 'Ukjent';
+                    final maxTeams = catData['max_teams'] as int? ?? 0;
+                    return ListTile(
+                      leading: const CircleAvatar(
+                        backgroundColor: AppColors.coral,
+                        child: Icon(Icons.sports_volleyball,
+                            color: Colors.white, size: 18),
+                      ),
+                      title: Text(catName,
+                          style:
+                              const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Text("Maks $maxTeams lag"),
+                      trailing:
+                          const Icon(Icons.chevron_right, color: AppColors.coral),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TournamentRegistrationPage(
+                              tournamentId: tournamentId,
+                              tournamentData: data,
+                              categoryId: cat.id,
+                              categoryName: catName,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final name = data['name'] ?? 'Ukjent Turnering';
     final date = data['start_date']?.toString() ?? 'Dato kommer';
     final imageUrl = data['image_url'] ?? '';
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final registrationOpen = _isRegistrationOpen();
 
     return DefaultTabController(
       length: 5,
       child: Scaffold(
+        floatingActionButton: registrationOpen
+            ? FloatingActionButton.extended(
+                onPressed: () => _showRegistrationCategoryPicker(context),
+                backgroundColor: AppColors.coral,
+                foregroundColor: Colors.white,
+                icon: const Icon(Icons.how_to_reg),
+                label: const Text("Meld på",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              )
+            : null,
         body: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [

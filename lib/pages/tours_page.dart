@@ -54,8 +54,10 @@ class ToursPage extends StatelessWidget {
                       final imageUrl = data['image_url'] ?? '';
                       final location = data['location'] ?? '';
                       final status = data['status'] ?? '';
+                      final deadline = data['registration_deadline'] as String?;
+                      final regStatus = data['registration_status'] as String? ?? '';
 
-                      return _buildTourCard(context, doc.id, data, name, date, imageUrl, location, status);
+                      return _buildTourCard(context, doc.id, data, name, date, imageUrl, location, status, deadline, regStatus);
                     },
                   ),
                 );
@@ -68,6 +70,18 @@ class ToursPage extends StatelessWidget {
   }
 
 
+  bool _deadlinePassed(String? deadline) {
+    if (deadline == null) return false;
+    try {
+      final parts = deadline.split('.');
+      if (parts.length == 3) {
+        final d = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]), 23, 59);
+        return DateTime.now().isAfter(d);
+      }
+    } catch (_) {}
+    return false;
+  }
+
   Widget _buildTourCard(
     BuildContext context,
     String id,
@@ -77,8 +91,12 @@ class ToursPage extends StatelessWidget {
     String imageUrl,
     String location,
     String status,
+    String? registrationDeadline,
+    String registrationStatus,
   ) {
     final isLive = status == 'live';
+    final regOpen = registrationStatus == 'open' && !_deadlinePassed(registrationDeadline);
+    final regClosed = registrationStatus == 'closed' || (registrationStatus == 'open' && _deadlinePassed(registrationDeadline));
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.sectionGap),
@@ -168,44 +186,90 @@ class ToursPage extends StatelessWidget {
                   ),
                 Padding(
                   padding: const EdgeInsets.all(AppTheme.cardPad),
-                  child: Row(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 4,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: isLive ? AppColors.coral : AppColors.blue,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(name, style: AppText.dispH2(20).copyWith(color: AppColors.coral)),
-                            const SizedBox(height: 3),
-                            if (location.isNotEmpty)
-                              Text(location.toUpperCase(), style: AppText.monoSm.copyWith(color: Colors.white70)),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            width: 4,
+                            height: 40,
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(AppTheme.radiusChip),
+                              color: isLive ? AppColors.coral : AppColors.blue,
+                              borderRadius: BorderRadius.circular(3),
                             ),
-                            child: Text(date, style: AppText.monoSm.copyWith(color: Colors.white)),
                           ),
-                          const SizedBox(height: 8),
-                          const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white54),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(name, style: AppText.dispH2(20).copyWith(color: AppColors.coral)),
+                                const SizedBox(height: 3),
+                                if (location.isNotEmpty)
+                                  Text(location.toUpperCase(), style: AppText.monoSm.copyWith(color: Colors.white70)),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusChip),
+                                ),
+                                child: Text(date, style: AppText.monoSm.copyWith(color: Colors.white)),
+                              ),
+                              const SizedBox(height: 8),
+                              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white54),
+                            ],
+                          ),
                         ],
                       ),
+                      // ── Påmeldingsfrist ──────────────────────────────────
+                      if (registrationDeadline != null) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: regOpen
+                                ? AppColors.coral.withOpacity(0.15)
+                                : Colors.white.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusChip),
+                            border: Border.all(
+                              color: regOpen
+                                  ? AppColors.coral.withOpacity(0.5)
+                                  : Colors.white.withOpacity(0.12),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                regOpen ? Icons.how_to_reg : Icons.lock_outline,
+                                size: 12,
+                                color: regOpen ? AppColors.coral : Colors.white38,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                regOpen
+                                    ? 'Påmelding åpen  –  frist $registrationDeadline'
+                                    : regClosed
+                                        ? 'Påmelding stengt  –  frist var $registrationDeadline'
+                                        : 'Frist: $registrationDeadline',
+                                style: AppText.monoSm.copyWith(
+                                  fontSize: 10,
+                                  color: regOpen ? AppColors.coral : Colors.white38,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
