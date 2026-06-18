@@ -36,30 +36,27 @@ class ToursPage extends StatelessWidget {
 
                 final tournaments = snapshot.data!.docs;
 
-                return Transform.translate(
-                  offset: const Offset(0, -20),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(
-                      AppTheme.pageHPad, 0,
-                      AppTheme.pageHPad, 32,
-                    ),
-                    itemCount: tournaments.length,
-                    itemBuilder: (context, index) {
-                      final doc = tournaments[index];
-                      final data = doc.data() as Map<String, dynamic>;
-                      final name = data['name'] ?? 'Ukjent Navn';
-                      final date = data['start_date']?.toString() ?? 'Dato kommer';
-                      final imageUrl = data['image_url'] ?? '';
-                      final location = data['location'] ?? '';
-                      final status = data['status'] ?? '';
-                      final deadline = data['registration_deadline'] as String?;
-                      final regStatus = data['registration_status'] as String? ?? '';
-
-                      return _buildTourCard(context, doc.id, data, name, date, imageUrl, location, status, deadline, regStatus);
-                    },
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.pageHPad, 24,
+                    AppTheme.pageHPad, 32,
                   ),
+                  itemCount: tournaments.length,
+                  itemBuilder: (context, index) {
+                    final doc = tournaments[index];
+                    final data = doc.data() as Map<String, dynamic>;
+                    final name = data['name'] ?? 'Ukjent Navn';
+                    final date = data['start_date']?.toString() ?? 'Dato kommer';
+                    final imageUrl = data['image_url'] ?? '';
+                    final location = data['location'] ?? '';
+                    final status = data['status'] ?? '';
+                    final deadline = data['registration_deadline'] as String?;
+                    final regStatus = data['registration_status'] as String? ?? '';
+
+                    return _buildTourCard(context, doc.id, data, name, date, imageUrl, location, status, deadline, regStatus);
+                  },
                 );
               },
             ),
