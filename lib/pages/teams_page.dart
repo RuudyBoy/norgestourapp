@@ -48,33 +48,60 @@ class TeamsPage extends StatelessWidget {
           );
         }
 
-        final teams = snapshot.data!.docs;
+        final teams = snapshot.data!.docs.toList()
+          ..sort((a, b) {
+            final ad = a.data() as Map<String, dynamic>;
+            final bd = b.data() as Map<String, dynamic>;
+            
+            final seedA = ad['seed'] as int? ?? 9999;
+            final seedB = bd['seed'] as int? ?? 9999;
+            if (seedA != seedB) return seedA.compareTo(seedB);
+
+            final rankA = ad['combined_ranking'] as int? ?? 0;
+            final rankB = bd['combined_ranking'] as int? ?? 0;
+            return rankB.compareTo(rankA); // descending
+          });
+
+        final isDark = Theme.of(context).brightness == Brightness.dark;
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: teams.length,
           itemBuilder: (context, index) {
             final data = teams[index].data() as Map<String, dynamic>;
-            final teamName = data['name'] ?? 'Ukjent Lag';
-            final players = data['players'] as List<dynamic>? ?? [];
+            final teamName = data['team_name'] ?? data['name'] ?? 'Ukjent Lag';
+            final p1 = data['player1_name'] ?? data['player_1_name'] ?? '';
+            final p2 = data['player2_name'] ?? data['player_2_name'] ?? '';
+            final players = [if (p1.isNotEmpty) p1, if (p2.isNotEmpty) p2];
+            
+            final seed = data['seed'] as int?;
+            final pts = data['combined_ranking'] ?? data['ranking_points'] ?? 0;
 
             String subtitleText = players.isEmpty ? "Ingen spillere registrert" : players.join(" & ");
 
             return Card(
               elevation: 2,
               margin: const EdgeInsets.only(bottom: 12),
+              color: isDark ? const Color(0xFF162544) : Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: const Color(0xFF0A1931),
+                  backgroundColor: seed != null ? const Color(0xFFE85D4E) : const Color(0xFF0A1931),
                   child: Text(
-                    teamName.substring(0, 1).toUpperCase(),
-                    style: const TextStyle(color: Colors.white),
+                    seed != null ? "$seed" : "-",
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
-                title: Text(teamName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(subtitleText),
-                trailing: const Icon(Icons.chevron_right),
+                title: Text(teamName, style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+                subtitle: Text(subtitleText, style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
+                trailing: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text("$pts", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
+                    Text("PTS", style: TextStyle(fontSize: 10, color: isDark ? Colors.white54 : Colors.black54)),
+                  ],
+                ),
               ),
             );
           },

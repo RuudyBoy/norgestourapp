@@ -8,6 +8,7 @@ import 'tournament_stats_page.dart';
 import 'match_stats_page.dart';
 import 'tour_detail_page.dart';
 import 'fantasy/mock_data.dart';
+import 'fantasy/models.dart';
 import '../widgets/season_hero_widget.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -110,77 +111,157 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ── Season timeline ────────────────────────────────────────────
+  // ── Live Tournament ──────────────────────────────────────────────
 
-  Widget _buildSeasonTimeline() {
+  Widget _buildLiveTournamentSection(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('tournaments').snapshots(),
+      stream: FirebaseFirestore.instance.collection('tournaments').where('status', isEqualTo: 'live').snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return const SizedBox.shrink();
 
-        final tournaments = snapshot.data!.docs;
+        final doc = snapshot.data!.docs.first;
+        final data = doc.data() as Map<String, dynamic>;
+        final name = data['name'] ?? 'Live Tour';
+        final location = (data['location'] ?? '') as String;
+        final imageUrl = (data['image_url'] ?? '') as String;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionKicker('Sesongen 2026'),
+            _buildSectionKicker('Pågående Tour'),
             const SizedBox(height: 12),
-            SizedBox(
-              height: 40,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
-                itemCount: tournaments.length,
-                itemBuilder: (context, index) {
-                  final data = tournaments[index].data() as Map<String, dynamic>;
-                  final name = data['name'] ?? 'Tour ${index + 1}';
-                  final status = (data['status'] ?? '') as String;
-                  final isLive = status == 'live';
-                  final isDone = status == 'completed' || status == 'finished';
-
-                  final bgColor = isLive
-                      ? AppColors.coral
-                      : isDone
-                          ? AppColors.greenLight
-                          : AppColors.sand2;
-                  final textColor = isLive
-                      ? Colors.white
-                      : isDone
-                          ? AppColors.green
-                          : AppColors.ink2;
-
-                  return GestureDetector(
-                    onTap: () => widget.onTabSelected?.call(2),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: bgColor,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusChip),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (isLive) ...[
-                            Container(
-                              width: 5, height: 5,
-                              margin: const EdgeInsets.only(right: 5),
-                              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
+              child: GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TournamentDetailsPage(tournamentId: doc.id, data: data),
+                  ),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: AppColors.cardInk,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                    boxShadow: AppTheme.shadowLg,
+                    image: imageUrl.isNotEmpty
+                        ? DecorationImage(
+                            image: NetworkImage(imageUrl),
+                            fit: BoxFit.cover,
+                            colorFilter: ColorFilter.mode(
+                              AppColors.ink.withValues(alpha: 0.55),
+                              BlendMode.darken,
                             ),
-                          ] else if (isDone) ...[
-                            const Icon(Icons.check, size: 10, color: AppColors.green),
-                            const SizedBox(width: 4),
+                          )
+                        : null,
+                  ),
+                  padding: const EdgeInsets.all(AppTheme.cardPad + 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppColors.coral,
+                                borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+                                  const SizedBox(width: 5),
+                                  Text('LIVE', style: AppText.monoSmLight),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(name, style: AppText.dispH1(22).copyWith(color: AppColors.sand2)),
+                            const SizedBox(height: 4),
+                            if (location.isNotEmpty)
+                              Row(
+                                children: [
+                                  const Icon(Icons.location_on, size: 11, color: Colors.white70),
+                                  const SizedBox(width: 3),
+                                  Text(location.toUpperCase(),
+                                      style: AppText.monoSm.copyWith(color: Colors.white70)),
+                                ],
+                              ),
                           ],
-                          Text(
-                            name,
-                            style: AppText.monoSm.copyWith(color: textColor, fontSize: 10),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusChip),
+                        ),
+                        child: Text('Se mer', style: AppText.uiCta.copyWith(fontSize: 13, color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                ),
               ),
+            ),
+            const SizedBox(height: 24),
+            _buildSectionKicker('Topscorer'),
+            const SizedBox(height: 12),
+            FutureBuilder<List<FantasyPlayer>>(
+              future: fetchFantasyPlayers(),
+              builder: (context, playerSnapshot) {
+                if (!playerSnapshot.hasData || playerSnapshot.data!.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
+                    child: Text('Ingen data', style: TextStyle(color: Colors.white70)),
+                  );
+                }
+                final topScorer = playerSnapshot.data!.first;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppColors.coralDeep, AppColors.coral],
+                      ),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                      boxShadow: AppTheme.shadowSm,
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.white24,
+                          backgroundImage: topScorer.imageUrl.isNotEmpty ? NetworkImage(topScorer.imageUrl) : null,
+                          child: topScorer.imageUrl.isEmpty ? Text(topScorer.name[0], style: AppText.dispH2(20).copyWith(color: Colors.white)) : null,
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(topScorer.name, style: AppText.dispH2(18).copyWith(color: Colors.white)),
+                              Text(topScorer.team, style: AppText.monoSm.copyWith(color: Colors.white70)),
+                            ],
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('${topScorer.totalPoints}', style: AppText.dispH1(28).copyWith(color: Colors.white)),
+                            Text('POENG', style: AppText.monoSm.copyWith(color: Colors.white)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         );
@@ -231,8 +312,9 @@ class _HomePageState extends State<HomePage> {
               final court = data['court']?.toString() ?? 'TBD';
 
               String rightInfo = '';
-              if (startTime.isNotEmpty && matchType.isNotEmpty) rightInfo = '$startTime • $matchType';
-              else if (startTime.isNotEmpty) rightInfo = '$startTime • $court';
+              if (startTime.isNotEmpty && matchType.isNotEmpty) {
+                rightInfo = '$startTime • $matchType';
+              } else if (startTime.isNotEmpty) rightInfo = '$startTime • $court';
               else if (matchType.isNotEmpty) rightInfo = matchType;
               else rightInfo = court;
 
@@ -606,7 +688,7 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSeasonTimeline(),
+                  _buildLiveTournamentSection(context),
                   const SizedBox(height: AppTheme.sectionGap),
                   _buildLiveOrNextSection(context),
                   const SizedBox(height: AppTheme.sectionGap),

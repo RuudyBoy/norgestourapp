@@ -6,9 +6,7 @@ import '../theme/app_theme.dart';
 import 'teams_page.dart';
 import 'matches_page.dart';
 import 'tournament_stats_page.dart';
-import 'match_stats_page.dart';
-import 'groups_page.dart';
-import 'playoffs_page.dart';
+import 'oppsett_page.dart';
 import 'tournament_registration_page.dart';
 
 class TournamentDetailsPage extends StatelessWidget {
@@ -130,7 +128,7 @@ class TournamentDetailsPage extends StatelessWidget {
     final registrationOpen = _isRegistrationOpen();
 
     return DefaultTabController(
-      length: 5,
+      length: 4,
       child: Scaffold(
         floatingActionButton: registrationOpen
             ? FloatingActionButton.extended(
@@ -268,8 +266,7 @@ class TournamentDetailsPage extends StatelessWidget {
                 unselectedLabelStyle: AppText.uiCta,
                 tabs: const [
                   Tab(text: "Kamper"),
-                  Tab(text: "Grupper"),
-                  Tab(text: "Sluttspill"),
+                  Tab(text: "Oppsett"),
                   Tab(text: "Stats"),
                   Tab(text: "Lag"),
                 ],
@@ -281,8 +278,7 @@ class TournamentDetailsPage extends StatelessWidget {
           body: TabBarView(
             children: [
               MatchesPage(tournamentId: tournamentId, tournamentName: name, isEmbedded: true),
-              GroupsPage(tournamentId: tournamentId),
-              PlayoffsPage(tournamentId: tournamentId),
+              OppsettPage(tournamentId: tournamentId, tournamentName: name, isEmbedded: true),
               TournamentStatsPage(tournamentId: tournamentId, tournamentName: name, isEmbedded: true),
               TeamsPage(tournamentId: tournamentId, tournamentName: name, isEmbedded: true),
             ],

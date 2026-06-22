@@ -24,7 +24,6 @@ class MatchesPage extends StatefulWidget {
 class _MatchesPageState extends State<MatchesPage> {
   String? _selectedCategoryId;
   String _selectedStatus = 'alle'; // 'alle', 'live', 'scheduled', 'finished'
-  String _selectedStage = 'alle'; // 'alle', 'Pulje A', 'Sluttspill A', etc.
 
   String _getStageLabel(Map<String, dynamic> d) {
     final stage = d['stage'] as String?;
@@ -99,20 +98,10 @@ class _MatchesPageState extends State<MatchesPage> {
                       child: Text("Ingen kamper satt opp for denne klassen."));
                 }
 
-                // Extract unique stages
-                final stages = <String>{};
-                for (final m in matches) {
-                  stages.add(_getStageLabel(m.data() as Map<String, dynamic>));
-                }
-                final stageList = stages.toList()..sort();
-
                 // Filter matches locally
                 final filtered = matches.where((m) {
                   final d = m.data() as Map<String, dynamic>;
                   if (_selectedStatus != 'alle' && d['status'] != _selectedStatus) {
-                    return false;
-                  }
-                  if (_selectedStage != 'alle' && _getStageLabel(d) != _selectedStage) {
                     return false;
                   }
                   return true;
@@ -132,7 +121,6 @@ class _MatchesPageState extends State<MatchesPage> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildStageChips(stageList, isDark),
                     Expanded(
                       child: filtered.isEmpty
                           ? const Center(
@@ -189,7 +177,6 @@ class _MatchesPageState extends State<MatchesPage> {
                 if (v) {
                   setState(() {
                     _selectedCategoryId = c.id;
-                    _selectedStage = 'alle'; // Reset stage when category changes
                   });
                 }
               },
@@ -255,56 +242,6 @@ class _MatchesPageState extends State<MatchesPage> {
     );
   }
 
-  Widget _buildStageChips(List<String> stages, bool isDark) {
-    if (stages.isEmpty) return const SizedBox.shrink();
-
-    final allStages = ['alle', ...stages];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.pageHPad, vertical: 8),
-      child: Row(
-        children: allStages.map((s) {
-          final isSelected = _selectedStage == s;
-          final label = s == 'alle' ? 'Alle runder' : s;
-          return Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: InkWell(
-              onTap: () => setState(() => _selectedStage = s),
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? (isDark ? AppColors.nightSurface2 : AppColors.ink3)
-                      : (isDark ? AppColors.nightSurface1 : AppColors.sand1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isSelected
-                        ? (isDark ? AppColors.nightInk2 : AppColors.ink)
-                        : Colors.transparent,
-                  ),
-                ),
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected
-                        ? (isDark ? Colors.white : Colors.white)
-                        : (isDark ? Colors.white70 : Colors.black87),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   Widget _buildMatchCard(QueryDocumentSnapshot matchDoc, bool isDark) {
     final data = matchDoc.data() as Map<String, dynamic>;
     final status = data['status'] as String? ?? 'scheduled';
@@ -351,7 +288,7 @@ class _MatchesPageState extends State<MatchesPage> {
         margin: const EdgeInsets.only(bottom: AppTheme.rowGap),
         padding: const EdgeInsets.all(AppTheme.cardPad),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.nightSurface1 : Colors.white,
+          gradient: AppColors.cardInk,
           borderRadius: BorderRadius.circular(AppTheme.radiusCard),
           boxShadow: AppTheme.shadowSm,
         ),
@@ -405,8 +342,7 @@ class _MatchesPageState extends State<MatchesPage> {
                 Expanded(
                   child: Text(
                     rightInfo.toUpperCase(),
-                    style: AppText.monoSm.copyWith(
-                        color: isDark ? AppColors.nightInk3 : AppColors.ink3),
+                    style: AppText.monoSm.copyWith(color: Colors.white70),
                     textAlign: TextAlign.right,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -419,23 +355,31 @@ class _MatchesPageState extends State<MatchesPage> {
               children: [
                 Expanded(
                   child: Text(teamAName.toUpperCase(),
-                      style: AppText.dispH2(18).copyWith(
-                          color: isDark ? AppColors.nightInk : AppColors.ink),
+                      style: AppText.dispH2(18).copyWith(color: Colors.white),
                       overflow: TextOverflow.ellipsis),
                 ),
                 if (status == 'finished')
                   Text('$homeSets',
-                      style: AppText.dispScore(32).copyWith(
-                          color: isDark ? AppColors.nightInk : AppColors.ink))
+                      style: AppText.dispScore(32).copyWith(color: Colors.white))
                 else if (status == 'live')
-                  Text('$homeScore',
-                      style: AppText.dispScore(32).copyWith(
-                          color: isDark ? AppColors.nightInk : AppColors.ink))
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      if (currentSet > 1)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 12.0),
+                          child: Text('($homeSets)',
+                              style: AppText.dispScore(20).copyWith(color: Colors.white54)),
+                        ),
+                      Text('$homeScore',
+                          style: AppText.dispScore(32).copyWith(color: Colors.white)),
+                    ],
+                  )
                 else
                   Text('-',
-                      style: AppText.dispScore(32).copyWith(
-                          color:
-                              isDark ? AppColors.nightInk3 : AppColors.ink3)),
+                      style: AppText.dispScore(32).copyWith(color: Colors.white70)),
               ],
             ),
             const SizedBox(height: 4),
@@ -444,23 +388,31 @@ class _MatchesPageState extends State<MatchesPage> {
               children: [
                 Expanded(
                   child: Text(teamBName.toUpperCase(),
-                      style: AppText.dispH2(18).copyWith(
-                          color: isDark ? AppColors.nightInk : AppColors.ink),
+                      style: AppText.dispH2(18).copyWith(color: Colors.white),
                       overflow: TextOverflow.ellipsis),
                 ),
                 if (status == 'finished')
                   Text('$awaySets',
-                      style: AppText.dispScore(32).copyWith(
-                          color: isDark ? AppColors.nightInk : AppColors.ink))
+                      style: AppText.dispScore(32).copyWith(color: Colors.white))
                 else if (status == 'live')
-                  Text('$awayScore',
-                      style: AppText.dispScore(32).copyWith(
-                          color: isDark ? AppColors.nightInk : AppColors.ink))
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      if (currentSet > 1)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 12.0),
+                          child: Text('($awaySets)',
+                              style: AppText.dispScore(20).copyWith(color: Colors.white54)),
+                        ),
+                      Text('$awayScore',
+                          style: AppText.dispScore(32).copyWith(color: Colors.white)),
+                    ],
+                  )
                 else
                   Text('-',
-                      style: AppText.dispScore(32).copyWith(
-                          color:
-                              isDark ? AppColors.nightInk3 : AppColors.ink3)),
+                      style: AppText.dispScore(32).copyWith(color: Colors.white70)),
               ],
             ),
           ],
