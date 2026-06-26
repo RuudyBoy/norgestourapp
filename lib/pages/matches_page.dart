@@ -49,6 +49,7 @@ class _MatchesPageState extends State<MatchesPage> {
           stream: FirebaseFirestore.instance
               .collection('categories')
               .where('tournament_id', isEqualTo: widget.tournamentId)
+              .where('published', isEqualTo: true)
               .snapshots(),
           builder: (context, catSnap) {
             if (!catSnap.hasData) {

@@ -64,6 +64,7 @@ class TournamentDetailsPage extends StatelessWidget {
               stream: FirebaseFirestore.instance
                   .collection('categories')
                   .where('tournament_id', isEqualTo: tournamentId)
+                  .where('published', isEqualTo: true)
                   .snapshots(),
               builder: (ctx, snap) {
                 if (!snap.hasData) {

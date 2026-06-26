@@ -49,6 +49,7 @@ class _OppsettPageState extends State<OppsettPage> {
           stream: FirebaseFirestore.instance
               .collection('categories')
               .where('tournament_id', isEqualTo: widget.tournamentId)
+              .where('published', isEqualTo: true)
               .snapshots(),
           builder: (context, catSnap) {
             if (!catSnap.hasData) {
