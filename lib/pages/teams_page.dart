@@ -57,8 +57,9 @@ class TeamsPage extends StatelessWidget {
             final seedB = bd['seed'] as int? ?? 9999;
             if (seedA != seedB) return seedA.compareTo(seedB);
 
-            final rankA = ad['combined_ranking'] as int? ?? 0;
-            final rankB = bd['combined_ranking'] as int? ?? 0;
+            // Admin skriver 'team_points'; eldre data kan ha 'combined_ranking'
+            final rankA = (ad['team_points'] ?? ad['combined_ranking'] ?? 0) as num;
+            final rankB = (bd['team_points'] ?? bd['combined_ranking'] ?? 0) as num;
             return rankB.compareTo(rankA); // descending
           });
 
@@ -75,7 +76,7 @@ class TeamsPage extends StatelessWidget {
             final players = [if (p1.isNotEmpty) p1, if (p2.isNotEmpty) p2];
             
             final seed = data['seed'] as int?;
-            final pts = data['combined_ranking'] ?? data['ranking_points'] ?? 0;
+            final pts = data['team_points'] ?? data['combined_ranking'] ?? data['ranking_points'] ?? 0;
 
             String subtitleText = players.isEmpty ? "Ingen spillere registrert" : players.join(" & ");
 

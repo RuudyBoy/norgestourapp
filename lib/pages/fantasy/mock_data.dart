@@ -40,6 +40,11 @@ Future<List<FantasyPlayer>> fetchFantasyPlayers() async {
       total.sideoutPoints += s.sideoutPoints;
       total.setAssists += s.setAssists;
       total.setAttempts += s.setAttempts;
+      total.technicalErrors += s.technicalErrors;
+      total.digs += s.digs;
+      total.perfectReceptions += s.perfectReceptions;
+      total.goodReceptions += s.goodReceptions;
+      total.servesInPlay += s.servesInPlay;
     });
   }
 
@@ -86,6 +91,7 @@ Future<List<FantasyPlayer>> fetchFantasyPlayers() async {
         sets: sets,
         receives: receives,
         aces: aces,
+        stats: stats,
       ),
     );
   }

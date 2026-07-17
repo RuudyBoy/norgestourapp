@@ -258,6 +258,7 @@ class _FantasyPageState extends State<FantasyPage> {
                           FantasySquadView(
                             selectedPlayers: selectedPlayers,
                             players: players,
+                            ownershipPercentages: ownershipPercentages,
                             linkedPlayerId: _linkedPlayerId,
                             teamName: _teamName ?? 'Mitt Lag',
                             onRoleTap: (role) => _openPlayerSelection(role, players, ownershipPercentages),

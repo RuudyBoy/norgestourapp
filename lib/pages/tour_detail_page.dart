@@ -61,10 +61,11 @@ class TournamentDetailsPage extends StatelessWidget {
                 style: TextStyle(color: Colors.grey[600], fontSize: 13)),
             const SizedBox(height: 16),
             StreamBuilder<QuerySnapshot>(
+              // Påmelding styres av registration_status/frist – ikke av
+              // 'published' (som først settes når oppsettet publiseres).
               stream: FirebaseFirestore.instance
                   .collection('categories')
                   .where('tournament_id', isEqualTo: tournamentId)
-                  .where('published', isEqualTo: true)
                   .snapshots(),
               builder: (ctx, snap) {
                 if (!snap.hasData) {

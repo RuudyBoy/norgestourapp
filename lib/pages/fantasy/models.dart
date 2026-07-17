@@ -1,3 +1,5 @@
+import '../stats_logic.dart';
+
 class FantasyPlayer {
   final String id;
   final String name;
@@ -14,6 +16,10 @@ class FantasyPlayer {
   final int receives;
   final int aces;
 
+  // Rå sesongstatistikk — kilden for rollelåst fantasypoengberegning
+  // (se fantasy_point_matrix.dart). Null for spillere uten registrerte kamper.
+  final PlayerMatchStats? stats;
+
   FantasyPlayer({
     required this.id,
     required this.name,
@@ -27,6 +33,7 @@ class FantasyPlayer {
     this.sets = 0,
     this.receives = 0,
     this.aces = 0,
+    this.stats,
   });
 }
 

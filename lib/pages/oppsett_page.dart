@@ -440,7 +440,7 @@ class _GroupContent extends StatelessWidget {
             else
               ...groupMatches.map((m) {
                 final d = m.data() as Map<String, dynamic>;
-                final time = d['start_time'] as String?;
+                final time = (d['match_time'] ?? d['start_time']) as String?;
                 final court = d['court'] as String?;
                 final typeText = d['match_type'] as String? ?? 'Gruppespill';
                 final matchInfo = [
@@ -575,6 +575,7 @@ class _MatchCard extends StatelessWidget {
     final homeScore = d['home_score'] as int? ?? 0;
     final awayScore = d['away_score'] as int? ?? 0;
     final matchNumber = d['match_number'] as int?;
+    final timeLabel = (d['match_time'] ?? d['start_time'])?.toString() ?? '';
 
     String getTeamName(String prefix) {
       String name = d['${prefix}_name'] as String? ?? 'TBD';
@@ -632,7 +633,7 @@ class _MatchCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              if (matchNumber != null || d['start_time'] != null || d['court'] != null)
+              if (matchNumber != null || timeLabel.isNotEmpty || d['court'] != null)
                 Container(
                   width: 52,
                   margin: const EdgeInsets.only(right: 12),
@@ -645,11 +646,11 @@ class _MatchCard extends StatelessWidget {
                           "#$matchNumber",
                           style: AppText.monoSm.copyWith(color: dimColor),
                         ),
-                      if (d['start_time'] != null && d['start_time'].toString().isNotEmpty)
+                      if (timeLabel.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
                           child: Text(
-                            d['start_time'].toString(),
+                            timeLabel,
                             style: AppText.monoSm.copyWith(color: dimColor, fontSize: 10),
                           ),
                         ),

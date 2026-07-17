@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'models.dart';
 import 'league_logic.dart';
+import 'fantasy_point_matrix.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import 'player_stats_sheet.dart';
 // Deep navy palette for the sports-card theme
 const Color _bg       = Color(0xFF0B1220);
 const Color _surface  = Color(0xFF111C30);
@@ -12,6 +14,7 @@ const Color _border   = Color(0xFF1E2E48);
 class FantasySquadView extends StatefulWidget {
   final Map<String, String?> selectedPlayers;
   final List<FantasyPlayer> players;
+  final Map<String, double> ownershipPercentages;
   final Function(String role) onRoleTap;
   final String? linkedPlayerId;
   final String teamName;
@@ -20,6 +23,7 @@ class FantasySquadView extends StatefulWidget {
     super.key,
     required this.selectedPlayers,
     required this.players,
+    required this.ownershipPercentages,
     required this.onRoleTap,
     this.linkedPlayerId,
     required this.teamName,
@@ -65,9 +69,6 @@ class _FantasySquadViewState extends State<FantasySquadView> {
   }
 
   static Color _roleAccent(String role) {
-    if (role == FantasyRole.block || role == FantasyRole.receive || role == FantasyRole.serve) {
-      return AppColors.blueBright;
-    }
     return AppColors.coral;
   }
 
@@ -77,15 +78,15 @@ class _FantasySquadViewState extends State<FantasySquadView> {
   Widget build(BuildContext context) {
     double totalValue = 0;
     int totalPoints = 0;
-    int filledSlots = 0;
-    for (var playerId in widget.selectedPlayers.values) {
+    // Rollelåst: hver spiller teller kun poeng for rollen den er plassert i
+    for (var entry in widget.selectedPlayers.entries) {
+      final playerId = entry.value;
       if (playerId != null) {
         final matches = widget.players.where((p) => p.id == playerId);
         if (matches.isNotEmpty) {
           final p = matches.first;
           totalValue += p.price;
-          totalPoints += p.totalPoints;
-          filledSlots++;
+          totalPoints += calculatePlayerPoints(p.stats, entry.key);
         }
       }
     }
@@ -273,10 +274,10 @@ class _FantasySquadViewState extends State<FantasySquadView> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 14,
-        childAspectRatio: 0.72,
+        crossAxisCount: 3,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 0.68,
       ),
       itemCount: roles.length,
       itemBuilder: (context, i) => _buildPlayerCard(context, roles[i]),
@@ -295,6 +296,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     final filled   = player != null;
     final roleName = _roleLabel(role);
     final roleAbbr = roleName.length >= 3 ? roleName.substring(0, 3) : roleName;
+    final roleColor = _roleAccent(role);
 
     return GestureDetector(
       onTap: () {
@@ -306,20 +308,16 @@ class _FantasySquadViewState extends State<FantasySquadView> {
       },
       child: Container(
         decoration: BoxDecoration(
-          gradient: AppColors.cardInk,
-          image: const DecorationImage(
-            image: AssetImage('assets/images/card_bg.png'),
-            fit: BoxFit.cover,
-          ),
-          borderRadius: BorderRadius.circular(6),
+          color: const Color(0xFFF0F0F0), // Off-white/light-grey card background
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.15),
-            width: 1,
+            color: Colors.white,
+            width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 8,
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 6,
               offset: const Offset(0, 4),
             ),
           ],
@@ -328,125 +326,185 @@ class _FantasySquadViewState extends State<FantasySquadView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 1. Image section
+            // Top Section (Photo Area)
             Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (filled && player.imageUrl.isNotEmpty)
-                    Image.network(
-                      player.imageUrl,
-                      fit: BoxFit.cover,
-                      alignment: Alignment.topCenter,
-                      errorBuilder: (_, _, _) => _emptySlotContent(),
-                    )
-                  else if (!filled)
-                    _emptySlotContent(),
-                  
-                  // Top-right swap icon if filled
-                  if (filled)
-                    Positioned(
-                      top: 6, right: 6,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          shape: BoxShape.circle,
+              flex: 60,
+              child: Container(
+                margin: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: roleColor,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                ),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (filled && player.imageUrl.isNotEmpty)
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                        child: Image.network(
+                          player.imageUrl,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.topCenter,
+                          errorBuilder: (_, _, _) => _emptySlotContent(roleColor),
                         ),
-                        child: Icon(Icons.swap_horiz, color: _roleAccent(role).withValues(alpha: 0.9), size: 14),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            
-            // 2. Info Strip
-            Container(
-              height: 26,
-              color: Colors.black.withValues(alpha: 0.4),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                children: [
-                  Text(
-                    roleAbbr,
-                    style: const TextStyle(
-                      fontFamily: 'RobotoMono',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white70,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (filled) ...[
-                    const Icon(Icons.sports_volleyball, size: 12, color: Colors.white70),
-                    const Spacer(),
-                    Text(
-                      '${player.totalPoints} PTS',
-                      style: const TextStyle(
-                        fontFamily: 'RobotoMono',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ] else ...[
-                    const Icon(Icons.sports_volleyball, size: 12, color: Colors.white30),
-                    const Spacer(),
-                  ],
-                ],
-              ),
-            ),
-            
-            // 3. Name and Subtext section
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (filled) ...[
-                    Text(
-                      isLinked ? 'MEG' : player.name.split(' ').last,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.sand2,
-                        height: 1.1,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            player.team,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.white.withValues(alpha: 0.6),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                      )
+                    else if (!filled)
+                      _emptySlotContent(roleColor),
+                    
+                    // Top Right Role Badge (Position)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          roleAbbr,
+                          style: const TextStyle(
+                            fontFamily: 'RobotoMono',
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black87,
                           ),
                         ),
-                        const Icon(Icons.info, size: 14, color: Colors.lightBlue),
-                      ],
-                    ),
-                  ] else ...[
-                    Center(
-                      child: Text(
-                        roleName,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white.withValues(alpha: 0.5),
-                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+
+                    // Top Left Swap Icon
+                    if (filled)
+                      Positioned(
+                        top: 4,
+                        left: 4,
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.swap_horiz, color: Colors.white, size: 12),
+                        ),
+                      ),
                   ],
-                ],
+                ),
+              ),
+            ),
+            
+            // Bottom Section (Info Area)
+            Expanded(
+              flex: 40,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(6, 4, 6, 6),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF0F0F0),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (filled) ...[
+                      // Player Name (bold, most visible)
+                      Text(
+                        isLinked ? 'MEG' : player.name,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF111111),
+                          letterSpacing: 0.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 1),
+                      // Team Name (less visible)
+                      Text(
+                        player.team,
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF666666),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Spacer(),
+                      // Bottom Row: points and "logo"
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.sports_volleyball, size: 9, color: roleColor.withValues(alpha: 0.8)),
+                              const SizedBox(width: 3),
+                              Text(
+                                '${calculatePlayerPoints(player.stats, role)}',
+                                style: const TextStyle(
+                                  fontFamily: 'RobotoMono',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Info button
+                          GestureDetector(
+                            onTap: () {
+                              showPlayerStatsSheet(context, player!, widget.ownershipPercentages[player.id] ?? 0.0);
+                            },
+                            child: Container(
+                              width: 22,
+                              height: 22,
+                              decoration: BoxDecoration(
+                                color: roleColor.withValues(alpha: 0.15),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: roleColor.withValues(alpha: 0.4), width: 1),
+                              ),
+                              child: Icon(Icons.info_outline, size: 16, color: roleColor),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      Expanded(
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Text(
+                              roleName,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.black.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: GestureDetector(
+                                onTap: () {
+                                  widget.onRoleTap(role);
+                                },
+                                child: Container(
+                                  width: 22,
+                                  height: 22,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.black.withValues(alpha: 0.1), width: 1),
+                                  ),
+                                  child: Icon(Icons.info_outline, size: 16, color: Colors.black.withValues(alpha: 0.2)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -455,15 +513,12 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     );
   }
 
-  Widget _emptySlotContent() {
-    return Container(
-      color: Colors.transparent,
-      child: Center(
-        child: Icon(
-          Icons.person,
-          size: 70,
-          color: Colors.white.withValues(alpha: 0.1),
-        ),
+  Widget _emptySlotContent(Color roleColor) {
+    return Center(
+      child: Icon(
+        Icons.person,
+        size: 36,
+        color: Colors.white.withValues(alpha: 0.3),
       ),
     );
   }
@@ -743,29 +798,63 @@ class _FantasySquadViewState extends State<FantasySquadView> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '${player.totalPoints}',
+                        '${calculatePlayerPoints(player.stats, role)}',
                         style: TextStyle(fontFamily: 'RobotoMono', fontSize: 26, fontWeight: FontWeight.w900, color: accent),
                       ),
-                      Text('pts', style: TextStyle(fontFamily: 'RobotoMono', fontSize: 11, color: AppColors.nightInk2)),
+                      Text('pts i rollen', style: TextStyle(fontFamily: 'RobotoMono', fontSize: 11, color: AppColors.nightInk2)),
                     ],
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              Text('Poengoversikt', style: AppText.dispKicker().copyWith(color: AppColors.nightInk2)),
+              Text('Poengoversikt – ${_roleLabel(role)}', style: AppText.dispKicker().copyWith(color: AppColors.nightInk2)),
               const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
                 decoration: BoxDecoration(color: _bg, borderRadius: BorderRadius.circular(12)),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildDetailStat('Angrep',  player.attacks.toString(),  AppColors.coral),
-                    _buildDetailStat('Blokk',   player.blocks.toString(),   const Color(0xFF4C8BFF)),
-                    _buildDetailStat('Ess',     player.aces.toString(),     const Color(0xFF26D4CC)),
-                    _buildDetailStat('Forsvar', player.digs.toString(),     const Color(0xFFAA6FFF)),
-                  ],
-                ),
+                child: player.stats == null
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text('Ingen registrerte kamper enda',
+                            style: AppText.uiCaption.copyWith(color: AppColors.nightInk2)),
+                      )
+                    : Column(
+                        children: [
+                          for (final line in calculatePointBreakdown(player.stats, role))
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(line.action.label,
+                                        style: AppText.uiCaption.copyWith(
+                                            color: AppColors.nightInk2, fontSize: 12)),
+                                  ),
+                                  Text('${line.count} × ${line.pointsPerAction}',
+                                      style: TextStyle(
+                                          fontFamily: 'RobotoMono',
+                                          fontSize: 12,
+                                          color: AppColors.nightInk2)),
+                                  SizedBox(
+                                    width: 52,
+                                    child: Text(
+                                      '${line.subtotal >= 0 ? '+' : ''}${line.subtotal}',
+                                      textAlign: TextAlign.right,
+                                      style: TextStyle(
+                                        fontFamily: 'RobotoMono',
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        color: line.subtotal < 0
+                                            ? AppColors.coral
+                                            : const Color(0xFF36C87A),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
               ),
               const SizedBox(height: 20),
               SizedBox(
@@ -793,16 +882,4 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     );
   }
 
-  Widget _buildDetailStat(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(fontFamily: 'RobotoMono', fontSize: 22, fontWeight: FontWeight.w900, color: color),
-        ),
-        const SizedBox(height: 3),
-        Text(label, style: AppText.uiCaption.copyWith(color: AppColors.nightInk2, fontSize: 11)),
-      ],
-    );
-  }
 }

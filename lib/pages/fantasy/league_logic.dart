@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'models.dart';
+import 'fantasy_point_matrix.dart';
 
 class LeaderboardEntry {
   final String userId;
@@ -18,14 +19,16 @@ class LeaderboardEntry {
 class LeagueLogic {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Calculates total points for a given squad using current player points
+  // Calculates total points for a given squad. Squad-dokumentet er keyet på
+  // rolle → spillerId, så hver spiller scores rollelåst for sin slot.
   static int _calculateSquadPoints(Map<String, dynamic> squadData, List<FantasyPlayer> allPlayers) {
     int total = 0;
-    for (var playerId in squadData.values) {
+    for (var entry in squadData.entries) {
+      final playerId = entry.value;
       if (playerId != null && playerId is String) {
         final matches = allPlayers.where((p) => p.id == playerId);
         if (matches.isNotEmpty) {
-          total += matches.first.totalPoints;
+          total += calculatePlayerPoints(matches.first.stats, entry.key);
         }
       }
     }

@@ -3,19 +3,13 @@ import 'models.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
+import 'fantasy_point_matrix.dart';
+import 'player_stats_sheet.dart';
 
 // ── Role accent colours ────────────────────────────────────────────────────────
 
 Color _roleColor(String role) {
-  switch (role) {
-    case FantasyRole.block:   return AppColors.coral;
-    case FantasyRole.defense: return AppColors.blue;
-    case FantasyRole.attack:  return const Color(0xFFFF8522);
-    case FantasyRole.set:     return AppColors.green;
-    case FantasyRole.receive: return const Color(0xFF00B8A9);
-    case FantasyRole.serve:   return const Color(0xFF9B59B6);
-    default:                  return AppColors.blueBright;
-  }
+  return AppColors.coral;
 }
 
 // ── Main screen ───────────────────────────────────────────────────────────────
@@ -200,8 +194,8 @@ class FantasyPlayerSelection extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.62,
+                crossAxisCount: 3,
+                childAspectRatio: 0.68,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
               ),
@@ -286,7 +280,7 @@ class _PlayerCard extends StatelessWidget {
   final bool isDisabled;
   final bool exceedsBudget;
   final bool isMe;
-  final String primaryStat;
+  final String primaryStat; // kept for compatibility but we will use calculatePlayerPoints
   final double ownership;
   final String? selectedRole;
   final VoidCallback onTap;
@@ -305,367 +299,252 @@ class _PlayerCard extends StatelessWidget {
     required this.onTap,
   });
 
+  Widget _emptySlotContent() {
+    return Container(
+      color: roleColor.withValues(alpha: 0.1),
+      child: Center(
+        child: Icon(Icons.sports_volleyball, color: Colors.white24, size: 40),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final borderColor = isSelectedHere
         ? roleColor
         : isSelectedElsewhere
             ? Colors.redAccent.withValues(alpha: 0.5)
-            : Colors.white.withValues(alpha: 0.07);
-    final borderWidth = isSelectedHere ? 2.0 : 1.0;
+            : Colors.white;
 
+    final borderWidth = isSelectedHere ? 3.0 : 2.0;
+
+    // Use selectedRole if they are picked elsewhere, or fallback to the current page's role
+    // Wait, the page role isn't passed to _PlayerCard directly except as roleColor.
+    // Let's just show total points if we don't have the role string here.
+    // Or we can just use player.totalPoints.
+    
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        decoration: BoxDecoration(
-          color: const Color(0xFF111C30),
-          borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-          border: Border.all(color: borderColor, width: borderWidth),
-          boxShadow: isSelectedHere
-              ? [
-                  BoxShadow(
-                    color: roleColor.withValues(alpha: 0.35),
-                    blurRadius: 16,
-                    spreadRadius: 1,
-                  )
-                ]
-              : [],
-        ),
-        child: Stack(
-          children: [
-            Column(
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F0F0), // Off-white/light-grey card background
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: borderColor,
+                width: borderWidth,
+              ),
+              boxShadow: isSelectedHere
+                  ? [
+                      BoxShadow(
+                        color: roleColor.withValues(alpha: 0.35),
+                        blurRadius: 16,
+                        spreadRadius: 1,
+                      )
+                    ]
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 6,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ── Player photo area ──────────────────────────────
+                // Top Section (Photo Area)
                 Expanded(
-                  flex: 58,
-                  child: _PhotoArea(player: player, roleColor: roleColor),
-                ),
+                  flex: 60,
+                  child: Container(
+                    margin: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: roleColor,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                    ),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (player.imageUrl.isNotEmpty)
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                            child: Image.network(
+                              player.imageUrl,
+                              fit: BoxFit.cover,
+                              alignment: Alignment.topCenter,
+                              errorBuilder: (_, __, ___) => _emptySlotContent(),
+                            ),
+                          )
+                        else
+                          _emptySlotContent(),
 
-                // ── Info strip ────────────────────────────────────
+                        // Top Right Price Badge
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.65),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '\$${player.price}m',
+                              style: const TextStyle(
+                                fontFamily: 'RobotoMono',
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Top Left "MEG" badge
+                        if (isMe)
+                          Positioned(
+                            top: 4,
+                            left: 4,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.coral,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'MEG',
+                                style: TextStyle(
+                                  fontFamily: 'RobotoMono',
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                
+                // Bottom Section (Info Area)
                 Expanded(
-                  flex: 42,
-                  child: _InfoStrip(
-                    player: player,
-                    roleColor: roleColor,
-                    primaryStat: primaryStat,
-                    ownership: ownership,
-                    isSelectedHere: isSelectedHere,
-                    isSelectedElsewhere: isSelectedElsewhere,
-                    selectedRole: selectedRole,
+                  flex: 40,
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(6, 4, 6, 6),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF0F0F0),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Player Name (bold, most visible)
+                        Text(
+                          isMe ? 'MEG' : player.name,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF111111),
+                            letterSpacing: 0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 1),
+                        // Team Name (less visible)
+                        Text(
+                          player.team,
+                          style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF666666),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const Spacer(),
+                        // Bottom Row: points and info
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.sports_volleyball, size: 9, color: roleColor.withValues(alpha: 0.8)),
+                                const SizedBox(width: 3),
+                                Text(
+                                  '${player.totalPoints}',
+                                  style: const TextStyle(
+                                    fontFamily: 'RobotoMono',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // Info button
+                            GestureDetector(
+                              onTap: () {
+                                showPlayerStatsSheet(context, player, ownership);
+                              },
+                              child: Container(
+                                width: 22,
+                                height: 22,
+                                decoration: BoxDecoration(
+                                  color: roleColor.withValues(alpha: 0.15),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: roleColor.withValues(alpha: 0.4), width: 1),
+                                ),
+                                child: Icon(Icons.info_outline, size: 16, color: roleColor),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
+          ),
 
-            // ── Price badge top-right ──────────────────────────────
+          // ── Selected checkmark overlay ─────────────────────────
+          if (isSelectedHere)
             Positioned(
               top: 8,
-              right: 8,
+              left: 8,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                width: 24,
+                height: 24,
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.65),
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusBadge),
-                  border:
-                      Border.all(color: roleColor.withValues(alpha: 0.5)),
+                  color: roleColor,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: roleColor.withValues(alpha: 0.5), blurRadius: 8)
+                  ],
                 ),
-                child: Text(
-                  '\$${player.price}m',
-                  style: AppText.monoMd.copyWith(
-                    color: roleColor,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                child: const Icon(Icons.check_rounded, color: Colors.white, size: 14),
               ),
             ),
 
-            // ── "MEG" badge top-left ───────────────────────────────
-            if (isMe)
-              Positioned(
-                top: 8,
-                left: 8,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.coral,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'MEG',
-                    style: AppText.monoSm
-                        .copyWith(color: Colors.white, fontSize: 8),
-                  ),
-                ),
-              ),
-
-            // ── Selected checkmark overlay ─────────────────────────
-            if (isSelectedHere)
-              Positioned(
-                top: 8,
-                left: 8,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: roleColor,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                          color: roleColor.withValues(alpha: 0.5),
-                          blurRadius: 8)
-                    ],
-                  ),
-                  child: const Icon(Icons.check_rounded,
-                      color: Colors.white, size: 14),
-                ),
-              ),
-
-            // ── Disabled overlay ───────────────────────────────────
-            if (isDisabled)
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.58),
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.radiusCard),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      exceedsBudget
-                          ? Icons.lock_outline_rounded
-                          : Icons.block_rounded,
-                      color: Colors.white.withValues(alpha: 0.35),
-                      size: 28,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Photo area ─────────────────────────────────────────────────────────────────
-
-class _PhotoArea extends StatelessWidget {
-  final FantasyPlayer player;
-  final Color roleColor;
-
-  const _PhotoArea({required this.player, required this.roleColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius:
-          const BorderRadius.vertical(top: Radius.circular(AppTheme.radiusCard)),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF18253E),
-              Color.lerp(const Color(0xFF111C30), roleColor, 0.22)!,
-            ],
-          ),
-        ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Player image or initials placeholder
-            if (player.imageUrl.isNotEmpty)
-              Image.network(
-                player.imageUrl,
-                fit: BoxFit.cover,
-                alignment: Alignment.topCenter,
-                errorBuilder: (ctx, err, stack) => _Initials(
-                  name: player.name,
-                  roleColor: roleColor,
-                ),
-              )
-            else
-              _Initials(name: player.name, roleColor: roleColor),
-
-            // Bottom fade for smooth transition into info strip
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 36,
+          // ── Disabled overlay ───────────────────────────────────
+          if (isDisabled)
+            Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      const Color(0xFF111C30).withValues(alpha: 0.95),
-                    ],
+                  color: Colors.black.withValues(alpha: 0.58),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Icon(
+                    exceedsBudget ? Icons.lock_outline_rounded : Icons.block_rounded,
+                    color: Colors.white.withValues(alpha: 0.35),
+                    size: 28,
                   ),
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Initials placeholder ───────────────────────────────────────────────────────
-
-class _Initials extends StatelessWidget {
-  final String name;
-  final Color roleColor;
-
-  const _Initials({required this.name, required this.roleColor});
-
-  @override
-  Widget build(BuildContext context) {
-    final parts = name.trim().split(' ');
-    final initials = parts.length >= 2
-        ? '${parts.first[0]}${parts.last[0]}'.toUpperCase()
-        : name.isNotEmpty
-            ? name[0].toUpperCase()
-            : '?';
-
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: roleColor.withValues(alpha: 0.12),
-              border:
-                  Border.all(color: roleColor.withValues(alpha: 0.35), width: 2),
-            ),
-            child: Center(
-              child: Text(
-                initials,
-                style: AppText.dispH2(22).copyWith(color: Colors.white),
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Icon(Icons.sports_volleyball,
-              color: roleColor.withValues(alpha: 0.25), size: 14),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Info strip ─────────────────────────────────────────────────────────────────
-
-class _InfoStrip extends StatelessWidget {
-  final FantasyPlayer player;
-  final Color roleColor;
-  final String primaryStat;
-  final double ownership;
-  final bool isSelectedHere;
-  final bool isSelectedElsewhere;
-  final String? selectedRole;
-
-  const _InfoStrip({
-    required this.player,
-    required this.roleColor,
-    required this.primaryStat,
-    required this.ownership,
-    required this.isSelectedHere,
-    required this.isSelectedElsewhere,
-    required this.selectedRole,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(10, 7, 10, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Name
-          Text(
-            player.name,
-            style: AppText.uiTitle.copyWith(
-              color: Colors.white,
-              fontSize: 12,
-              height: 1.1,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 1),
-
-          // Team
-          Text(
-            player.team,
-            style: AppText.uiCaption.copyWith(
-              color: AppColors.nightInk3,
-              fontSize: 10,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-
-          const Spacer(),
-
-          // Stat row
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  primaryStat,
-                  style: AppText.monoSm.copyWith(
-                    color: roleColor,
-                    fontSize: 9,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-              Text(
-                '${ownership.toStringAsFixed(0)}%',
-                style: AppText.monoSm.copyWith(
-                  color: Colors.white.withValues(alpha: 0.4),
-                  fontSize: 9,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-
-          // Status badge
-          if (isSelectedHere)
-            _StatusBadge(
-              label: 'VALGT',
-              color: roleColor,
-              icon: Icons.check_rounded,
-            )
-          else if (isSelectedElsewhere && selectedRole != null)
-            _StatusBadge(
-              label: selectedRole!.toUpperCase(),
-              color: Colors.redAccent,
-              icon: Icons.swap_horiz_rounded,
-            )
-          else
-            // Ownership bar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(2),
-              child: LinearProgressIndicator(
-                value: (ownership / 100).clamp(0.0, 1.0),
-                minHeight: 3,
-                backgroundColor: Colors.white.withValues(alpha: 0.07),
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(roleColor.withValues(alpha: 0.6)),
               ),
             ),
         ],
