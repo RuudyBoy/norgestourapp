@@ -37,6 +37,12 @@ class _FantasyPageState extends State<FantasyPage> {
   String? _currentUserId;
   String? _teamName;
 
+  Map<String, String?> _initialSquad = {};
+  String? _captainId;
+  String? _initialCaptainId;
+  int _transfersUsed = 0;
+  DateTime? _lastConfirmed;
+
   @override
   void initState() {
     super.initState();
@@ -53,17 +59,8 @@ class _FantasyPageState extends State<FantasyPage> {
           players: players,
           ownershipPercentages: ownershipPercentages,
           linkedPlayerId: _linkedPlayerId,
-          onSelect: (playerId) async {
+          onSelect: (playerId) {
             setState(() { selectedPlayers[role] = playerId; });
-            final user = FirebaseAuth.instance.currentUser;
-            if (user != null) {
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(user.uid)
-                  .collection('fantasy')
-                  .doc('squad')
-                  .set(selectedPlayers, SetOptions(merge: true));
-            }
           },
         ),
       ),
@@ -75,7 +72,68 @@ class _FantasyPageState extends State<FantasyPage> {
     if (doc.exists) {
       final data = doc.data()!;
       for (var key in selectedPlayers.keys) {
-        if (data.containsKey(key)) selectedPlayers[key] = data[key] as String?;
+        if (data.containsKey(key)) {
+          selectedPlayers[key] = data[key] as String?;
+          _initialSquad[key] = data[key] as String?;
+        }
+      }
+      _captainId = data['captainId'] as String?;
+      _initialCaptainId = _captainId;
+      _transfersUsed = data['transfersUsed'] as int? ?? 0;
+      final ts = data['lastConfirmed'] as Timestamp?;
+      if (ts != null) _lastConfirmed = ts.toDate();
+    } else {
+      _initialSquad = {};
+    }
+  }
+
+  int _calculateChanges() {
+    int changes = 0;
+    for (var key in selectedPlayers.keys) {
+      if (selectedPlayers[key] != _initialSquad[key]) {
+        changes++;
+      }
+    }
+    return changes;
+  }
+
+  Future<void> _confirmSquad() async {
+    int changes = _calculateChanges();
+    if (changes > 2) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Du kan maksimalt bytte 2 spillere!'),
+        backgroundColor: AppColors.coral,
+      ));
+      return;
+    }
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final data = Map<String, dynamic>.from(selectedPlayers);
+      data['captainId'] = _captainId;
+      data['transfersUsed'] = _transfersUsed + changes;
+      data['lastConfirmed'] = FieldValue.serverTimestamp();
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('fantasy')
+          .doc('squad')
+          .set(data, SetOptions(merge: true));
+
+      setState(() {
+        for (var key in selectedPlayers.keys) {
+          _initialSquad[key] = selectedPlayers[key];
+        }
+        _initialCaptainId = _captainId;
+        _transfersUsed += changes;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Laget er bekreftet!'),
+          backgroundColor: Color(0xFF36C87A),
+        ));
       }
     }
   }
@@ -261,7 +319,11 @@ class _FantasyPageState extends State<FantasyPage> {
                             ownershipPercentages: ownershipPercentages,
                             linkedPlayerId: _linkedPlayerId,
                             teamName: _teamName ?? 'Mitt Lag',
+                            captainId: _captainId,
+                            pendingChanges: _calculateChanges(),
                             onRoleTap: (role) => _openPlayerSelection(role, players, ownershipPercentages),
+                            onCaptainChanged: (playerId) => setState(() => _captainId = playerId),
+                            onConfirmSquad: _confirmSquad,
                           ),
                           FantasyLeaguesView(players: players),
                         ],

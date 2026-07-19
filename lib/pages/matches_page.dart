@@ -32,7 +32,7 @@ class _MatchesPageState extends State<MatchesPage> {
       return group != null ? 'Pulje $group' : 'Puljespill';
     } else if (stage == 'playoff') {
       final bracket = d['bracket'] as String?;
-      return bracket != null ? 'Sluttspill ${bracket.toUpperCase()}' : 'Sluttspill';
+      return bracket != null ? '$bracket' : 'Sluttspill';
     }
     return 'Andre kamper';
   }
@@ -262,9 +262,9 @@ class _MatchesPageState extends State<MatchesPage> {
 
     String rightInfo = '';
     if (startTime.isNotEmpty) {
-      rightInfo = '$startTime • $court • $stageLabel';
+      rightInfo = '$startTime • $court';
     } else {
-      rightInfo = '$court • $stageLabel';
+      rightInfo = court;
     }
 
     return GestureDetector(
@@ -350,7 +350,12 @@ class _MatchesPageState extends State<MatchesPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            if (stageLabel.isNotEmpty && stageLabel != 'Andre kamper')
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6.0),
+                child: Text(stageLabel.toUpperCase(), style: AppText.monoSm.copyWith(color: AppColors.coral)),
+              ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

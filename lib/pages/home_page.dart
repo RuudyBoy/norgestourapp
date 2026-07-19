@@ -287,115 +287,182 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildLiveMatchesList(BuildContext context, List<QueryDocumentSnapshot> matches) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionKicker('Live nå'),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 150,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
-            itemCount: matches.length,
-            itemBuilder: (context, index) {
-              final data = matches[index].data() as Map<String, dynamic>;
-              final matchId = matches[index].id;
-              final teamA = data['team_a_name'] ?? 'Lag A';
-              final teamB = data['team_b_name'] ?? 'Lag B';
-              final scoreA = data['home_score'] ?? 0;
-              final scoreB = data['away_score'] ?? 0;
-              final set = data['current_set'] ?? 1;
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('tournaments').snapshots(),
+      builder: (context, tourSnapshot) {
+        final Map<String, String> tourNames = {};
+        if (tourSnapshot.hasData) {
+          for (var doc in tourSnapshot.data!.docs) {
+            final tData = doc.data() as Map<String, dynamic>;
+            tourNames[doc.id] = tData['name'] ?? doc.id;
+          }
+        }
 
-              final startTime = data['start_time']?.toString() ?? '';
-              final matchType = data['group']?.toString() ?? '';
-              final court = data['court']?.toString() ?? 'TBD';
+        final Map<String, List<QueryDocumentSnapshot>> groupedMatches = {};
+        for (var match in matches) {
+          final data = match.data() as Map<String, dynamic>;
+          final tourId = data['tournament_id'] as String? ?? 'ukjent';
+          final tourName = data['tournament_name'] ?? tourNames[tourId] ?? (tourId == 'ukjent' ? 'Live nå' : tourId);
 
-              String rightInfo = '';
-              if (startTime.isNotEmpty && matchType.isNotEmpty) {
-                rightInfo = '$startTime • $matchType';
-              } else if (startTime.isNotEmpty) rightInfo = '$startTime • $court';
-              else if (matchType.isNotEmpty) rightInfo = matchType;
-              else rightInfo = court;
+          if (!groupedMatches.containsKey(tourName)) {
+            groupedMatches[tourName] = [];
+          }
+          groupedMatches[tourName]!.add(match);
+        }
 
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MatchStatsPage(
-                        matchId: matchId,
-                        teamAName: teamA,
-                        teamBName: teamB,
-                      ),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: 270,
-                  margin: const EdgeInsets.only(right: AppTheme.rowGap),
-                  padding: const EdgeInsets.all(AppTheme.cardPad),
-                  decoration: BoxDecoration(
-                    gradient: AppColors.cardInk,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppColors.coral,
-                              borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: groupedMatches.entries.map((entry) {
+            final tourName = entry.key;
+            final tourMatches = entry.value;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionKicker(tourName),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 150,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
+                    itemCount: tourMatches.length,
+                    itemBuilder: (context, index) {
+                      final matchDoc = tourMatches[index];
+                      final data = matchDoc.data() as Map<String, dynamic>;
+                      final matchId = matchDoc.id;
+                      final teamA = data['team_a_name'] ?? 'Lag A';
+                      final teamB = data['team_b_name'] ?? 'Lag B';
+                      final scoreA = data['home_score'] ?? 0;
+                      final scoreB = data['away_score'] ?? 0;
+                      
+                      final currentSet = data['current_set'] ?? 1;
+                      final homeSets = data['home_sets'] ?? 0;
+                      final awaySets = data['away_sets'] ?? 0;
+
+                      String setText = '$currentSet. SETT';
+
+                      final startTime = data['start_time']?.toString() ?? '';
+                      final court = data['court']?.toString() ?? 'TBD';
+
+                      String rightInfo = startTime.isNotEmpty ? '$startTime • $court' : court;
+
+                      final stage = data['stage'] as String?;
+                      String stageLabel = '';
+                      if (stage == 'group') {
+                        final group = data['group'] as String?;
+                        stageLabel = group != null ? 'Pulje $group' : 'Puljespill';
+                      } else if (stage == 'playoff') {
+                        final bracket = data['bracket'] as String?;
+                        stageLabel = bracket != null ? '$bracket' : 'Sluttspill';
+                      }
+
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MatchStatsPage(
+                                matchId: matchId,
+                                teamAName: teamA,
+                                teamBName: teamB,
+                              ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
-                                const SizedBox(width: 5),
-                                Text('LIVE · SETT $set', style: AppText.monoSmLight),
-                              ],
-                            ),
+                          );
+                        },
+                        child: Container(
+                          width: 270,
+                          margin: const EdgeInsets.only(right: AppTheme.rowGap),
+                          padding: const EdgeInsets.all(AppTheme.cardPad),
+                          decoration: BoxDecoration(
+                            gradient: AppColors.cardInk,
+                            borderRadius: BorderRadius.circular(AppTheme.radiusCard),
                           ),
-                          Text(rightInfo.toUpperCase(), style: AppText.monoSm.copyWith(color: Colors.white70)),
-                        ],
-                      ),
-                      const Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(teamA.toUpperCase(),
-                                style: AppText.dispH2(18).copyWith(color: Colors.white),
-                                overflow: TextOverflow.ellipsis),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.coral,
+                                      borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+                                        const SizedBox(width: 5),
+                                        Text('LIVE · $setText', style: AppText.monoSmLight),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(rightInfo.toUpperCase(), style: AppText.monoSm.copyWith(color: Colors.white70)),
+                                ],
+                              ),
+                              const Spacer(),
+                              if (stageLabel.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 6.0),
+                                  child: Text(stageLabel.toUpperCase(), style: AppText.monoSm.copyWith(color: AppColors.coral)),
+                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(teamA.toUpperCase(),
+                                        style: AppText.dispH2(18).copyWith(color: Colors.white),
+                                        overflow: TextOverflow.ellipsis),
+                                  ),
+                                  Row(
+                                    children: [
+                                      if (currentSet > 1)
+                                        Padding(
+                                          padding: const EdgeInsets.only(right: 12),
+                                          child: Text('$homeSets', style: AppText.dispScore(24).copyWith(color: Colors.white54)),
+                                        ),
+                                      Text('$scoreA', style: AppText.dispScore(32).copyWith(color: Colors.white)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(teamB.toUpperCase(),
+                                        style: AppText.dispH2(18).copyWith(color: Colors.white.withValues(alpha: 0.7)),
+                                        overflow: TextOverflow.ellipsis),
+                                  ),
+                                  Row(
+                                    children: [
+                                      if (currentSet > 1)
+                                        Padding(
+                                          padding: const EdgeInsets.only(right: 12),
+                                          child: Text('$awaySets', style: AppText.dispScore(24).copyWith(color: Colors.white38)),
+                                        ),
+                                      Text('$scoreB',
+                                          style: AppText.dispScore(32).copyWith(color: Colors.white.withValues(alpha: 0.7))),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                          Text('$scoreA', style: AppText.dispScore(32).copyWith(color: Colors.white)),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(teamB.toUpperCase(),
-                                style: AppText.dispH2(18).copyWith(color: Colors.white.withValues(alpha: 0.7)),
-                                overflow: TextOverflow.ellipsis),
-                          ),
-                          Text('$scoreB',
-                              style: AppText.dispScore(32).copyWith(color: Colors.white.withValues(alpha: 0.7))),
-                        ],
-                      ),
-                    ],
+                        ),
+                      );
+                    },
                   ),
                 ),
-              );
-            },
-          ),
-        ),
-      ],
+                const SizedBox(height: 24),
+              ],
+            );
+          }).toList(),
+        );
+      },
     );
   }
 

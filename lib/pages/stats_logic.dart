@@ -21,6 +21,7 @@ class PlayerMatchStats {
   int perfectReceptions = 0;
   int goodReceptions = 0;
   int servesInPlay = 0;
+  int partnerAttackErrors = 0;
 
   Map<String, int> killDetails = {};
   Map<String, int> aceDetails = {};
@@ -205,6 +206,20 @@ MatchStatsResult calculateMatchStats(List<Map<String, dynamic>> events) {
       for (var p in teamPlayers) {
         p.perfectReceptions = receivesPerPlayer;
       }
+    }
+  }
+
+  // Calculate partner attack errors for "failed set" fantasy logic
+  Map<String, List<PlayerMatchStats>> teamPlayers = {};
+  for (var p in playerMap.values) {
+    if (p.teamName.isNotEmpty) {
+      teamPlayers.putIfAbsent(p.teamName, () => []).add(p);
+    }
+  }
+  for (var players in teamPlayers.values) {
+    if (players.length == 2) {
+      players[0].partnerAttackErrors = players[1].attackErrors;
+      players[1].partnerAttackErrors = players[0].attackErrors;
     }
   }
 

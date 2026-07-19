@@ -13,6 +13,7 @@ import 'models.dart';
 enum FantasyAction {
   kill('Vellykket angrep'),
   setAssist('Vellykket legg'),
+  failedSet('Mislykket legg / Partnerfeil'),
   attackError('Angrepsfeil'),
   doubleHit('Ballbehandlingsfeil'),
   perfectReception('Vellykket mottak'),
@@ -38,6 +39,7 @@ const Map<String, Map<FantasyAction, int>> fantasyPointMatrix = {
   },
   FantasyRole.set: {
     FantasyAction.setAssist: 18,
+    FantasyAction.failedSet: -3,
     FantasyAction.doubleHit: -15,
   },
   FantasyRole.receive: {
@@ -66,6 +68,8 @@ int actionCount(PlayerMatchStats stats, FantasyAction action) {
       return stats.kills;
     case FantasyAction.setAssist:
       return stats.setAssists;
+    case FantasyAction.failedSet:
+      return stats.partnerAttackErrors;
     case FantasyAction.attackError:
       return stats.attackErrors;
     // Livescore-appen logger i dag doble og nettfeil i én felles bøtte

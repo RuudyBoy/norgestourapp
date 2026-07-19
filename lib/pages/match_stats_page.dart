@@ -37,9 +37,9 @@ class MatchStatsPage extends StatelessWidget {
             indicatorColor: AppColors.coral,
             labelStyle: AppText.uiTab,
             tabs: const [
+              Tab(text: 'HENDELSER'),
               Tab(text: 'LAG'),
               Tab(text: 'SPILLERE'),
-              Tab(text: 'HENDELSER'),
             ],
           ),
         ),
@@ -74,13 +74,24 @@ class MatchStatsPage extends StatelessWidget {
                 // Tillater å vise scoreboard selv om events er tom
                 final eventsList = docs.map((d) => d.data() as Map<String, dynamic>).toList();
             
-            // Re-calculate the current score by iterating events (in chronological order)
             int homeScore = 0;
             int awayScore = 0;
+            int currentSetNumber = 1;
             
             // To show in the events tab (newest at top), we will store score with each event
             List<Map<String, dynamic>> enrichedEvents = [];
             for (var event in eventsList) {
+              int eventSet = event['set_number'] ?? currentSetNumber;
+              if (eventSet != currentSetNumber) {
+                enrichedEvents.add({
+                  'is_divider': true,
+                  'title': 'Sett $eventSet',
+                });
+                homeScore = 0;
+                awayScore = 0;
+                currentSetNumber = eventSet;
+              }
+
               String pointTo = event['point_to'] ?? 'none';
               if (pointTo == 'home') {
                 homeScore++;
@@ -90,6 +101,13 @@ class MatchStatsPage extends StatelessWidget {
                 ...event,
                 'current_home': homeScore,
                 'current_away': awayScore,
+              });
+            }
+
+            if (matchData['status'] == 'finished') {
+              enrichedEvents.add({
+                'is_divider': true,
+                'title': 'Kampen er ferdig',
               });
             }
             
@@ -114,14 +132,14 @@ class MatchStatsPage extends StatelessWidget {
                 Expanded(
                   child: TabBarView(
                     children: [
-                      // TAB 1: LAG
+                      // TAB 1: HENDELSER
+                      _buildEventsTab(reversedEvents),
+
+                      // TAB 2: LAG
                       _buildTeamStatsTab(teamAStats, teamBStats),
                       
-                      // TAB 2: SPILLERE
+                      // TAB 3: SPILLERE
                       _buildPlayerStatsTab(players),
-                      
-                      // TAB 3: HENDELSER
-                      _buildEventsTab(reversedEvents),
                     ],
                   ),
                 ),
@@ -403,8 +421,19 @@ class MatchStatsPage extends StatelessWidget {
         final subType = event['sub_type'];
         final isA = event['team'] == teamAName;
         
+        if (event['is_divider'] == true) {
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            alignment: Alignment.center,
+            child: Text(event['title'], style: AppText.dispH2(18).copyWith(color: AppColors.coral)),
+          );
+        }
+
         // Skip background actions that clutters the list
-        if (action == 'Set Assist' || action == 'Set Attempt' || action == 'Blocked') {
+        if (action == 'Set Assist' || action == 'Set Attempt' || action == 'Blocked' || action == 'Serve In Play') {
+          return const SizedBox.shrink();
+        }
+        if (action == 'Reception Error' && event['is_ace'] == true) {
           return const SizedBox.shrink();
         }
 
@@ -414,13 +443,25 @@ class MatchStatsPage extends StatelessWidget {
         String title = '$pName $action';
         if (action == 'Kill') {
           title = '$pName angrep';
-        } else if (action == 'Block') title = '$pName blokk';
-        else if (action == 'Ace') title = '$pName serve-ess';
+        } else if (action == 'Block') {
+          if (event['victim_name'] != null) {
+            title = '$pName blokket ${event['victim_name']}';
+          } else {
+            title = '$pName blokk';
+          }
+        } else if (action == 'Ace') {
+          if (event['victim_name'] != null) {
+            title = '$pName esset ${event['victim_name']}';
+          } else {
+            title = '$pName serve-ess';
+          }
+        }
         else if (action == 'Attack Error') title = '$pName angrepsfeil';
         else if (action == 'Service Error') title = '$pName servefeil';
         else if (action == 'Technical Error') title = '$pName teknisk feil';
         else if (action == 'Opponent Error') title = '${event['team']} motstanderfeil';
         else if (action == 'Reception Error') title = '$pName mottaksfeil';
+        else if (action == 'Timeout') title = pName;
         
         if (subType != null && subType.toString().isNotEmpty) {
           title += ' ($subType)';
