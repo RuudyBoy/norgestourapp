@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class TournamentRegistrationPage extends StatefulWidget {
   final String tournamentId;
@@ -201,7 +202,7 @@ class _TournamentRegistrationPageState
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: AppColors.sand2,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -361,7 +362,7 @@ class _TournamentRegistrationPageState
     return Scaffold(
       appBar: AppBar(
         title: const Text("Meld på"),
-        backgroundColor: isDark ? const Color(0xFF1A1A2E) : Colors.blue[900],
+        backgroundColor: isDark ? AppColors.nightSurface1 : AppColors.ink,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -373,9 +374,7 @@ class _TournamentRegistrationPageState
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue[900]!, Colors.blue[700]!],
-                ),
+                gradient: AppColors.heroNavy,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -410,11 +409,11 @@ class _TournamentRegistrationPageState
                     const SizedBox(height: 8),
                     Row(children: [
                       const Icon(Icons.lock_clock,
-                          color: Colors.orange, size: 14),
+                          color: AppColors.warning, size: 14),
                       const SizedBox(width: 4),
                       Text("Frist: $deadline",
                           style: const TextStyle(
-                              color: Colors.orange, fontSize: 12)),
+                              color: AppColors.warning, fontSize: 12)),
                     ]),
                   ],
                 ],
@@ -430,8 +429,7 @@ class _TournamentRegistrationPageState
             const SizedBox(height: 4),
             Text(
               "Ditt lag består av 2 spillere. Seeding = sum av rankingpoeng.",
-              style:
-                  TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: AppText.uiCaption,
             ),
             const SizedBox(height: 16),
 
@@ -455,25 +453,32 @@ class _TournamentRegistrationPageState
                 decoration: BoxDecoration(
                   color: isDark
                       ? Colors.white.withOpacity(0.05)
-                      : Colors.blue[50],
+                      : AppColors.blue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.shade200),
+                  border: Border.all(
+                      color: AppColors.blue.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _statCol("Lag-ranking",
-                        "$_combinedRanking pts", Colors.blue[800]!),
-                    Container(width: 1, height: 40, color: Colors.blue[200]),
+                        "$_combinedRanking pts", AppColors.blue),
+                    Container(
+                        width: 1,
+                        height: 40,
+                        color: AppColors.blue.withValues(alpha: 0.3)),
                     _statCol(
                         "Spiller 1",
                         "${_playerRanking(_player1)} pts",
-                        Colors.blue[600]!),
-                    Container(width: 1, height: 40, color: Colors.blue[200]),
+                        AppColors.blue),
+                    Container(
+                        width: 1,
+                        height: 40,
+                        color: AppColors.blue.withValues(alpha: 0.3)),
                     _statCol(
                         "Spiller 2",
                         "${_playerRanking(_player2)} pts",
-                        Colors.blue[600]!),
+                        AppColors.blue),
                   ],
                 ),
               ),
@@ -481,7 +486,7 @@ class _TournamentRegistrationPageState
               Text(
                 "Seeding baseres på de 5 beste resultatene siste 365 dager per spiller.",
                 style:
-                    TextStyle(fontSize: 11, color: Colors.grey[500]),
+                    TextStyle(fontSize: 11, color: AppColors.ink3),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -504,7 +509,7 @@ class _TournamentRegistrationPageState
                 label: Text(
                     _isSubmitting ? "Sender..." : "SEND PÅMELDING"),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[900],
+                  backgroundColor: AppColors.ink,
                   foregroundColor: Colors.white,
                   textStyle: const TextStyle(
                       fontSize: 15, fontWeight: FontWeight.bold),
@@ -515,7 +520,7 @@ class _TournamentRegistrationPageState
             Text(
               "Påmeldingen er ikke bekreftet før admin godkjenner den. "
               "Status vises i turnerings-siden.",
-              style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+              style: TextStyle(fontSize: 11, color: AppColors.ink3),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -542,11 +547,13 @@ class _TournamentRegistrationPageState
           color: hasPlayer
               ? (isDark
                   ? Colors.white.withOpacity(0.07)
-                  : Colors.blue[50])
-              : (isDark ? Colors.white.withOpacity(0.04) : Colors.grey[50]),
+                  : AppColors.blue.withValues(alpha: 0.08))
+              : (isDark ? Colors.white.withOpacity(0.04) : AppColors.sand0),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: hasPlayer ? Colors.blue.shade300 : Colors.grey.shade300,
+            color: hasPlayer
+                ? AppColors.blue.withValues(alpha: 0.3)
+                : AppColors.line,
             width: hasPlayer ? 1.5 : 1,
           ),
         ),
@@ -556,7 +563,7 @@ class _TournamentRegistrationPageState
               radius: 22,
               backgroundColor: hasPlayer
                   ? AppColors.coral.withOpacity(0.15)
-                  : Colors.grey[200],
+                  : AppColors.sand2,
               child: hasPlayer
                   ? Text(
                       _playerName(player)[0].toUpperCase(),
@@ -566,7 +573,7 @@ class _TournamentRegistrationPageState
                           fontSize: 16),
                     )
                   : Icon(Icons.person_add,
-                      color: Colors.grey[400], size: 20),
+                      color: AppColors.ink3, size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -577,7 +584,7 @@ class _TournamentRegistrationPageState
                         Text(label,
                             style: TextStyle(
                                 fontSize: 10,
-                                color: Colors.grey[500],
+                                color: AppColors.ink3,
                                 fontWeight: FontWeight.w500)),
                         Text(_playerName(player),
                             style: const TextStyle(
@@ -585,8 +592,7 @@ class _TournamentRegistrationPageState
                                 fontSize: 15)),
                         Text(
                           "${_playerClub(player)} • ${_playerRanking(player)} pts",
-                          style: TextStyle(
-                              fontSize: 12, color: Colors.grey[600]),
+                          style: AppText.uiCaption,
                         ),
                       ],
                     )
@@ -596,16 +602,16 @@ class _TournamentRegistrationPageState
                         Text(label,
                             style: TextStyle(
                                 fontSize: 10,
-                                color: Colors.grey[500],
+                                color: AppColors.ink3,
                                 fontWeight: FontWeight.w500)),
                         Text("Trykk for å velge spiller",
-                            style: TextStyle(color: Colors.grey[500])),
+                            style: TextStyle(color: AppColors.ink3)),
                       ],
                     ),
             ),
             Icon(
               Icons.chevron_right,
-              color: Colors.grey[400],
+              color: AppColors.ink3,
             ),
           ],
         ),
@@ -623,7 +629,7 @@ class _TournamentRegistrationPageState
           const SizedBox(height: 2),
           Text(label,
               style:
-                  TextStyle(color: Colors.grey[600], fontSize: 10)),
+                  TextStyle(color: AppColors.ink2, fontSize: 10)),
         ],
       );
 
@@ -634,7 +640,7 @@ class _TournamentRegistrationPageState
     return Scaffold(
       appBar: AppBar(
         title: const Text("Påmelding"),
-        backgroundColor: isDark ? const Color(0xFF1A1A2E) : Colors.blue[900],
+        backgroundColor: isDark ? AppColors.nightSurface1 : AppColors.ink,
         foregroundColor: Colors.white,
       ),
       body: Padding(
@@ -651,7 +657,7 @@ class _TournamentRegistrationPageState
             const SizedBox(height: 8),
             Text(statusConfig['subtitle'] as String,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600])),
+                style: TextStyle(color: AppColors.ink2)),
             const SizedBox(height: 32),
             Card(
               child: Padding(
@@ -671,11 +677,11 @@ class _TournamentRegistrationPageState
             const Spacer(),
             if (status == 'pending' || status == 'waitlist')
               OutlinedButton.icon(
-                icon: const Icon(Icons.cancel, color: Colors.red),
+                icon: const Icon(Icons.cancel, color: AppColors.danger),
                 label: const Text("Trekk påmelding",
-                    style: TextStyle(color: Colors.red)),
+                    style: TextStyle(color: AppColors.danger)),
                 style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.red)),
+                    side: const BorderSide(color: AppColors.danger)),
                 onPressed: _confirmWithdraw,
               ),
           ],
@@ -690,7 +696,7 @@ class _TournamentRegistrationPageState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label,
-                style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                style: TextStyle(color: AppColors.ink2, fontSize: 13)),
             Text(value,
                 style: const TextStyle(
                     fontWeight: FontWeight.w600, fontSize: 13)),
@@ -703,7 +709,7 @@ class _TournamentRegistrationPageState
       case 'accepted':
         return {
           'icon': Icons.check_circle,
-          'color': Colors.green,
+          'color': AppColors.green,
           'title': 'Påmelding godkjent!',
           'subtitle':
               'Dere er bekreftet deltakere. Sjekk kampoppsettet etter påmeldingsfristen.',
@@ -711,7 +717,7 @@ class _TournamentRegistrationPageState
       case 'waitlist':
         return {
           'icon': Icons.hourglass_top,
-          'color': Colors.orange,
+          'color': AppColors.warning,
           'title': 'På venteliste',
           'subtitle':
               'Turneringen er full, men dere er på ventelisten. Dere vil bli kontaktet ved ledig plass.',
@@ -719,7 +725,7 @@ class _TournamentRegistrationPageState
       case 'rejected':
         return {
           'icon': Icons.cancel,
-          'color': Colors.red,
+          'color': AppColors.danger,
           'title': 'Påmelding avvist',
           'subtitle':
               'Beklager, påmeldingen ble ikke godkjent. Kontakt arrangør for mer info.',
@@ -727,7 +733,7 @@ class _TournamentRegistrationPageState
       default:
         return {
           'icon': Icons.pending,
-          'color': Colors.blue,
+          'color': AppColors.blue,
           'title': 'Påmelding mottatt',
           'subtitle':
               'Påmeldingen er sendt og venter på godkjenning fra arrangør.',
@@ -748,7 +754,7 @@ class _TournamentRegistrationPageState
               child: const Text("Avbryt")),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, foregroundColor: Colors.white),
+                backgroundColor: AppColors.danger, foregroundColor: Colors.white),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text("Trekk"),
           ),

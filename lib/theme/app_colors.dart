@@ -38,6 +38,13 @@ class AppColors {
   static const Color green      = Color(0xFF1F7556);
   static const Color greenLight = Color(0x242F8F6B); // 14% alpha
 
+  /// Advarsel / frist / venteliste / 1. plass-medalje
+  static const Color warning     = Color(0xFFC98A1B);
+  /// Farlig handling / feil / avvist / trekk påmelding
+  static const Color danger      = Color(0xFFC62828);
+  /// Suksess på mørk bakgrunn (fantasy). `green` er for mørk på navy.
+  static const Color greenBright = Color(0xFF36C87A);
+
   /// Divider / border
   static const Color line       = Color(0x1A0B1B33); // 10% ink
 
