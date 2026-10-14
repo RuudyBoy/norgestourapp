@@ -105,8 +105,6 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
     final content = FutureBuilder<List<PlayerMatchStats>>(
       future: _statsFuture,
       builder: (context, snapshot) {
@@ -370,14 +368,14 @@ class StatsCategoryCard extends StatelessWidget {
                         winner.imageUrl, 
                         fit: BoxFit.contain,
                         alignment: Alignment.bottomRight,
-                        errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 150, color: Colors.white.withOpacity(0.05)),
+                        errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 150, color: Colors.white.withValues(alpha: 0.05)),
                       ),
                     ),
                   )
                 else
                   Positioned(
                     right: 10, bottom: 50, top: 20, width: 180,
-                    child: Icon(Icons.person, size: 150, color: Colors.white.withOpacity(0.05)),
+                    child: Icon(Icons.person, size: 150, color: Colors.white.withValues(alpha: 0.05)),
                   ),
                 
                 // Text Overlay (Left Side)
@@ -424,7 +422,7 @@ class StatsCategoryCard extends StatelessWidget {
                     height: 56,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.4),
+                      color: Colors.black.withValues(alpha: 0.4),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'models.dart';
 import 'fantasy_point_matrix.dart';
@@ -73,7 +74,7 @@ class LeagueLogic {
       // Sort descending
       leaderboard.sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
     } catch (e) {
-      print('Error fetching global leaderboard: $e');
+      debugPrint('Error fetching global leaderboard: $e');
     }
 
     return leaderboard;
@@ -100,7 +101,7 @@ class LeagueLogic {
         }
       }
     } catch (e) {
-      print('Error calculating ownership: $e');
+      debugPrint('Error calculating ownership: $e');
     }
 
     Map<String, double> percentages = {};

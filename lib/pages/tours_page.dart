@@ -114,7 +114,7 @@ class ToursPage extends StatelessWidget {
                 ),
               );
             },
-            splashColor: AppColors.coral.withOpacity(0.08),
+            splashColor: AppColors.coral.withValues(alpha: 0.08),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -139,7 +139,7 @@ class ToursPage extends StatelessWidget {
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
-                              colors: [Colors.transparent, AppColors.ink.withOpacity(0.6)],
+                              colors: [Colors.transparent, AppColors.ink.withValues(alpha: 0.6)],
                               stops: const [0.5, 1.0],
                             ),
                           ),
@@ -233,13 +233,13 @@ class ToursPage extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
                             color: regOpen
-                                ? AppColors.coral.withOpacity(0.15)
-                                : Colors.white.withOpacity(0.06),
+                                ? AppColors.coral.withValues(alpha: 0.15)
+                                : Colors.white.withValues(alpha: 0.06),
                             borderRadius: BorderRadius.circular(AppTheme.radiusChip),
                             border: Border.all(
                               color: regOpen
-                                  ? AppColors.coral.withOpacity(0.5)
-                                  : Colors.white.withOpacity(0.12),
+                                  ? AppColors.coral.withValues(alpha: 0.5)
+                                  : Colors.white.withValues(alpha: 0.12),
                               width: 1,
                             ),
                           ),

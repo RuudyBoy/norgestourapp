@@ -287,7 +287,7 @@ class _TournamentRegistrationPageState
 
                         return ListTile(
                           leading: CircleAvatar(
-                            backgroundColor: AppColors.coral.withOpacity(0.15),
+                            backgroundColor: AppColors.coral.withValues(alpha: 0.15),
                             child: Text(
                               name.isNotEmpty ? name[0].toUpperCase() : '?',
                               style: TextStyle(
@@ -303,7 +303,7 @@ class _TournamentRegistrationPageState
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppColors.coral.withOpacity(0.1),
+                              color: AppColors.coral.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -392,7 +392,7 @@ class _TournamentRegistrationPageState
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(tourType,
@@ -452,7 +452,7 @@ class _TournamentRegistrationPageState
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? Colors.white.withOpacity(0.05)
+                      ? Colors.white.withValues(alpha: 0.05)
                       : AppColors.blue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
@@ -546,9 +546,9 @@ class _TournamentRegistrationPageState
         decoration: BoxDecoration(
           color: hasPlayer
               ? (isDark
-                  ? Colors.white.withOpacity(0.07)
+                  ? Colors.white.withValues(alpha: 0.07)
                   : AppColors.blue.withValues(alpha: 0.08))
-              : (isDark ? Colors.white.withOpacity(0.04) : AppColors.sand0),
+              : (isDark ? Colors.white.withValues(alpha: 0.04) : AppColors.sand0),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: hasPlayer
@@ -562,7 +562,7 @@ class _TournamentRegistrationPageState
             CircleAvatar(
               radius: 22,
               backgroundColor: hasPlayer
-                  ? AppColors.coral.withOpacity(0.15)
+                  ? AppColors.coral.withValues(alpha: 0.15)
                   : AppColors.sand2,
               child: hasPlayer
                   ? Text(

@@ -3,7 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_theme.dart';
+import '../widgets/nt_ui.dart';
 import 'match_stats_page.dart';
+
+typedef _Doc = QueryDocumentSnapshot<Map<String, dynamic>>;
+
+enum _Filter { alle, live, kommende, ferdig }
 
 class MatchesPage extends StatefulWidget {
   final String tournamentId;
@@ -22,408 +27,515 @@ class MatchesPage extends StatefulWidget {
 }
 
 class _MatchesPageState extends State<MatchesPage> {
-  String? _selectedCategoryId;
-  String _selectedStatus = 'alle'; // 'alle', 'live', 'scheduled', 'finished'
+  static const _finishedPreview = 5;
 
-  String _getStageLabel(Map<String, dynamic> d) {
-    final stage = d['stage'] as String?;
-    if (stage == 'group') {
-      final group = d['group'] as String?;
-      return group != null ? 'Pulje $group' : 'Puljespill';
-    } else if (stage == 'playoff') {
-      final bracket = d['bracket'] as String?;
-      return bracket != null ? '$bracket' : 'Sluttspill';
-    }
-    return 'Andre kamper';
+  String? _categoryId;
+  _Filter _filter = _Filter.alle;
+  bool _searchOpen = false;
+  String _query = '';
+  final _searchCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final p = NtPalette.of(context);
 
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // 1. Categories Row
-        StreamBuilder<QuerySnapshot>(
+    final content = StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('categories')
+          .where('tournament_id', isEqualTo: widget.tournamentId)
+          .where('published', isEqualTo: true)
+          .snapshots(),
+      builder: (context, catSnap) {
+        if (!catSnap.hasData) return const Center(child: CircularProgressIndicator());
+        final cats = catSnap.data!.docs;
+        if (cats.isEmpty) return _empty(p, 'Kampoppsettet er ikke publisert ennå.');
+        final catId = cats.any((c) => c.id == _categoryId) ? _categoryId! : cats.first.id;
+
+        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance
-              .collection('categories')
+              .collection('matches')
               .where('tournament_id', isEqualTo: widget.tournamentId)
-              .where('published', isEqualTo: true)
+              .where('category_id', isEqualTo: catId)
               .snapshots(),
-          builder: (context, catSnap) {
-            if (!catSnap.hasData) {
-              return const SizedBox(
-                  height: 60, child: Center(child: CircularProgressIndicator()));
-            }
-            final cats = catSnap.data!.docs;
-            if (cats.isEmpty) {
-              return const SizedBox(
-                  height: 60, child: Center(child: Text("Ingen klasser funnet.")));
+          builder: (context, matchSnap) {
+            final all = matchSnap.data?.docs ?? const <_Doc>[];
+            final ctx = NtMatchCtx({for (final m in all) m.id: m.data()});
+
+            // Søk på lagnavn (inkl. plassholdernavn som "Vinner pulje B")
+            final q = _query.trim().toLowerCase();
+            bool matchesQuery(_Doc m) {
+              if (q.isEmpty) return true;
+              final d = m.data();
+              return ctx.slot(d, 'team_a').name.toLowerCase().contains(q) ||
+                  ctx.slot(d, 'team_b').name.toLowerCase().contains(q);
             }
 
-            // Auto-select first category if null
-            if (_selectedCategoryId == null && cats.isNotEmpty) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  setState(() => _selectedCategoryId = cats.first.id);
-                }
-              });
-              return const SizedBox(height: 60);
-            }
+            final visible = all.where(matchesQuery).toList();
+            final live = visible.where((m) => m.data()['status'] == 'live').toList()
+              ..sort(_byTimeThenCourt);
+            final upcoming = visible.where((m) => ntIsUpcoming(m.data())).toList()
+              ..sort(_byTimeThenCourt);
+            final finished = visible.where((m) => m.data()['status'] == 'finished').toList()
+              ..sort((a, b) => _byTimeThenCourt(b, a)); // nyeste først
+            final liveCountAll = all.where((m) => m.data()['status'] == 'live').length;
 
-            return _buildCategoryChips(cats, isDark);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _controls(p, cats, catId),
+                if (_searchOpen) _searchField(p),
+                _filters(liveCountAll),
+                Expanded(
+                  child: !matchSnap.hasData
+                      ? const Center(child: CircularProgressIndicator())
+                      : _body(p, ctx, live, upcoming, finished, all.isEmpty),
+                ),
+              ],
+            );
           },
-        ),
-
-        // 2. Status Row
-        _buildStatusChips(isDark),
-
-        // 3. Matches and Stages List
-        if (_selectedCategoryId != null)
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('matches')
-                  .where('tournament_id', isEqualTo: widget.tournamentId)
-                  .where('category_id', isEqualTo: _selectedCategoryId)
-                  .snapshots(),
-              builder: (context, matchSnap) {
-                if (!matchSnap.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final matches = matchSnap.data!.docs;
-
-                if (matches.isEmpty) {
-                  return const Center(
-                      child: Text("Ingen kamper satt opp for denne klassen."));
-                }
-
-                // Filter matches locally
-                final filtered = matches.where((m) {
-                  final d = m.data() as Map<String, dynamic>;
-                  if (_selectedStatus != 'alle' && d['status'] != _selectedStatus) {
-                    return false;
-                  }
-                  return true;
-                }).toList();
-
-                // Sort matches chronologically
-                filtered.sort((a, b) {
-                  final da = a.data() as Map<String, dynamic>;
-                  final db = b.data() as Map<String, dynamic>;
-                  final ta = da['scheduled_minutes'] as int? ?? 999999;
-                  final tb = db['scheduled_minutes'] as int? ?? 999999;
-                  if (ta != tb) return ta.compareTo(tb);
-                  return (da['court'] as String? ?? '')
-                      .compareTo(db['court'] as String? ?? '');
-                });
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: filtered.isEmpty
-                          ? const Center(
-                              child: Text(
-                                "Ingen kamper matcher valgt filter.",
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.all(AppTheme.pageHPad),
-                              itemCount: filtered.length,
-                              itemBuilder: (ctx, i) =>
-                                  _buildMatchCard(filtered[i], isDark),
-                            ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-      ],
+        );
+      },
     );
 
-    if (widget.isEmbedded) {
-      return content;
-    }
-
+    if (widget.isEmbedded) return content;
     return Scaffold(
       appBar: AppBar(
-        title: Text("Kamper - ${widget.tournamentName}"),
-        backgroundColor: const Color(0xFF0A1931),
+        title: Text('Kamper – ${widget.tournamentName}'),
+        backgroundColor: AppColors.ink,
         foregroundColor: Colors.white,
       ),
       body: content,
     );
   }
 
-  Widget _buildCategoryChips(List<QueryDocumentSnapshot> cats, bool isDark) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.pageHPad, vertical: 12),
-      child: Row(
-        children: cats.map((c) {
-          final d = c.data() as Map<String, dynamic>;
-          final name = d['name'] as String? ?? 'Ukjent';
-          final isSelected = _selectedCategoryId == c.id;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(name),
-              selected: isSelected,
-              onSelected: (v) {
-                if (v) {
-                  setState(() {
-                    _selectedCategoryId = c.id;
-                  });
-                }
-              },
-              selectedColor: AppColors.coral,
-              labelStyle: TextStyle(
-                color: isSelected
-                    ? Colors.white
-                    : (isDark ? Colors.white70 : Colors.black87),
-                fontWeight: FontWeight.bold,
-              ),
-              backgroundColor: isDark ? AppColors.nightSurface1 : Colors.white,
-              side: BorderSide(
-                color: isSelected
-                    ? AppColors.coral
-                    : (isDark ? AppColors.nightSurface2 : AppColors.sand2),
-              ),
+  static int _byTimeThenCourt(_Doc a, _Doc b) {
+    final t = ntMatchTime(a.data()).compareTo(ntMatchTime(b.data()));
+    if (t != 0) return t;
+    final ca = int.tryParse(ntCourtNumber(a.data()['court'])) ?? 99;
+    final cb = int.tryParse(ntCourtNumber(b.data()['court'])) ?? 99;
+    return ca.compareTo(cb);
+  }
+
+  // ── Toppkontroller ─────────────────────────────────────────────────────────
+  Widget _controls(NtPalette p, List<_Doc> cats, String catId) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 20, AppTheme.pageHPad, 0),
+      child: Row(children: [
+        Expanded(
+          child: NtSegmented(
+            labels: [for (final c in cats) (c.data()['name'] as String?) ?? 'Klasse'],
+            selected: cats.indexWhere((c) => c.id == catId),
+            onTap: (i) => setState(() => _categoryId = cats[i].id),
+          ),
+        ),
+        const SizedBox(width: 12),
+        GestureDetector(
+          onTap: () => setState(() {
+            _searchOpen = !_searchOpen;
+            if (!_searchOpen) {
+              _query = '';
+              _searchCtrl.clear();
+            }
+          }),
+          child: Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: _searchOpen ? AppColors.ink : p.card,
+              borderRadius: BorderRadius.circular(AppTheme.radiusRow),
             ),
-          );
-        }).toList(),
+            child: Icon(_searchOpen ? Icons.close_rounded : Icons.search_rounded,
+                color: _searchOpen ? Colors.white : p.ink, size: 24),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _searchField(NtPalette p) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 12, AppTheme.pageHPad, 0),
+      child: TextField(
+        controller: _searchCtrl,
+        autofocus: true,
+        onChanged: (v) => setState(() => _query = v),
+        style: AppText.uiBody.copyWith(color: p.ink, fontSize: 16),
+        decoration: InputDecoration(
+          hintText: 'Søk etter lag',
+          hintStyle: AppText.uiBody.copyWith(color: p.ink3, fontSize: 16),
+          filled: true,
+          fillColor: p.card,
+          prefixIcon: Icon(Icons.search_rounded, color: p.ink3),
+          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusInput),
+            borderSide: BorderSide.none,
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildStatusChips(bool isDark) {
-    final statuses = [
-      {'id': 'alle', 'label': 'Alle'},
-      {'id': 'live', 'label': 'Live'},
-      {'id': 'scheduled', 'label': 'Kommende'},
-      {'id': 'finished', 'label': 'Ferdig'},
-    ];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.pageHPad, vertical: 4),
-      child: Row(
-        children: statuses.map((s) {
-          final isSelected = _selectedStatus == s['id'];
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(s['label']!),
-              selected: isSelected,
-              onSelected: (v) {
-                if (v) setState(() => _selectedStatus = s['id']!);
-              },
-              selectedColor: isDark ? AppColors.nightSurface2 : AppColors.sand2,
-              labelStyle: TextStyle(
-                color: isSelected
-                    ? (isDark ? AppColors.coral : AppColors.coral)
-                    : (isDark ? Colors.white54 : Colors.black54),
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-              backgroundColor: Colors.transparent,
-              side: BorderSide.none,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-            ),
+  Widget _filters(int liveCount) {
+    String label(_Filter f) => switch (f) {
+          _Filter.alle => 'Alle',
+          _Filter.live => liveCount > 0 ? 'Live · $liveCount' : 'Live',
+          _Filter.kommende => 'Kommende',
+          _Filter.ferdig => 'Ferdig',
+        };
+    return SizedBox(
+      height: 46 + 28,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 14, AppTheme.pageHPad, 14),
+        itemCount: _Filter.values.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
+        itemBuilder: (_, i) {
+          final f = _Filter.values[i];
+          return NtFilterChip(
+            label: label(f),
+            selected: _filter == f,
+            onTap: () => setState(() => _filter = f),
           );
-        }).toList(),
+        },
       ),
     );
   }
 
-  Widget _buildMatchCard(QueryDocumentSnapshot matchDoc, bool isDark) {
-    final data = matchDoc.data() as Map<String, dynamic>;
-    final status = data['status'] as String? ?? 'scheduled';
+  // ── Innhold ────────────────────────────────────────────────────────────────
+  Widget _body(NtPalette p, NtMatchCtx ctx, List<_Doc> live, List<_Doc> upcoming,
+      List<_Doc> finished, bool noMatchesAtAll) {
+    if (noMatchesAtAll) return _empty(p, 'Ingen kamper satt opp for denne klassen ennå.');
 
-    final homeScore = data['home_score'] ?? 0;
-    final awayScore = data['away_score'] ?? 0;
-    final homeSets = data['home_sets'] ?? 0;
-    final awaySets = data['away_sets'] ?? 0;
-    final currentSet = data['current_set'] ?? 1;
-    final court = data['court'] ?? 'Bane ?';
-    final teamAName = data['team_a_name'] ?? 'Lag A';
-    final teamBName = data['team_b_name'] ?? 'Lag B';
-    final startTime = data['match_time']?.toString() ??
-        data['start_time']?.toString() ??
-        '';
-    final stageLabel = _getStageLabel(data);
+    final showLive = _filter == _Filter.alle || _filter == _Filter.live;
+    final showUpcoming = _filter == _Filter.alle || _filter == _Filter.kommende;
+    final showFinished = _filter == _Filter.alle || _filter == _Filter.ferdig;
 
-    String rightInfo = '';
-    if (startTime.isNotEmpty) {
-      rightInfo = '$startTime • $court';
-    } else {
-      rightInfo = court;
+    final children = <Widget>[];
+
+    if (showLive && live.isNotEmpty) {
+      children.add(_pad(const NtSectionHeader(title: 'Live nå')));
+      children.add(const SizedBox(height: 16));
+      if (_filter == _Filter.live) {
+        for (final m in live) {
+          children.add(_pad(_LiveCard(doc: m, ctx: ctx, width: double.infinity)));
+          children.add(const SizedBox(height: 12));
+        }
+      } else {
+        children.add(SizedBox(
+          height: 176,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad),
+            itemCount: live.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (context, i) => _LiveCard(
+              doc: live[i],
+              ctx: ctx,
+              width: MediaQuery.of(context).size.width - AppTheme.pageHPad * 2 - (live.length > 1 ? 56 : 0),
+            ),
+          ),
+        ));
+      }
+      children.add(const SizedBox(height: 30));
     }
 
-    return GestureDetector(
-      onTap: () {
-        if (status == 'scheduled') {
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Kampen har ikke startet enda.")));
-        } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MatchStatsPage(
-                matchId: matchDoc.id,
-                teamAName: teamAName,
-                teamBName: teamBName,
-              ),
-            ),
-          );
+    if (showUpcoming && upcoming.isNotEmpty) {
+      children.add(_pad(const NtSectionHeader(title: 'Kommende')));
+      children.add(const SizedBox(height: 14));
+      String? lastTime;
+      for (final m in upcoming) {
+        final t = ntMatchTime(m.data());
+        if (t != lastTime) {
+          lastTime = t;
+          children.add(_pad(_TimeDivider(time: t.isEmpty ? 'Tid ikke satt' : t)));
+          children.add(const SizedBox(height: 12));
         }
-      },
+        children.add(_pad(_UpcomingCard(doc: m, ctx: ctx)));
+        children.add(const SizedBox(height: 12));
+      }
+      children.add(const SizedBox(height: 18));
+    }
+
+    if (showFinished && finished.isNotEmpty) {
+      final list = _filter == _Filter.alle ? finished.take(_finishedPreview).toList() : finished;
+      children.add(_pad(NtSectionHeader(
+        title: 'Ferdig',
+        trailing: Text('${finished.length} KAMPER',
+            style: AppText.monoSm.copyWith(color: p.ink2, fontSize: 10.5)),
+      )));
+      children.add(const SizedBox(height: 14));
+      children.add(_pad(NtCard(
+        child: Column(children: [
+          for (var i = 0; i < list.length; i++) ...[
+            _FinishedRow(doc: list[i], ctx: ctx),
+            if (i < list.length - 1)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: Divider(height: 1, thickness: 1, color: p.line),
+              ),
+          ],
+        ]),
+      )));
+      if (_filter == _Filter.alle && finished.length > _finishedPreview) {
+        children.add(const SizedBox(height: 14));
+        children.add(_pad(OutlinedButton(
+          onPressed: () => setState(() => _filter = _Filter.ferdig),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(60),
+            side: BorderSide(color: p.ink3.withValues(alpha: 0.5)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusRow)),
+          ),
+          child: Text('Vis alle ferdige kamper',
+              style: AppText.uiCta.copyWith(color: p.ink, fontSize: 16, fontWeight: FontWeight.w600)),
+        )));
+      }
+    }
+
+    if (children.isEmpty) {
+      final msg = switch (_filter) {
+        _Filter.live => 'Ingen kamper er live akkurat nå.',
+        _Filter.kommende => 'Ingen kommende kamper.',
+        _Filter.ferdig => 'Ingen ferdige kamper ennå.',
+        _Filter.alle => 'Ingen kamper funnet.',
+      };
+      return _empty(p, _query.isNotEmpty ? 'Ingen treff på «$_query».' : msg);
+    }
+
+    return ListView(
+      padding: const EdgeInsets.only(top: 10, bottom: 40),
+      children: children,
+    );
+  }
+
+  Widget _pad(Widget w) =>
+      Padding(padding: const EdgeInsets.symmetric(horizontal: AppTheme.pageHPad), child: w);
+
+  Widget _empty(NtPalette p, String text) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Text(text,
+              textAlign: TextAlign.center,
+              style: AppText.uiCaption.copyWith(color: p.ink3, fontSize: 14)),
+        ),
+      );
+}
+
+void _openStats(BuildContext context, String id, String a, String b) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => MatchStatsPage(matchId: id, teamAName: a, teamBName: b)),
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Live-kort (mørkt, stor score)
+// ─────────────────────────────────────────────────────────────────────────────
+class _LiveCard extends StatelessWidget {
+  final _Doc doc;
+  final NtMatchCtx ctx;
+  final double width;
+  const _LiveCard({required this.doc, required this.ctx, required this.width});
+
+  @override
+  Widget build(BuildContext context) {
+    final d = doc.data();
+    final a = ctx.slot(d, 'team_a');
+    final b = ctx.slot(d, 'team_b');
+    final (pa, pb) = ntLivePoints(d);
+    final (sa, sb) = ntSets(d);
+    final set = (d['current_set'] as num?)?.toInt() ?? (sa + sb + 1);
+    final court = ntCourtNumber(d['court']);
+    final meta = [
+      if (court.isNotEmpty) 'BANE $court',
+      ctx.stageLabel(d),
+    ].where((s) => s.isNotEmpty).join(' · ');
+
+    Widget teamRow(NtSlot s, int pts, int sets) => Row(children: [
+          Expanded(
+            child: Text(s.name.toUpperCase(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.dispH1(22).copyWith(color: Colors.white)),
+          ),
+          if (sa + sb > 0) ...[
+            Text('$sets', style: AppText.dispScore(22).copyWith(color: Colors.white38)),
+            const SizedBox(width: 14),
+          ],
+          SizedBox(
+            width: 52,
+            child: Text('$pts',
+                textAlign: TextAlign.right, style: AppText.dispScore(40).copyWith(color: Colors.white)),
+          ),
+        ]);
+
+    return GestureDetector(
+      onTap: () => _openStats(context, doc.id, a.name, b.name),
       child: Container(
-        margin: const EdgeInsets.only(bottom: AppTheme.rowGap),
-        padding: const EdgeInsets.all(AppTheme.cardPad),
+        width: width,
+        height: 176,
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
         decoration: BoxDecoration(
-          gradient: AppColors.cardInk,
-          borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-          boxShadow: AppTheme.shadowSm,
+          gradient: AppColors.heroNavy,
+          borderRadius: BorderRadius.circular(AppTheme.radiusCard + 4),
+          boxShadow: AppTheme.shadowLg,
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: status == 'live'
-                        ? AppColors.coral
-                        : (status == 'finished'
-                            ? (isDark
-                                ? AppColors.nightSurface2
-                                : AppColors.sand2)
-                            : AppColors.blue.withValues(alpha: 0.1)),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (status == 'live') ...[
-                        Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                                color: Colors.white, shape: BoxShape.circle)),
-                        const SizedBox(width: 5),
-                      ],
-                      Text(
-                          status == 'scheduled'
-                              ? 'KOMMENDE'
-                              : (status == 'finished'
-                                  ? 'FERDIG'
-                                  : 'LIVE · SETT $currentSet'),
-                          style: AppText.monoSm.copyWith(
-                              color: status == 'live'
-                                  ? Colors.white
-                                  : (status == 'scheduled'
-                                      ? AppColors.blue
-                                      : (isDark
-                                          ? AppColors.nightInk2
-                                          : AppColors.ink2)))),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    rightInfo.toUpperCase(),
-                    style: AppText.monoSm.copyWith(color: Colors.white70),
+            Row(children: [
+              NtLivePill(text: 'LIVE · SETT $set', dot: true),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(meta,
                     textAlign: TextAlign.right,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (stageLabel.isNotEmpty && stageLabel != 'Andre kamper')
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6.0),
-                child: Text(stageLabel.toUpperCase(), style: AppText.monoSm.copyWith(color: AppColors.coral)),
+                    style: AppText.monoSmLight.copyWith(fontSize: 10.5)),
               ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(teamAName.toUpperCase(),
-                      style: AppText.dispH2(18).copyWith(color: Colors.white),
-                      overflow: TextOverflow.ellipsis),
-                ),
-                if (status == 'finished')
-                  Text('$homeSets',
-                      style: AppText.dispScore(32).copyWith(color: Colors.white))
-                else if (status == 'live')
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      if (currentSet > 1)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 12.0),
-                          child: Text('($homeSets)',
-                              style: AppText.dispScore(20).copyWith(color: Colors.white54)),
-                        ),
-                      Text('$homeScore',
-                          style: AppText.dispScore(32).copyWith(color: Colors.white)),
-                    ],
-                  )
-                else
-                  Text('-',
-                      style: AppText.dispScore(32).copyWith(color: Colors.white70)),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(teamBName.toUpperCase(),
-                      style: AppText.dispH2(18).copyWith(color: Colors.white),
-                      overflow: TextOverflow.ellipsis),
-                ),
-                if (status == 'finished')
-                  Text('$awaySets',
-                      style: AppText.dispScore(32).copyWith(color: Colors.white))
-                else if (status == 'live')
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      if (currentSet > 1)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 12.0),
-                          child: Text('($awaySets)',
-                              style: AppText.dispScore(20).copyWith(color: Colors.white54)),
-                        ),
-                      Text('$awayScore',
-                          style: AppText.dispScore(32).copyWith(color: Colors.white)),
-                    ],
-                  )
-                else
-                  Text('-',
-                      style: AppText.dispScore(32).copyWith(color: Colors.white70)),
-              ],
-            ),
+            ]),
+            teamRow(a, pa, sa),
+            teamRow(b, pb, sb),
           ],
         ),
       ),
     );
   }
-}
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Kommende
+// ─────────────────────────────────────────────────────────────────────────────
+class _TimeDivider extends StatelessWidget {
+  final String time;
+  const _TimeDivider({required this.time});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = NtPalette.of(context);
+    return Row(children: [
+      Text(time, style: AppText.monoMd.copyWith(color: p.ink, fontWeight: FontWeight.w700, fontSize: 14)),
+      const SizedBox(width: 14),
+      Expanded(child: Divider(height: 1, thickness: 1, color: p.line)),
+    ]);
+  }
+}
+
+class _UpcomingCard extends StatelessWidget {
+  final _Doc doc;
+  final NtMatchCtx ctx;
+  const _UpcomingCard({required this.doc, required this.ctx});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = NtPalette.of(context);
+    final d = doc.data();
+    final a = ctx.slot(d, 'team_a');
+    final b = ctx.slot(d, 'team_b');
+    final court = ntCourtNumber(d['court']);
+    final waiting = a.placeholder || b.placeholder;
+
+    TextStyle name(NtSlot s) => AppText.uiBody.copyWith(
+          fontSize: 17,
+          height: 1.35,
+          color: s.placeholder ? p.ink2 : p.ink,
+          fontStyle: s.placeholder ? FontStyle.italic : null,
+          fontWeight: FontWeight.w500,
+        );
+
+    return NtCard(
+      padding: const EdgeInsets.fromLTRB(16, 16, 18, 16),
+      child: Row(children: [
+        Container(
+          width: 58,
+          height: 58,
+          decoration: BoxDecoration(
+            color: p.soft,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text('BANE', style: AppText.monoSm.copyWith(color: p.ink2, fontSize: 9)),
+            Text(court.isEmpty ? '–' : court, style: AppText.dispH1(24).copyWith(color: p.ink)),
+          ]),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(ctx.stageLabel(d),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.monoSm.copyWith(color: p.ink2)),
+            const SizedBox(height: 4),
+            Text(a.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: name(a)),
+            Text(b.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: name(b)),
+          ]),
+        ),
+        const SizedBox(width: 10),
+        Text(waiting ? 'Venter…' : 'Planlagt',
+            style: AppText.uiCaption.copyWith(color: p.ink2, fontSize: 14)),
+      ]),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ferdig
+// ─────────────────────────────────────────────────────────────────────────────
+class _FinishedRow extends StatelessWidget {
+  final _Doc doc;
+  final NtMatchCtx ctx;
+  const _FinishedRow({required this.doc, required this.ctx});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = NtPalette.of(context);
+    final d = doc.data();
+    final a = ctx.slot(d, 'team_a');
+    final b = ctx.slot(d, 'team_b');
+    final (sa, sb) = ntSets(d);
+    final sets = ntSetScores(d);
+    final time = ntMatchTime(d);
+
+    TextStyle name(bool won) => AppText.uiBody.copyWith(
+          fontSize: 17,
+          height: 1.35,
+          color: won ? p.green : p.ink,
+          fontWeight: won ? FontWeight.w700 : FontWeight.w500,
+        );
+
+    return InkWell(
+      onTap: () => _openStats(context, doc.id, a.name, b.name),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        child: Row(children: [
+          SizedBox(
+            width: 66,
+            child: Text(time.isEmpty ? '--:--' : time,
+                style: AppText.monoMd.copyWith(color: p.ink2, fontSize: 13)),
+          ),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(a.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: name(sa > sb)),
+              Text(b.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: name(sb > sa)),
+            ]),
+          ),
+          const SizedBox(width: 8),
+          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            Text('$sa – $sb', style: AppText.dispScore(22).copyWith(color: p.green)),
+            if (sets.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(sets, style: AppText.monoSm.copyWith(color: p.ink2, letterSpacing: 0.4)),
+            ],
+          ]),
+        ]),
+      ),
+    );
+  }
+}

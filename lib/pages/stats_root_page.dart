@@ -176,7 +176,7 @@ class _StatsRootPageState extends State<StatsRootPage> {
                                   Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
-                                      color: AppColors.coral.withOpacity(0.2),
+                                      color: AppColors.coral.withValues(alpha: 0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(Icons.groups_rounded, color: AppColors.coral, size: 26),
@@ -189,7 +189,7 @@ class _StatsRootPageState extends State<StatsRootPage> {
                                         Text('ALLE SPILLERE', style: AppText.dispKicker(14).copyWith(color: Colors.white)),
                                         const SizedBox(height: 3),
                                         Text('Se alle registrerte spillere og profiler',
-                                            style: AppText.uiCaption.copyWith(color: Colors.white.withOpacity(0.6))),
+                                            style: AppText.uiCaption.copyWith(color: Colors.white.withValues(alpha: 0.6))),
                                       ],
                                     ),
                                   ),
@@ -368,14 +368,14 @@ class StatsCategoryCard extends StatelessWidget {
                         winner.imageUrl, 
                         fit: BoxFit.contain,
                         alignment: Alignment.bottomRight,
-                        errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 150, color: Colors.white.withOpacity(0.05)),
+                        errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 150, color: Colors.white.withValues(alpha: 0.05)),
                       ),
                     ),
                   )
                 else
                   Positioned(
                     right: 10, bottom: 50, top: 20, width: 180,
-                    child: Icon(Icons.person, size: 150, color: Colors.white.withOpacity(0.05)),
+                    child: Icon(Icons.person, size: 150, color: Colors.white.withValues(alpha: 0.05)),
                   ),
                 
                 // Text Overlay (Left Side)
@@ -422,7 +422,7 @@ class StatsCategoryCard extends StatelessWidget {
                     height: 56,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.4),
+                      color: Colors.black.withValues(alpha: 0.4),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,

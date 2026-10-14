@@ -118,9 +118,6 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     final bestReceive = widget.players.isNotEmpty ? _getBestForStat((p) => p.receives) : null;
     final bestDefense = widget.players.isNotEmpty ? _getBestForStat((p) => p.digs)     : null;
     final bestServe   = widget.players.isNotEmpty ? _getBestForStat((p) => p.aces)     : null;
-    final bestPlayer  = widget.players.isNotEmpty
-        ? widget.players.reduce((a, b) => a.totalPoints > b.totalPoints ? a : b)
-        : null;
 
     return Container(
       color: Colors.transparent,
@@ -812,6 +809,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildBestPlayerCard(FantasyPlayer player) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -924,7 +922,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
                       player.imageUrl,
                       fit: BoxFit.contain,
                       alignment: Alignment.bottomCenter,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 50, color: Colors.white54),
+                      errorBuilder: (_, _, _) => const Icon(Icons.person, size: 50, color: Colors.white54),
                     )
                   : const Icon(Icons.person, size: 50, color: Colors.white54),
             ),
@@ -974,6 +972,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildTeamRow(String role, FantasyPlayer player, String statText) {
     final accent = _roleAccent(role);
     return Padding(

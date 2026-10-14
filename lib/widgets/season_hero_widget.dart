@@ -39,7 +39,7 @@ class SeasonHeroSliver extends StatelessWidget {
           Text(
             'NT | ${pageTitle.toUpperCase()}',
             style: AppText.monoSm.copyWith(
-              color: Colors.white.withOpacity(0.8), // Hvit for mørk bg
+              color: Colors.white.withValues(alpha: 0.8), // Hvit for mørk bg
               fontSize: 10,
               letterSpacing: 1.0,
             ),
@@ -65,7 +65,7 @@ class SeasonHeroSliver extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.5), // Mørkere i toppen for hvit tekst
+                    Colors.black.withValues(alpha: 0.5), // Mørkere i toppen for hvit tekst
                     Colors.transparent,
                     Colors.transparent,
                     Colors.transparent, // Fader til gjennomsiktig for å vise global bakgrunn
@@ -100,7 +100,7 @@ class SeasonHeroSliver extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.coral.withOpacity(0.9), // Gjorde den litt tydeligere
+                      color: AppColors.coral.withValues(alpha: 0.9), // Gjorde den litt tydeligere
                       borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
                     ),
                     child: Text(

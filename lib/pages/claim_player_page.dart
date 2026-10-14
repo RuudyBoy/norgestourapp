@@ -67,9 +67,9 @@ class _ClaimPlayerPageState extends State<ClaimPlayerPage> {
             margin: const EdgeInsets.fromLTRB(AppTheme.pageHPad, 12, AppTheme.pageHPad, 0),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.blue.withOpacity(0.10),
+              color: AppColors.blue.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(AppTheme.radiusRow),
-              border: Border.all(color: AppColors.blue.withOpacity(0.3)),
+              border: Border.all(color: AppColors.blue.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
@@ -160,7 +160,7 @@ class _ClaimPlayerPageState extends State<ClaimPlayerPage> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
-                                color: AppColors.green.withOpacity(0.12),
+                                color: AppColors.green.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(AppTheme.radiusChip),
                               ),
                               child: Text('Krevd', style: AppText.monoSm.copyWith(color: AppColors.green)),

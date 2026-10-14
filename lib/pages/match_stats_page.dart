@@ -95,7 +95,9 @@ class MatchStatsPage extends StatelessWidget {
               String pointTo = event['point_to'] ?? 'none';
               if (pointTo == 'home') {
                 homeScore++;
-              } else if (pointTo == 'away') awayScore++;
+              } else if (pointTo == 'away') {
+                awayScore++;
+              }
               
               enrichedEvents.add({
                 ...event,
@@ -185,7 +187,7 @@ class MatchStatsPage extends StatelessWidget {
           const SizedBox(height: 16),
           _buildScoreRow(teamAName, homeSets, matchHomeScore, isLeading: true),
           const SizedBox(height: 8),
-          Divider(color: Colors.white.withOpacity(0.10), height: 1),
+          Divider(color: Colors.white.withValues(alpha: 0.10), height: 1),
           const SizedBox(height: 8),
           _buildScoreRow(teamBName, awaySets, matchAwayScore, isLeading: false),
         ],
@@ -216,7 +218,7 @@ class MatchStatsPage extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text('$sets', style: AppText.dispScore(20).copyWith(color: Colors.white70)),
@@ -455,13 +457,19 @@ class MatchStatsPage extends StatelessWidget {
           } else {
             title = '$pName serve-ess';
           }
+        } else if (action == 'Attack Error') {
+          title = '$pName angrepsfeil';
+        } else if (action == 'Service Error') {
+          title = '$pName servefeil';
+        } else if (action == 'Technical Error') {
+          title = '$pName teknisk feil';
+        } else if (action == 'Opponent Error') {
+          title = '${event['team']} motstanderfeil';
+        } else if (action == 'Reception Error') {
+          title = '$pName mottaksfeil';
+        } else if (action == 'Timeout') {
+          title = pName;
         }
-        else if (action == 'Attack Error') title = '$pName angrepsfeil';
-        else if (action == 'Service Error') title = '$pName servefeil';
-        else if (action == 'Technical Error') title = '$pName teknisk feil';
-        else if (action == 'Opponent Error') title = '${event['team']} motstanderfeil';
-        else if (action == 'Reception Error') title = '$pName mottaksfeil';
-        else if (action == 'Timeout') title = pName;
         
         if (subType != null && subType.toString().isNotEmpty) {
           title += ' ($subType)';

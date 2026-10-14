@@ -64,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.coral.withOpacity(0.12),
+                    color: AppColors.coral.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.person_outline, size: 44, color: AppColors.coral),
@@ -102,9 +102,9 @@ class _LoginPageState extends State<LoginPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.coral.withOpacity(0.10),
+                    color: AppColors.coral.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(AppTheme.radiusInput),
-                    border: Border.all(color: AppColors.coral.withOpacity(0.4)),
+                    border: Border.all(color: AppColors.coral.withValues(alpha: 0.4)),
                   ),
                   child: Text(_errorMessage!, style: AppText.uiCaption.copyWith(color: AppColors.coral)),
                 ),

@@ -39,8 +39,10 @@ class _FantasyPageState extends State<FantasyPage> {
 
   Map<String, String?> _initialSquad = {};
   String? _captainId;
+  // ignore: unused_field
   String? _initialCaptainId;
   int _transfersUsed = 0;
+  // ignore: unused_field
   DateTime? _lastConfirmed;
 
   @override

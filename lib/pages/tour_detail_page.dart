@@ -8,15 +8,20 @@ import 'matches_page.dart';
 import 'tournament_stats_page.dart';
 import 'oppsett_page.dart';
 import 'tournament_registration_page.dart';
+import '../widgets/nt_ui.dart';
 
 class TournamentDetailsPage extends StatelessWidget {
   final String tournamentId;
   final Map<String, dynamic> data;
 
+  /// 0 = Kamper, 1 = Oppsett, 2 = Stats, 3 = Lag
+  final int initialTab;
+
   const TournamentDetailsPage({
     super.key,
     required this.tournamentId,
     required this.data,
+    this.initialTab = 0,
   });
 
   bool _isRegistrationOpen() {
@@ -40,7 +45,7 @@ class TournamentDetailsPage extends StatelessWidget {
     return false;
   }
 
-  void _showRegistrationCategoryPicker(BuildContext context) {
+  void showRegistrationCategoryPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -123,158 +128,96 @@ class TournamentDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = data['name'] ?? 'Ukjent Turnering';
-    final date = data['start_date']?.toString() ?? 'Dato kommer';
-    final imageUrl = data['image_url'] ?? '';
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final name = (data['name'] ?? 'Ukjent turnering').toString();
+    final location = (data['location'] ?? '').toString();
+    final dateText = ntDateRange(data);
+    final p = NtPalette.of(context);
     final registrationOpen = _isRegistrationOpen();
 
     return DefaultTabController(
       length: 4,
+      initialIndex: initialTab.clamp(0, 3),
       child: Scaffold(
         floatingActionButton: registrationOpen
             ? FloatingActionButton.extended(
-                onPressed: () => _showRegistrationCategoryPicker(context),
+                onPressed: () => showRegistrationCategoryPicker(context),
                 backgroundColor: AppColors.coral,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.ink,
                 icon: const Icon(Icons.how_to_reg),
-                label: const Text("Meld på",
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                label: Text('Meld på', style: AppText.uiCta.copyWith(color: AppColors.ink)),
               )
             : null,
         body: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
               SliverAppBar(
-            expandedHeight: 300,
-            pinned: true,
-            backgroundColor: isDark ? AppColors.nightSurface1 : AppColors.sand1,
-            elevation: 0,
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 12),
-              child: Center(
-                child: GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.35),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
-                      size: 16,
+                pinned: true,
+                automaticallyImplyLeading: false,
+                toolbarHeight: 96,
+                titleSpacing: AppTheme.pageHPad,
+                backgroundColor: p.card,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                title: Row(children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        color: p.segBg,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusRow),
+                      ),
+                      child: Icon(Icons.chevron_left_rounded, color: p.ink, size: 30),
                     ),
                   ),
-                ),
-              ),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              collapseMode: CollapseMode.parallax,
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (imageUrl.isNotEmpty)
-                    Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (ctx, err, stack) => Container(
-                        decoration: const BoxDecoration(gradient: AppColors.heroNavy),
-                      ),
-                    )
-                  else
-                    Container(decoration: const BoxDecoration(gradient: AppColors.heroNavy)),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.1),
-                          Colors.black.withValues(alpha: 0.4),
-                          Colors.black.withValues(alpha: 0.88),
-                        ],
-                        stops: const [0.0, 0.5, 1.0],
-                      ),
-                    ),
-                  ),
-
-                  Positioned(
-                    bottom: 24,
-                    left: AppTheme.pageHPad,
-                    right: AppTheme.pageHPad,
+                  const SizedBox(width: 16),
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.coral,
-                            borderRadius: BorderRadius.circular(AppTheme.radiusBadge),
-                          ),
-                          child: Text(
-                            'TURNERING',
-                            style: AppText.monoSm.copyWith(
-                              color: Colors.white,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          name,
-                          style: AppText.dispH1Light(28),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        Text(name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppText.dispH1(30).copyWith(color: p.ink)),
                         const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.calendar_today_outlined,
-                              color: Colors.white.withValues(alpha: 0.6),
-                              size: 11,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              date,
-                              style: AppText.monoSmLight.copyWith(fontSize: 11),
-                            ),
-                          ],
+                        _TourMetaLine(
+                          tournamentId: tournamentId,
+                          location: location,
+                          dateText: dateText,
                         ),
                       ],
                     ),
                   ),
-                ],
+                ]),
               ),
-            ),
-          ),
-
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _SliverAppBarDelegate(
-              TabBar(
-                isScrollable: true,
-                tabAlignment: TabAlignment.start,
-                labelColor: AppColors.coral,
-                unselectedLabelColor: isDark ? AppColors.nightInk3 : AppColors.ink3,
-                indicatorColor: AppColors.coral,
-                indicatorWeight: 3,
-                labelStyle: AppText.uiCta,
-                unselectedLabelStyle: AppText.uiCta,
-                tabs: const [
-                  Tab(text: "Kamper"),
-                  Tab(text: "Oppsett"),
-                  Tab(text: "Stats"),
-                  Tab(text: "Lag"),
-                ],
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _SliverAppBarDelegate(
+                  TabBar(
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    labelColor: AppColors.coral,
+                    unselectedLabelColor: p.ink2,
+                    indicatorColor: AppColors.coral,
+                    indicatorWeight: 3,
+                    indicatorSize: TabBarIndicatorSize.label,
+                    dividerColor: Colors.transparent,
+                    labelStyle: AppText.uiCta.copyWith(fontSize: 19, fontWeight: FontWeight.w700),
+                    unselectedLabelStyle:
+                        AppText.uiCta.copyWith(fontSize: 19, fontWeight: FontWeight.w500),
+                    tabs: const [
+                      Tab(text: 'Kamper'),
+                      Tab(text: 'Oppsett'),
+                      Tab(text: 'Stats'),
+                      Tab(text: 'Lag'),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
             ];
           },
           body: TabBarView(
@@ -291,28 +234,68 @@ class TournamentDetailsPage extends StatelessWidget {
   }
 }
 
+/// "ASKIM · 14.11.2026 · 8 PULJER" — antall puljer telles fra kampene.
+class _TourMetaLine extends StatelessWidget {
+  final String tournamentId;
+  final String location;
+  final String dateText;
+  const _TourMetaLine({
+    required this.tournamentId,
+    required this.location,
+    required this.dateText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final p = NtPalette.of(context);
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('matches')
+          .where('tournament_id', isEqualTo: tournamentId)
+          .where('stage', isEqualTo: 'group')
+          .snapshots(),
+      builder: (context, snap) {
+        final groups = <String>{
+          for (final m in snap.data?.docs ?? const <QueryDocumentSnapshot<Map<String, dynamic>>>[])
+            if (m.data()['group'] != null) '${m.data()['category_id']}_${m.data()['group']}',
+        };
+        final parts = [
+          if (location.isNotEmpty) location.toUpperCase(),
+          if (dateText.isNotEmpty) dateText,
+          if (groups.isNotEmpty) '${groups.length} ${groups.length == 1 ? 'PULJE' : 'PULJER'}',
+        ];
+        return Text(parts.join(' · '),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppText.monoSm.copyWith(color: p.ink2, fontSize: 11, letterSpacing: 1.6));
+      },
+    );
+  }
+}
+
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   _SliverAppBarDelegate(this._tabBar);
 
   final TabBar _tabBar;
 
   @override
-  double get minExtent => _tabBar.preferredSize.height;
+  double get minExtent => _tabBar.preferredSize.height + 8;
   @override
-  double get maxExtent => _tabBar.preferredSize.height;
+  double get maxExtent => _tabBar.preferredSize.height + 8;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final p = NtPalette.of(context);
     return Container(
-      color: isDark ? AppColors.nightSurface1 : AppColors.sand1,
+      decoration: BoxDecoration(
+        color: p.card,
+        border: Border(bottom: BorderSide(color: p.line)),
+      ),
+      alignment: Alignment.bottomLeft,
       child: _tabBar,
     );
   }
 
   @override
-  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
-    return false;
-  }
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) => false;
 }
-

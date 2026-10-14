@@ -3,7 +3,6 @@ import 'models.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
-import 'fantasy_point_matrix.dart';
 import 'player_stats_sheet.dart';
 
 // ── Role accent colours ────────────────────────────────────────────────────────
@@ -374,7 +373,7 @@ class _PlayerCard extends StatelessWidget {
                               player.imageUrl,
                               fit: BoxFit.cover,
                               alignment: Alignment.topCenter,
-                              errorBuilder: (_, __, ___) => _emptySlotContent(),
+                              errorBuilder: (_, _, _) => _emptySlotContent(),
                             ),
                           )
                         else
@@ -555,6 +554,7 @@ class _PlayerCard extends StatelessWidget {
 
 // ── Status badge ──────────────────────────────────────────────────────────────
 
+// ignore: unused_element
 class _StatusBadge extends StatelessWidget {
   final String label;
   final Color color;

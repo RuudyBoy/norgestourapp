@@ -43,7 +43,7 @@ class PlayerDetailPage extends StatelessWidget {
         leading: IconButton(
           icon: Container(
             padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.3), shape: BoxShape.circle),
             child: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 16),
           ),
           onPressed: () => Navigator.pop(context),
@@ -52,7 +52,7 @@ class PlayerDetailPage extends StatelessWidget {
           IconButton(
             icon: Container(
               padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.3), shape: BoxShape.circle),
               child: const Icon(Icons.share, color: Colors.white, size: 16),
             ),
             onPressed: () {},
@@ -88,7 +88,7 @@ class PlayerDetailPage extends StatelessWidget {
                     child: Text(
                       (team.isNotEmpty ? team : lastName).toUpperCase(),
                       style: AppText.dispScore(110).copyWith(
-                        color: Colors.white.withOpacity(0.04),
+                        color: Colors.white.withValues(alpha: 0.04),
                         letterSpacing: -4,
                       ),
                       maxLines: 1,

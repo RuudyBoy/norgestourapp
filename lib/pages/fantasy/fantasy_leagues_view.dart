@@ -126,7 +126,7 @@ class _FantasyLeaguesViewState extends State<FantasyLeaguesView> {
                                 final isTop3 = rank <= 3;
 
                                 return Container(
-                                  color: isCurrentUser ? AppColors.coral.withOpacity(0.06) : Colors.transparent,
+                                  color: isCurrentUser ? AppColors.coral.withValues(alpha: 0.06) : Colors.transparent,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: AppTheme.cardPad,
                                     vertical: 12,

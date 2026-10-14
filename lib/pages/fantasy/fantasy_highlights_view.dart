@@ -144,7 +144,7 @@ class _FantasyHighlightsViewState extends State<FantasyHighlightsView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(_bestManager!.teamName, style: AppText.dispH2(18).copyWith(color: AppColors.sand2)),
-                Text(_bestManager!.managerName, style: AppText.uiCaption.copyWith(color: Colors.white.withOpacity(0.8))),
+                Text(_bestManager!.managerName, style: AppText.uiCaption.copyWith(color: Colors.white.withValues(alpha: 0.8))),
               ],
             ),
           ),
@@ -161,7 +161,7 @@ class _FantasyHighlightsViewState extends State<FantasyHighlightsView> {
         color: AppColors.sand0,
         borderRadius: BorderRadius.circular(AppTheme.radiusCard),
         boxShadow: AppTheme.shadowSm,
-        border: Border.all(color: AppColors.coral.withOpacity(0.3)),
+        border: Border.all(color: AppColors.coral.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
