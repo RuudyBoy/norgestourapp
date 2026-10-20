@@ -17,7 +17,7 @@ Case study: [cjrportfolio.netlify.app/spikedunk](https://cjrportfolio.netlify.ap
 - **Hjem:** sesongoversikt, live-kamper og eget fantasylag.
 - **Tours:** turneringer, klasser, påmeldte lag, kampprogram og resultater i sanntid, og påmelding til turnering.
 - **Statistikk:** statistikk per spiller, kamp og turnering, regnet ut fra hendelsene dommeren registrerer.
-- **Fantasy:** velg spillere, lås hver spiller til én rolle (angrep, legg, mottak, forsvar, blokk eller serv), og konkurrer i ligaer.
+- **Fantasy:** velg spillere, lås hver spiller til én rolle (angrep, legg, mottak, forsvar, blokk eller serv), og se plasseringen din i en felles poengtabell. Private ligaer er ikke laget ennå.
 - Innlogging og registrering med Firebase Auth (e-post og passord).
 
 ## Hvordan det fungerer
