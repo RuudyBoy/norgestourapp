@@ -47,3 +47,7 @@ app.*.map.json
 # Firebase
 google-services.json
 GoogleService-Info.plist
+
+# Analyse-utskrift og lokale verktøy
+analyze.txt
+.claude/
