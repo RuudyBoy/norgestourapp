@@ -40,13 +40,6 @@ class AppText {
     fontSize: size, color: AppColors.ink, letterSpacing: 0.3,
   );
 
-  /// Light stat number on dark card — white variant of dispScore
-  static TextStyle dispScoreLight([double size = 42]) =>
-      dispScore(size).copyWith(color: Colors.white);
-
-  static TextStyle dispH1Light([double size = 30]) =>
-      dispH1(size).copyWith(color: Colors.white);
-
   // ── Schibsted Grotesk (UI) ────────────────────────────────────
 
   /// Primary body — 14 pt medium

@@ -26,8 +26,6 @@ class AppColors {
   /// Primary accent — live indicator, CTAs, scores, coral fills
   static const Color coral      = Color(0xFFF1574A);
   static const Color coralDeep  = Color(0xFFD8412F);
-  /// CTA shadow tint
-  static const Color coralGlow  = Color(0x4DF1574A); // 30% alpha
 
   /// Secondary accent — tour info, stat bars, links
   static const Color blue       = Color(0xFF1E3DAE);
@@ -61,16 +59,6 @@ class AppColors {
     begin: Alignment.topLeft, end: Alignment.bottomRight,
     colors: [Color(0xFF16243F), Color(0xFF24365E), Color(0xFF0B1B33)],
     stops: [0.0, 0.55, 1.0],
-  );
-  static const LinearGradient heroCoral = LinearGradient(
-    begin: Alignment.topLeft, end: Alignment.bottomRight,
-    colors: [Color(0xFFB8392B), Color(0xFFF1574A), Color(0xFF7D231A)],
-    stops: [0.0, 0.60, 1.0],
-  );
-  static const LinearGradient heroMix = LinearGradient(
-    begin: Alignment.topLeft, end: Alignment.bottomRight,
-    colors: [Color(0xFF1B2C4E), Color(0xFF3A4D7A), Color(0xFFC9462F)],
-    stops: [0.0, 0.45, 1.2],
   );
   static const LinearGradient cardInk = LinearGradient(
     begin: Alignment.topLeft, end: Alignment.bottomRight,

@@ -38,7 +38,6 @@ lib/
     tour_detail_page.dart, matches_page.dart, tournament_registration_page.dart, …
   theme/              Farger, typografi og tema (designsystem)
   widgets/            Gjenbrukbare UI-komponenter
-docs/FARGEOPPRYDDING.md  Oppdrag for å samle fargene i designsystemet
 ```
 
 ## Teknologi
