@@ -85,12 +85,6 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     }
   }
 
-  static Color _roleAccent(String role) {
-    return AppColors.coral;
-  }
-
-
-
   @override
   Widget build(BuildContext context) {
     double totalValue = 0;
@@ -493,7 +487,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     final filled   = player != null;
     final roleName = _roleLabel(role);
     final roleAbbr = roleName.length >= 3 ? roleName.substring(0, 3) : roleName;
-    final roleColor = _roleAccent(role);
+    final roleColor = AppColors.coral;
 
     return GestureDetector(
       onTap: () {
@@ -974,7 +968,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
 
   // ignore: unused_element
   Widget _buildTeamRow(String role, FantasyPlayer player, String statText) {
-    final accent = _roleAccent(role);
+    final accent = AppColors.coral;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
@@ -1019,7 +1013,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
   }
 
   void _showPlayerOptions(BuildContext context, String role, FantasyPlayer player) {
-    final accent = _roleAccent(role);
+    final accent = AppColors.coral;
     showModalBottomSheet(
       context: context,
       backgroundColor: _surface,

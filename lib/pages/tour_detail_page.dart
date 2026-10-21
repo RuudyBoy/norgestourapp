@@ -24,27 +24,6 @@ class TournamentDetailsPage extends StatelessWidget {
     this.initialTab = 0,
   });
 
-  bool _isRegistrationOpen() {
-    final regStatus = data['registration_status'] as String? ?? '';
-    final deadline = data['registration_deadline'] as String?;
-    if (regStatus != 'open') return false;
-    if (deadline == null) return true;
-    // Parse DD.MM.YYYY
-    try {
-      final parts = deadline.split('.');
-      if (parts.length == 3) {
-        final d = DateTime(
-          int.parse(parts[2]),
-          int.parse(parts[1]),
-          int.parse(parts[0]),
-          23, 59,
-        );
-        return DateTime.now().isBefore(d);
-      }
-    } catch (_) {}
-    return false;
-  }
-
   void showRegistrationCategoryPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -132,7 +111,7 @@ class TournamentDetailsPage extends StatelessWidget {
     final location = (data['location'] ?? '').toString();
     final dateText = ntDateRange(data);
     final p = NtPalette.of(context);
-    final registrationOpen = _isRegistrationOpen();
+    final registrationOpen = ntRegistrationOpen(data);
 
     return DefaultTabController(
       length: 4,

@@ -4,6 +4,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_theme.dart';
 import 'match_stats_page.dart';
+import '../widgets/nt_ui.dart';
 
 typedef _Doc = QueryDocumentSnapshot<Map<String, dynamic>>;
 
@@ -11,8 +12,6 @@ typedef _Doc = QueryDocumentSnapshot<Map<String, dynamic>>;
 // Runder i sluttspill — rekkefølge og etiketter (samme nøkler som admin)
 // Runder som ikke finnes i turneringen vises aldri.
 // ─────────────────────────────────────────────────────────────────────────────
-const _roundOrder = ['omspill', 'r16', 'r8', 'qf', 'sf', 'bronze', 'final'];
-
 const _roundTab = {
   'omspill': 'Playoff',
   'r16': '1/16',
@@ -21,17 +20,6 @@ const _roundTab = {
   'sf': 'Semifinale',
   'bronze': 'Bronse',
   'final': 'Finale',
-};
-
-// Kort etikett i kampkortets topplinje: "KF 1"
-const _roundShort = {
-  'omspill': 'PO',
-  'r16': '1/16',
-  'r8': '1/8',
-  'qf': 'KF',
-  'sf': 'SF',
-  'bronze': 'BRONSE',
-  'final': 'FINALE',
 };
 
 // Etikett på "neste kamp"-kortet: "SEMI 1"
@@ -46,7 +34,7 @@ const _roundNext = {
 };
 
 int _roundIndex(String r) {
-  final i = _roundOrder.indexOf(r);
+  final i = ntRoundOrder.indexOf(r);
   return i == -1 ? 99 : i;
 }
 
@@ -58,7 +46,6 @@ class _P {
   const _P(this.dark);
 
   Color get card => dark ? AppColors.nightSurface0 : AppColors.sand0;
-  Color get segBg => dark ? AppColors.nightSurface2 : AppColors.sand2;
   Color get strip => dark
       ? AppColors.nightSurface2
       : Color.lerp(AppColors.sand1, AppColors.sand2, 0.65)!;
@@ -74,9 +61,6 @@ class _P {
 // ─────────────────────────────────────────────────────────────────────────────
 // Hjelpere for kampdata
 // ─────────────────────────────────────────────────────────────────────────────
-bool _isPlaceholderId(dynamic id) =>
-    id == null || id == 'placeholder' || (id is String && id.isEmpty);
-
 String _placeName(int place, String group) {
   switch (place) {
     case 1:
@@ -92,37 +76,12 @@ String _placeName(int place, String group) {
   }
 }
 
-/// Sett vunnet (fungerer både for live og ferdige kamper).
-(int, int) _sets(Map<String, dynamic> d) {
-  final hs = (d['home_sets'] as num?)?.toInt() ?? 0;
-  final as_ = (d['away_sets'] as num?)?.toInt() ?? 0;
-  if (hs + as_ > 0) return (hs, as_);
-  if (d['status'] == 'finished') {
-    return ((d['home_score'] as num?)?.toInt() ?? 0,
-        (d['away_score'] as num?)?.toInt() ?? 0);
-  }
-  return (0, 0);
-}
-
-/// "21-17 · 21-15"
-String _setScores(Map<String, dynamic> d) {
-  final past = d['past_sets'];
-  if (past is! List || past.isEmpty) return '';
-  return past
-      .whereType<Map>()
-      .map((s) => '${s['home'] ?? 0}-${s['away'] ?? 0}')
-      .join(' · ');
-}
-
 String _courtLabel(dynamic court) {
   final c = court?.toString().trim() ?? '';
   if (c.isEmpty || c.toUpperCase() == 'TBD') return '';
   if (int.tryParse(c) != null) return 'BANE $c';
   return c.toUpperCase();
 }
-
-String _timeOf(Map<String, dynamic> d) =>
-    (d['match_time'] ?? d['start_time'])?.toString() ?? '';
 
 /// Slår opp navn på et lag-slot. Returnerer (navn, erPlassholder, seedLabel).
 class _Slot {
@@ -148,7 +107,7 @@ class _Ctx {
     }).toList()
       ..sort((a, b) => ((a.data()['match_number'] as num?) ?? 0)
           .compareTo((b.data()['match_number'] as num?) ?? 0));
-    final base = (next ? _roundNext : _roundShort)[round] ?? round.toUpperCase();
+    final base = (next ? _roundNext : ntRoundShort)[round] ?? round.toUpperCase();
     if (same.length <= 1) return base;
     final idx = same.indexWhere((m) => m.data()['match_number'] == d['match_number']);
     return '$base ${idx + 1}';
@@ -161,7 +120,7 @@ class _Ctx {
     final id = d['${p}_id'];
     final name = (d['${p}_name'] as String?)?.trim() ?? '';
 
-    if (!_isPlaceholderId(id) && name.isNotEmpty) {
+    if (!ntIsPlaceholderId(id) && name.isNotEmpty) {
       return _Slot(name, false, seed);
     }
     final fromGroup = d['${p}_from_group'];
@@ -278,8 +237,7 @@ class _OppsettPageState extends State<OppsettPage> {
 
   // ── Kontroller: Menn/Damer + Puljer/Sluttspill ───────────────────────────
   Widget _buildControls(_P p, List<_Doc> cats, String catId) {
-    final catSeg = _Segmented(
-      p: p,
+    final catSeg = NtSegmented(
       labels: [for (final c in cats) (c.data()['name'] as String?) ?? 'Klasse'],
       selected: cats.indexWhere((c) => c.id == catId),
       darkSelected: true,
@@ -290,8 +248,7 @@ class _OppsettPageState extends State<OppsettPage> {
         _round = null;
       }),
     );
-    final stageSeg = _Segmented(
-      p: p,
+    final stageSeg = NtSegmented(
       labels: const ['Puljer', 'Sluttspill'],
       selected: _showPlayoff ? 1 : 0,
       darkSelected: false,
@@ -475,7 +432,7 @@ class _GroupView extends StatelessWidget {
       final d = m.data();
       for (final pfx in ['team_a', 'team_b']) {
         final id = d['${pfx}_id'];
-        if (_isPlaceholderId(id) || rows.containsKey(id)) continue;
+        if (ntIsPlaceholderId(id) || rows.containsKey(id)) continue;
         rows[id as String] =
             _StandRow(id, (d['${pfx}_name'] as String?) ?? 'Lag', 999, null);
       }
@@ -486,7 +443,7 @@ class _GroupView extends StatelessWidget {
       final a = rows[d['team_a_id']];
       final b = rows[d['team_b_id']];
       if (a == null || b == null) continue;
-      final (hs, as_) = _sets(d);
+      final (hs, as_) = ntSets(d);
       a
         ..played += 1
         ..sw += hs
@@ -564,7 +521,7 @@ class _GroupView extends StatelessWidget {
     legendParts.addAll(['K = kamper', 'S-T = seier-tap']);
 
     final sortedMatches = [...matches]..sort((a, b) {
-        final t = _timeOf(a.data()).compareTo(_timeOf(b.data()));
+        final t = ntMatchTime(a.data()).compareTo(ntMatchTime(b.data()));
         if (t != 0) return t;
         return ((a.data()['match_number'] as num?) ?? 0)
             .compareTo((b.data()['match_number'] as num?) ?? 0);
@@ -585,8 +542,7 @@ class _GroupView extends StatelessWidget {
             trailing: '$finished AV ${matches.length} KAMPER',
           ),
           const SizedBox(height: 14),
-          _Card(
-            p: p,
+          NtCard(
             child: Column(
               children: [
                 Padding(
@@ -638,8 +594,7 @@ class _GroupView extends StatelessWidget {
           const SizedBox(height: 30),
           _SectionHeader(p: p, title: 'KAMPER I PULJE $group'),
           const SizedBox(height: 14),
-          _Card(
-            p: p,
+          NtCard(
             child: sortedMatches.isEmpty
                 ? Padding(
                     padding: const EdgeInsets.all(18),
@@ -720,10 +675,10 @@ class _GroupMatchRow extends StatelessWidget {
     final live = status == 'live';
     final a = ctx.slot(d, 'team_a');
     final b = ctx.slot(d, 'team_b');
-    final (hs, as_) = _sets(d);
+    final (hs, as_) = ntSets(d);
     final aWon = finished && hs > as_;
     final bWon = finished && as_ > hs;
-    final sets = _setScores(d);
+    final sets = ntSetScores(d);
 
     TextStyle nameStyle(_Slot s, bool won) => AppText.uiBody.copyWith(
           fontSize: 16,
@@ -752,7 +707,7 @@ class _GroupMatchRow extends StatelessWidget {
       trailing = Text('Planlagt', style: AppText.uiCaption.copyWith(color: p.ink2, fontSize: 14));
     }
 
-    final time = _timeOf(d);
+    final time = ntMatchTime(d);
     return InkWell(
       onTap: (finished || live) ? () => _openStats(context, doc.id, a.name, b.name) : null,
       child: Padding(
@@ -944,12 +899,12 @@ class _BracketMatchCard extends StatelessWidget {
     final live = status == 'live';
     final a = ctx.slot(d, 'team_a');
     final b = ctx.slot(d, 'team_b');
-    final (hs, as_) = _sets(d);
+    final (hs, as_) = ntSets(d);
 
     final header = [
       ctx.playoffLabel(d),
       _courtLabel(d['court']),
-      _timeOf(d),
+      ntMatchTime(d),
     ].where((s) => s.isNotEmpty).join(' · ');
 
     Widget statusWidget;
@@ -1124,66 +1079,6 @@ class _NextCard extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // Felles UI-byggesteiner
 // ─────────────────────────────────────────────────────────────────────────────
-class _Segmented extends StatelessWidget {
-  final _P p;
-  final List<String> labels;
-  final int selected;
-  final bool darkSelected;
-  final ValueChanged<int> onTap;
-
-  const _Segmented({
-    required this.p,
-    required this.labels,
-    required this.selected,
-    required this.darkSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 54,
-      padding: const EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        color: p.segBg,
-        borderRadius: BorderRadius.circular(AppTheme.radiusRow),
-      ),
-      child: Row(children: [
-        for (var i = 0; i < labels.length; i++)
-          Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => onTap(i),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: i == selected
-                      ? (darkSelected ? p.selectedDark : p.card)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: i == selected && !darkSelected ? AppTheme.shadowSm : null,
-                ),
-                child: Text(
-                  labels[i],
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppText.uiCta.copyWith(
-                    fontSize: 16,
-                    fontWeight: i == selected ? FontWeight.w800 : FontWeight.w500,
-                    color: i == selected
-                        ? (darkSelected ? Colors.white : p.ink)
-                        : p.ink,
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ]),
-    );
-  }
-}
-
 class _GroupChips extends StatelessWidget {
   final _P p;
   final List<String> groups;
@@ -1350,25 +1245,6 @@ class _SectionHeader extends StatelessWidget {
       if (trailing != null)
         Text(trailing!, style: AppText.monoSm.copyWith(color: p.ink2, fontSize: 10.5)),
     ]);
-  }
-}
-
-class _Card extends StatelessWidget {
-  final _P p;
-  final Widget child;
-  const _Card({required this.p, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: p.card,
-        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-        boxShadow: AppTheme.shadowSm,
-      ),
-      child: child,
-    );
   }
 }
 
