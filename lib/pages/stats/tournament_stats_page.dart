@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'stats_logic.dart'; 
-import 'stats_details_page.dart'; // Husk å lage/oppdatere denne filen (se under)
-import '../theme/app_colors.dart';
-import '../widgets/stats_category_card.dart';
-import '../theme/app_text_styles.dart';
-import '../theme/app_theme.dart';
+import 'package:norges_tour_app/logic/stats_logic.dart';
+import 'package:norges_tour_app/pages/stats/stats_details_page.dart';
+import 'package:norges_tour_app/theme/app_colors.dart';
+import 'package:norges_tour_app/widgets/stats_category_card.dart';
+import 'package:norges_tour_app/theme/app_text_styles.dart';
+import 'package:norges_tour_app/theme/app_theme.dart';
 
 class TournamentStatsPage extends StatefulWidget {
   final String tournamentId;

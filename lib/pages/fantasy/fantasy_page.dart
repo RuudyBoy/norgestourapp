@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'fantasy/models.dart';
-import 'fantasy/fantasy_squad_view.dart';
-import 'fantasy/fantasy_leagues_view.dart';
-import 'fantasy/fantasy_player_selection.dart';
-import 'fantasy/mock_data.dart';
+import 'package:norges_tour_app/pages/fantasy/models.dart';
+import 'package:norges_tour_app/pages/fantasy/fantasy_squad_view.dart';
+import 'package:norges_tour_app/pages/fantasy/fantasy_leagues_view.dart';
+import 'package:norges_tour_app/pages/fantasy/fantasy_player_selection.dart';
+import 'package:norges_tour_app/pages/fantasy/fantasy_players_source.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'auth/login_page.dart';
-import '../widgets/profile_avatar_widget.dart';
-import 'fantasy/league_logic.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
+import 'package:norges_tour_app/pages/auth/login_page.dart';
+import 'package:norges_tour_app/widgets/profile_avatar_widget.dart';
+import 'package:norges_tour_app/pages/fantasy/league_logic.dart';
+import 'package:norges_tour_app/theme/app_colors.dart';
+import 'package:norges_tour_app/theme/app_text_styles.dart';
 
 class FantasyPage extends StatefulWidget {
   const FantasyPage({super.key});

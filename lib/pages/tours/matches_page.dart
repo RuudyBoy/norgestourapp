@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
-import '../theme/app_theme.dart';
-import '../widgets/nt_ui.dart';
-import 'match_stats_page.dart';
+import 'package:norges_tour_app/theme/app_colors.dart';
+import 'package:norges_tour_app/theme/app_text_styles.dart';
+import 'package:norges_tour_app/theme/app_theme.dart';
+import 'package:norges_tour_app/widgets/nt_ui.dart';
+import 'package:norges_tour_app/pages/stats/match_stats_page.dart';
 
 typedef _Doc = QueryDocumentSnapshot<Map<String, dynamic>>;
 

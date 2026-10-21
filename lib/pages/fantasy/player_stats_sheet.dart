@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'models.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_text_styles.dart';
+import 'package:norges_tour_app/pages/fantasy/models.dart';
+import 'package:norges_tour_app/theme/app_colors.dart';
+import 'package:norges_tour_app/theme/app_text_styles.dart';
 
 void showPlayerStatsSheet(BuildContext context, FantasyPlayer player, double ownership) {
   showModalBottomSheet(

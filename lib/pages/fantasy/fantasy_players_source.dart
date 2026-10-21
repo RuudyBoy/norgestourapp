@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../stats_logic.dart';
-import 'models.dart';
+import 'package:norges_tour_app/logic/stats_logic.dart';
+import 'package:norges_tour_app/pages/fantasy/models.dart';
 
 // Dynamically fetch and compute fantasy players from Firestore
 Future<List<FantasyPlayer>> fetchFantasyPlayers() async {

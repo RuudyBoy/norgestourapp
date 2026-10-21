@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'player_detail_page.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
-import '../theme/app_theme.dart';
+import 'package:norges_tour_app/pages/stats/player_detail_page.dart';
+import 'package:norges_tour_app/theme/app_colors.dart';
+import 'package:norges_tour_app/theme/app_text_styles.dart';
+import 'package:norges_tour_app/theme/app_theme.dart';
 
 class PlayersListPage extends StatefulWidget {
   const PlayersListPage({super.key});

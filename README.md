@@ -22,7 +22,7 @@ Case study: [cjrportfolio.netlify.app/spikedunk](https://cjrportfolio.netlify.ap
 
 ## Hvordan det fungerer
 
-Dommerappen lagrer hver handling i en kamp som et dokument i `matches/{id}/events`. Spillerappen leser hendelsene og regner ut statistikk (`lib/pages/stats_logic.dart`) og fantasypoeng fra samme kilde.
+Dommerappen lagrer hver handling i en kamp som et dokument i `matches/{id}/events`. Spillerappen leser hendelsene og regner ut statistikk (`lib/logic/stats_logic.dart`) og fantasypoeng fra samme kilde.
 
 Fantasy bruker en kalibrert poengmatrise (`lib/pages/fantasy/fantasy_point_matrix.dart`): en spiller gir bare poeng for handlinger i rollen den er låst til, og poengene er satt slik at en gjennomsnittlig prestasjon gir omtrent 100 poeng per sett i alle roller. Sjeldne handlinger som blokk og ess er derfor verdt mer enn hyppige angrep.
 
@@ -31,11 +31,15 @@ Fantasy bruker en kalibrert poengmatrise (`lib/pages/fantasy/fantasy_point_matri
 ```
 lib/
   main.dart           App-oppstart og bunnmeny (Hjem, Fantasy, Tours, Statistikk)
+  logic/
+    stats_logic.dart  Utregning av statistikk fra kamphendelser
   pages/
     auth/             Innlogging og registrering
+    home/             Hjem-fanen
+    tours/            Turneringer, turneringsside, kamper, lag og påmelding
+      oppsett/        Puljer og sluttspill (delt i side, puljevisning og sluttspillvisning)
+    stats/            Sesong-, turnerings-, kamp- og spillerstatistikk
     fantasy/          Lagvalg, ligaer, poengmatrise og modeller
-    stats_logic.dart  Utregning av statistikk fra kamphendelser
-    tour_detail_page.dart, matches_page.dart, tournament_registration_page.dart, …
   theme/              Farger, typografi og tema (designsystem)
   widgets/            Gjenbrukbare UI-komponenter
 ```

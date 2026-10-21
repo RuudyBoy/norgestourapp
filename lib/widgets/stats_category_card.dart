@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../pages/stats_logic.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
-import '../theme/app_theme.dart';
+import 'package:norges_tour_app/logic/stats_logic.dart';
+import 'package:norges_tour_app/theme/app_colors.dart';
+import 'package:norges_tour_app/theme/app_text_styles.dart';
+import 'package:norges_tour_app/theme/app_theme.dart';
 
 /// Kort for én statistikkategori (f.eks. «Flest poeng»): vinneren stort,
 /// og de neste fire under. Brukes på sesong- og turneringsstatistikken.

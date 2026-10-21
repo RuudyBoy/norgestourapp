@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
-import '../theme/app_theme.dart';
-import 'teams_page.dart';
-import 'matches_page.dart';
-import 'tournament_stats_page.dart';
-import 'oppsett_page.dart';
-import 'tournament_registration_page.dart';
-import '../widgets/nt_ui.dart';
+import 'package:norges_tour_app/theme/app_colors.dart';
+import 'package:norges_tour_app/theme/app_text_styles.dart';
+import 'package:norges_tour_app/theme/app_theme.dart';
+import 'package:norges_tour_app/pages/tours/teams_page.dart';
+import 'package:norges_tour_app/pages/tours/matches_page.dart';
+import 'package:norges_tour_app/pages/stats/tournament_stats_page.dart';
+import 'package:norges_tour_app/pages/tours/oppsett/oppsett_page.dart';
+import 'package:norges_tour_app/pages/tours/tournament_registration_page.dart';
+import 'package:norges_tour_app/widgets/nt_ui.dart';
 
 class TournamentDetailsPage extends StatelessWidget {
   final String tournamentId;

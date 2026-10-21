@@ -3,15 +3,15 @@ import 'package:flutter/services.dart';
 
 // --- 1. NYTT: Importer Firebase-pakkene ---
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; // Denne filen ble laget av 'flutterfire configure'
+import 'package:norges_tour_app/firebase_options.dart';
 
 // Import all your screen files
-import 'pages/home_page.dart'; // Sjekk at mappen din heter 'pages' eller 'screens'
-import 'pages/fantasy_page.dart';
-import 'pages/tours_page.dart';
-import 'pages/stats_root_page.dart';
-import 'pages/splash_page.dart';
-import 'theme/app_theme.dart';
+import 'package:norges_tour_app/pages/home/home_page.dart';
+import 'package:norges_tour_app/pages/fantasy/fantasy_page.dart';
+import 'package:norges_tour_app/pages/tours/tours_page.dart';
+import 'package:norges_tour_app/pages/stats/stats_root_page.dart';
+import 'package:norges_tour_app/pages/splash_page.dart';
+import 'package:norges_tour_app/theme/app_theme.dart';
 
 // --- 2. NYTT: Gjør main-funksjonen 'async' ---
 void main() async {

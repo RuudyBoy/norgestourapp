@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'models.dart';
-import 'fantasy_point_matrix.dart';
+import 'package:norges_tour_app/pages/fantasy/models.dart';
+import 'package:norges_tour_app/pages/fantasy/fantasy_point_matrix.dart';
 
 class LeaderboardEntry {
   final String userId;

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'tour_detail_page.dart';
-import '../widgets/season_hero_widget.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
-import '../theme/app_theme.dart';
+import 'package:norges_tour_app/pages/tours/tour_detail_page.dart';
+import 'package:norges_tour_app/widgets/season_hero_widget.dart';
+import 'package:norges_tour_app/theme/app_colors.dart';
+import 'package:norges_tour_app/theme/app_text_styles.dart';
+import 'package:norges_tour_app/theme/app_theme.dart';
 
 class ToursPage extends StatelessWidget {
   const ToursPage({super.key});

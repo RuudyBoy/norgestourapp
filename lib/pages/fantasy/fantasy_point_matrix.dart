@@ -1,5 +1,5 @@
-import '../stats_logic.dart';
-import 'models.dart';
+import 'package:norges_tour_app/logic/stats_logic.dart';
+import 'package:norges_tour_app/pages/fantasy/models.dart';
 
 /// EV-justert poengmatrise for rollelåst fantasy.
 ///

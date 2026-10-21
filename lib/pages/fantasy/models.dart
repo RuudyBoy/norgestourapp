@@ -1,4 +1,4 @@
-import '../stats_logic.dart';
+import 'package:norges_tour_app/logic/stats_logic.dart';
 
 class FantasyPlayer {
   final String id;

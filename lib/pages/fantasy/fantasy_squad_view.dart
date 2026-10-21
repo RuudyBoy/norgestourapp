@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'models.dart';
-import 'league_logic.dart';
-import 'fantasy_point_matrix.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_text_styles.dart';
-import 'player_stats_sheet.dart';
+import 'package:norges_tour_app/pages/fantasy/models.dart';
+import 'package:norges_tour_app/pages/fantasy/league_logic.dart';
+import 'package:norges_tour_app/pages/fantasy/fantasy_point_matrix.dart';
+import 'package:norges_tour_app/theme/app_colors.dart';
+import 'package:norges_tour_app/theme/app_text_styles.dart';
+import 'package:norges_tour_app/pages/fantasy/player_stats_sheet.dart';
 // Deep navy palette for the sports-card theme
 const Color _bg       = Color(0xFF0B1220);
 const Color _surface  = Color(0xFF111C30);
