@@ -41,14 +41,14 @@ class LeagueLogic {
     List<LeaderboardEntry> leaderboard = [];
     
     try {
-      // Note: This requires a Collection Group index on 'fantasy' collection in Firebase Console
+      // Merk: krever en Collection Group-indeks på «fantasy» i Firebase Console
       final squadsQuery = await _firestore.collectionGroup('fantasy').get();
       
-      // Filter manually to only get the 'squad' documents
+      // Behold bare «squad»-dokumentene
       final squadDocs = squadsQuery.docs.where((doc) => doc.id == 'squad').toList();
 
       for (var squadDoc in squadDocs) {
-        // The parent of the 'fantasy' subcollection is the user document
+        // Forelderen til «fantasy»-undersamlingen er brukerdokumentet
         final userDocRef = squadDoc.reference.parent.parent;
         if (userDocRef == null) continue;
 
@@ -80,7 +80,7 @@ class LeagueLogic {
     return leaderboard;
   }
 
-  // Calculate ownership percentages for all players
+  // Regn ut eierandel (hvor mange som har valgt hver spiller)
   static Future<Map<String, double>> getPlayerOwnershipPercentages() async {
     Map<String, int> selectionCounts = {};
     int totalSquads = 0;

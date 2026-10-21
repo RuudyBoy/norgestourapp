@@ -5,7 +5,7 @@ import 'package:norges_tour_app/pages/fantasy/fantasy_point_matrix.dart';
 import 'package:norges_tour_app/theme/app_colors.dart';
 import 'package:norges_tour_app/theme/app_text_styles.dart';
 import 'package:norges_tour_app/pages/fantasy/player_stats_sheet.dart';
-// Deep navy palette for the sports-card theme
+// Mørk marinepalett for kortdesignet
 const Color _bg       = Color(0xFF0B1220);
 const Color _surface  = Color(0xFF111C30);
 const Color _surface2 = Color(0xFF18253E);
@@ -121,7 +121,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
           children: [
             const SizedBox(height: 10),
             
-            // ── Info Button & Confirm Squad ──────────────────────────────────────────────
+            // ── Info-knapp og bekreft lag ───────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(
@@ -168,7 +168,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
             ),
             const SizedBox(height: 10),
 
-            // ── Combined Team & Points Section ─────────────────────────
+            // ── Lag og poeng ────────────────────────────────────────────────
             _buildTeamSection(totalPoints, totalValue),
 
             // ── Deadline banner ────────────────────────────────────────
@@ -265,14 +265,14 @@ class _FantasySquadViewState extends State<FantasySquadView> {
             ),
           ),
           
-          // Court and Points Stack
+          // Bane og poeng
           Stack(
             clipBehavior: Clip.none,
             children: [
-              // The Sand Court Background
+              // Sandbane i bakgrunnen
               _buildCourtLayout(),
               
-              // Points row with badge overlapping the boundary
+              // Poengrad med merke som går over kanten
               Positioned(
                 top: -45, left: 0, right: 0,
                 child: Row(
@@ -315,7 +315,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
                     
                     const SizedBox(width: 8),
                     
-                    // Your Score Badge
+                    // Merke med din poengsum
                     Container(
                       width: 90,
                       height: 100,
@@ -422,7 +422,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // The Sand Court Background
+        // Sandbane i bakgrunnen
         Positioned.fill(
           child: Container(
             decoration: const BoxDecoration(
@@ -450,7 +450,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
           ),
         ),
         
-        // The Grid
+        // Rutenett
         Padding(
           padding: const EdgeInsets.only(top: 80, bottom: 30, left: 24, right: 24),
           child: _buildPlayerGrid(),
@@ -517,7 +517,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top Section (Photo Area)
+            // Øverste del (bilde)
             Expanded(
               flex: 60,
               child: Container(
@@ -542,7 +542,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
                     else if (!filled)
                       _emptySlotContent(roleColor),
                     
-                    // Top Right Role Badge (Position)
+                    // Rollemerke øverst til høyre
                     Positioned(
                       top: 4,
                       right: 4,
@@ -564,7 +564,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
                       ),
                     ),
 
-                    // Top Left Captain Badge
+                    // Kapteinsmerke øverst til venstre
                     if (filled && player.id == widget.captainId)
                       Positioned(
                         top: 4,
@@ -580,7 +580,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
                         ),
                       )
                     else if (filled)
-                      // Top Left Swap Icon (if not captain)
+                      // Bytteikon øverst til venstre (hvis ikke kaptein)
                       Positioned(
                         top: 4,
                         left: 4,
@@ -598,7 +598,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
               ),
             ),
             
-            // Bottom Section (Info Area)
+            // Nederste del (info)
             Expanded(
               flex: 40,
               child: Container(
@@ -636,7 +636,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const Spacer(),
-                      // Bottom Row: points and "logo"
+                      // Nederste rad: poeng og «logo»
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -655,7 +655,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
                               ),
                             ],
                           ),
-                          // Info button
+                          // Info-knapp
                           GestureDetector(
                             onTap: () {
                               showPlayerStatsSheet(context, player!, widget.ownershipPercentages[player.id] ?? 0.0);
@@ -873,7 +873,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
     ];
 
     return SizedBox(
-      height: 200, // Fixed height for carousel cards
+      height: 200, // Fast høyde på kortene i karusellen
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -901,7 +901,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Top Part (Hero bg + Image)
+          // Øverste del (bakgrunn og bilde)
           Expanded(
             flex: 55,
             child: Container(
@@ -921,7 +921,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
                   : const Icon(Icons.person, size: 50, color: Colors.white54),
             ),
           ),
-          // Bottom Part (Name + Points)
+          // Nederste del (navn og poeng)
           Expanded(
             flex: 45,
             child: Padding(
@@ -1312,6 +1312,7 @@ class _FantasySquadViewState extends State<FantasySquadView> {
             ],
           ),
           const SizedBox(height: 16),
+          // Tallene må stemme med fantasyPointMatrix i fantasy_point_matrix.dart.
           _buildPointRow('Angrep', 'Vellykket angrep', '+21'),
           _buildPointRow('Angrep', 'Angrepsfeil', '-12', isNegative: true),
           const Divider(color: _border, height: 16),

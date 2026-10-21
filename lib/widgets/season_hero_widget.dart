@@ -18,7 +18,7 @@ class SeasonHeroSliver extends StatelessWidget {
     this.title = 'NT',
     required this.description,
     this.heroImage = 'assets/images/hero_card_bg.png', // Standard bakgrunn
-    this.actionImage, // Endret til null som standard
+    this.actionImage,
     this.actionWidget = const ProfileAvatarWidget(),
   });
 
@@ -51,7 +51,7 @@ class SeasonHeroSliver extends StatelessWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            // ── Background Action Image ─────────────────────────────
+            // ── Handlingsbilde i bakgrunnen ─────────────────────────────────
             Image.asset(
               heroImage,
               fit: BoxFit.cover,

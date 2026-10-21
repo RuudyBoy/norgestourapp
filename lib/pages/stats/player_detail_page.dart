@@ -63,14 +63,14 @@ class PlayerDetailPage extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // --- HERO HEADER ---
+            // --- TOPPSEKSJON ---
             SizedBox(
               height: 460,
               child: Stack(
                 clipBehavior: Clip.none,
                 fit: StackFit.expand,
                 children: [
-                  // Background gradient
+                  // Bakgrunnsgradient
                   Container(
                     decoration: const BoxDecoration(
                       image: DecorationImage(
@@ -97,7 +97,7 @@ class PlayerDetailPage extends StatelessWidget {
                     ),
                   ),
 
-                  // Player image
+                  // Spillerbilde
                   if (imageUrl.isNotEmpty)
                     Positioned(
                       bottom: 60,
@@ -111,7 +111,7 @@ class PlayerDetailPage extends StatelessWidget {
                       ),
                     ),
 
-                  // Player info (top left)
+                  // Spillerinfo (øverst til venstre)
                   Positioned(
                     top: 100,
                     left: AppTheme.pageHPad,
@@ -143,7 +143,7 @@ class PlayerDetailPage extends StatelessWidget {
                     ),
                   ),
 
-                  // Floating stat card
+                  // Flytende statistikkort
                   Positioned(
                     bottom: -45,
                     left: AppTheme.pageHPad,

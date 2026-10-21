@@ -80,7 +80,7 @@ class FantasyPlayerSelection extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
-          // ── Header ────────────────────────────────────────────────
+          // ── Overskrift ──────────────────────────────────────────────────
           SliverAppBar(
             pinned: true,
             backgroundColor: Colors.transparent,
@@ -160,7 +160,7 @@ class FantasyPlayerSelection extends StatelessWidget {
                 ),
               ),
             ],
-            // Role colour accent line at bottom
+            // Fargelinje for rollen nederst
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(2),
               child: Container(
@@ -269,7 +269,7 @@ class FantasyPlayerSelection extends StatelessWidget {
   }
 }
 
-// ── Player card ────────────────────────────────────────────────────────────────
+// ── Spillerkort ─────────────────────────────────────────────────
 
 class _PlayerCard extends StatelessWidget {
   final FantasyPlayer player;
@@ -317,11 +317,6 @@ class _PlayerCard extends StatelessWidget {
 
     final borderWidth = isSelectedHere ? 3.0 : 2.0;
 
-    // Use selectedRole if they are picked elsewhere, or fallback to the current page's role
-    // Wait, the page role isn't passed to _PlayerCard directly except as roleColor.
-    // Let's just show total points if we don't have the role string here.
-    // Or we can just use player.totalPoints.
-    
     return GestureDetector(
       onTap: onTap,
       child: Stack(
@@ -354,7 +349,7 @@ class _PlayerCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Top Section (Photo Area)
+                // Øverste del (bilde)
                 Expanded(
                   flex: 60,
                   child: Container(
@@ -379,7 +374,7 @@ class _PlayerCard extends StatelessWidget {
                         else
                           _emptySlotContent(),
 
-                        // Top Right Price Badge
+                        // Prismerke øverst til høyre
                         Positioned(
                           top: 4,
                           right: 4,
@@ -401,7 +396,7 @@ class _PlayerCard extends StatelessWidget {
                           ),
                         ),
 
-                        // Top Left "MEG" badge
+                        // «MEG»-merke øverst til venstre
                         if (isMe)
                           Positioned(
                             top: 4,
@@ -428,7 +423,7 @@ class _PlayerCard extends StatelessWidget {
                   ),
                 ),
                 
-                // Bottom Section (Info Area)
+                // Nederste del (info)
                 Expanded(
                   flex: 40,
                   child: Container(
@@ -465,7 +460,7 @@ class _PlayerCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const Spacer(),
-                        // Bottom Row: points and info
+                        // Nederste rad: poeng og info
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -484,7 +479,7 @@ class _PlayerCard extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            // Info button
+                            // Info-knapp
                             GestureDetector(
                               onTap: () {
                                 showPlayerStatsSheet(context, player, ownership);

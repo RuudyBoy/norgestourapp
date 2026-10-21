@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
 /// SpikeDunk · Norges Tour — Colour tokens
-/// Matches the "Sand & Broadcast" design system in the prototype.
+/// Følger designsystemet «Sand & Broadcast» fra prototypen.
 /// Usage: AppColors.coral, AppColors.sand0, etc.
 class AppColors {
   AppColors._();
 
   // ── Sand canvas ────────────────────────────────────────────────
-  /// Lightest surface (cards, inputs, tab bar background)
+  /// Lyseste flate (kort, felt, bakgrunn i fanelinjen)
   static const Color sand0 = Color(0xFFFBF6EE);
-  /// Page/scroll background
+  /// Bakgrunn for side og scroll
   static const Color sand1 = Color(0xFFF4EADB);
   /// Chips, segmented controls, muted fills
   static const Color sand2 = Color(0xFFE7D7C0);

@@ -22,19 +22,19 @@ class AppText {
     fontSize: size, color: AppColors.ink, letterSpacing: -0.5, height: 0.88,
   );
 
-  /// Page title / large heading — 30 pt italic black
+  /// Sidetittel / stor overskrift — 30 pt kursiv black
   static TextStyle dispH1([double size = 30]) => GoogleFonts.saira(
     fontWeight: FontWeight.w900, fontStyle: FontStyle.italic,
     fontSize: size, color: AppColors.ink, letterSpacing: 0.2, height: 0.95,
   );
 
-  /// Card headline / tournament name — 22 pt italic bold
+  /// Kortoverskrift / turneringsnavn — 22 pt kursiv bold
   static TextStyle dispH2([double size = 22]) => GoogleFonts.saira(
     fontWeight: FontWeight.w800, fontStyle: FontStyle.italic,
     fontSize: size, color: AppColors.ink, letterSpacing: 0.15, height: 1.0,
   );
 
-  /// Section kicker above headings — 15 pt italic extrabold ALL-CAPS
+  /// Seksjonskicker over overskrifter — 15 pt kursiv extrabold, STORE BOKSTAVER
   static TextStyle dispKicker([double size = 15]) => GoogleFonts.saira(
     fontWeight: FontWeight.w800, fontStyle: FontStyle.italic,
     fontSize: size, color: AppColors.ink, letterSpacing: 0.3,
@@ -52,12 +52,12 @@ class AppText {
     fontWeight: FontWeight.w400, fontSize: 12, color: AppColors.ink2, height: 1.3,
   );
 
-  /// Row title — 14 pt semibold
+  /// Radtittel — 14 pt semibold
   static TextStyle uiTitle = GoogleFonts.schibstedGrotesk(
     fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.ink, height: 1.2,
   );
 
-  /// CTA / button label — 15 pt extrabold
+  /// Knappetekst / CTA — 15 pt extrabold
   static TextStyle uiCta = GoogleFonts.schibstedGrotesk(
     fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white, letterSpacing: 0.1,
   );

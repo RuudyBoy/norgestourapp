@@ -162,7 +162,7 @@ class _StatsRootPageState extends State<StatsRootPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                          // All players button
+                          // Knapp til alle spillere
                           GestureDetector(
                             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PlayersListPage())),
                             child: Container(

@@ -85,7 +85,7 @@ MatchStatsResult calculateMatchStats(List<Map<String, dynamic>> events) {
       continue; // Opponent error is not assigned to a player
     }
 
-    // Ignorer "Lag" for å unngå en fiktiv spiller (just in case)
+    // Ignorer "Lag" for å unngå en fiktiv spiller
     if (pKey == 'Lag' || pKey.toLowerCase() == 'lag') continue;
 
     if (!playerMap.containsKey(pKey)) {
@@ -146,7 +146,7 @@ MatchStatsResult calculateMatchStats(List<Map<String, dynamic>> events) {
     }
   }
 
-  // Calculate team-level receive totals to distribute "Mottak"
+  // Mottak regnes ut per lag og fordeles på lagets spillere
   Map<String, int> teamTotalOpponentServes = {};
 
   for (var event in events) {
@@ -181,7 +181,7 @@ MatchStatsResult calculateMatchStats(List<Map<String, dynamic>> events) {
     }
   }
 
-  // Calculate Perfect Receptions per team and distribute equally to players
+  // Perfekte mottak regnes ut per lag og fordeles likt på spillerne
   for (String tName in teamMap.keys) {
     int totalOppServes = teamTotalOpponentServes[tName] ?? 0;
     
@@ -209,7 +209,7 @@ MatchStatsResult calculateMatchStats(List<Map<String, dynamic>> events) {
     }
   }
 
-  // Calculate partner attack errors for "failed set" fantasy logic
+  // Partnerens angrepsfeil (brukes som «mislykket legg» i fantasy)
   Map<String, List<PlayerMatchStats>> teamPlayers = {};
   for (var p in playerMap.values) {
     if (p.teamName.isNotEmpty) {

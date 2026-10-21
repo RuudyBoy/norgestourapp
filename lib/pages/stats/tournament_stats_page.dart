@@ -32,7 +32,7 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
     _statsFuture = _calculateTournamentStats();
   }
 
-  // Henter og slår sammen stats (Samme logikk som før)
+  // Henter alle kampene i turneringen og slår sammen statistikken per spiller.
   Future<List<PlayerMatchStats>> _calculateTournamentStats() async {
     Query query = FirebaseFirestore.instance.collection('matches');
     
@@ -126,9 +126,6 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
 
           final allPlayers = snapshot.data!;
 
-          // ... (Din sorterings-kode her: pointsList, sideoutList osv.) ...
-          // ... (Lim inn sorterings-blokken vi lagde sist her) ...
-          
           final pointsList = List<PlayerMatchStats>.from(allPlayers)
             ..sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
           final sideoutList = List<PlayerMatchStats>.from(allPlayers)
@@ -152,12 +149,11 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
           final serverList = List<PlayerMatchStats>.from(allPlayers)
             ..sort((a, b) => b.aces.compareTo(a.aces));
 
-
-          // HER ER ENDRINGEN:
           return RefreshIndicator(
-            onRefresh: _refreshStats, // Kaller funksjonen under
+            onRefresh: _refreshStats,
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(), // Viktig for at den skal kunne dras
+              // Alltid scrollbar, slik at «dra for å oppdatere» virker også med lite innhold.
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

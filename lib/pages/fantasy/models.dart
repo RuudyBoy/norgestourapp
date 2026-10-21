@@ -8,7 +8,7 @@ class FantasyPlayer {
   final int totalPoints;
   final String imageUrl;
 
-  // Stats for the radar chart or details
+  // Statistikk til radardiagram og detaljer
   final int blocks;
   final int digs;
   final int attacks;

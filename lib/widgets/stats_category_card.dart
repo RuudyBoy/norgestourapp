@@ -56,7 +56,7 @@ class StatsCategoryCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Header / Title
+        // Overskrift / tittel
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Row(
@@ -68,7 +68,7 @@ class StatsCategoryCard extends StatelessWidget {
           ),
         ),
 
-        // PREMIER LEAGUE STYLE CARD
+        // Kort i «Premier League»-stil
         GestureDetector(
           onTap: onTap,
           child: Container(
@@ -85,7 +85,7 @@ class StatsCategoryCard extends StatelessWidget {
             child: Stack(
               children: [
                 
-                // Player Image Cutout on right
+                // Utklipp av spillerbilde til høyre
                 if (winner.imageUrl.isNotEmpty)
                   Positioned(
                     right: 0, bottom: 50, top: 20, width: 200,
@@ -134,7 +134,7 @@ class StatsCategoryCard extends StatelessWidget {
                   ),
                 ),
                 
-                // Big Number (Right Side, Top)
+                // Stort tall (høyre side, øverst)
                 Positioned(
                   right: 20, top: 24,
                   child: Column(
@@ -150,7 +150,7 @@ class StatsCategoryCard extends StatelessWidget {
                   ),
                 ),
                 
-                // Bottom small stats
+                // Små tall nederst
                 Positioned(
                   left: 0, right: 0, bottom: 0,
                   child: Container(
@@ -175,7 +175,7 @@ class StatsCategoryCard extends StatelessWidget {
           ),
         ),
         
-        // Runners Up List Below Card
+        // De neste på listen, under kortet
         if (runnersUp.isNotEmpty) ...[
           const SizedBox(height: 12),
           Container(
@@ -214,7 +214,7 @@ class StatsCategoryCard extends StatelessWidget {
                     ),
                   );
                 }),
-                // Link to full list
+                // Lenke til hele listen
                 Divider(height: 1, color: Colors.white.withValues(alpha: 0.1)),
                 InkWell(
                   onTap: onTap,

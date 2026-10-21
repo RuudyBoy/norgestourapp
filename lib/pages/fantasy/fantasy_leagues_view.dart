@@ -95,7 +95,7 @@ class _FantasyLeaguesViewState extends State<FantasyLeaguesView> {
             ),
             child: Column(
               children: [
-                // Header row
+                // Overskriftsrad
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: AppTheme.cardPad, vertical: 12),
                   decoration: BoxDecoration(

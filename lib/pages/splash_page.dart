@@ -79,7 +79,7 @@ class _SplashPageState extends State<SplashPage>
       body: SizedBox.expand(
         child: Stack(
           children: [
-            // ── Background image ─────────────────────────────────────
+            // ── Bakgrunnsbilde ──────────────────────────────────────────────
             Positioned.fill(
               child: Image.asset(
                 'assets/images/hero_card_bg.png',
@@ -87,9 +87,7 @@ class _SplashPageState extends State<SplashPage>
               ),
             ),
 
-          // ── Dark overlay removed per user request ────────────────
-
-          // ── Player cutout image ──────────────────────────────────
+          // ── Utklipp av spiller ──────────────────────────────────────────
           Positioned(
             bottom: 0,
             left: 0,
@@ -110,7 +108,7 @@ class _SplashPageState extends State<SplashPage>
             ),
           ),
 
-          // ── Bottom fade to blend player into content ─────────────
+          // ── Toning nederst som glir over i innholdet ────────────────────
           Positioned(
             bottom: 0,
             left: 0,
@@ -133,7 +131,7 @@ class _SplashPageState extends State<SplashPage>
             ),
           ),
 
-          // ── NT Logo top ──────────────────────────────────────────
+          // ── NT-logo øverst ──────────────────────────────────────────────
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -144,7 +142,7 @@ class _SplashPageState extends State<SplashPage>
             ),
           ),
 
-          // ── Bottom content ───────────────────────────────────────
+          // ── Innhold nederst ─────────────────────────────────────────────
           Positioned(
             bottom: 0,
             left: 0,
@@ -195,7 +193,7 @@ class _SplashPageState extends State<SplashPage>
                         ),
                         const SizedBox(height: 28),
 
-                        // CTA button
+                        // Hovedknapp
                         SizedBox(
                           width: double.infinity,
                           height: 54,

@@ -2,12 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:norges_tour_app/logic/stats_logic.dart';
 import 'package:norges_tour_app/pages/fantasy/models.dart';
 
-// Dynamically fetch and compute fantasy players from Firestore
+// Henter alle spillere fra Firestore og regner ut fantasy-statistikken deres
+// fra hendelsene i alle kamper (samme utregning som statistikksidene).
 Future<List<FantasyPlayer>> fetchFantasyPlayers() async {
-  // 1. Fetch registered players from Firestore
+  // 1. Hent registrerte spillere fra Firestore
   final playersSnapshot = await FirebaseFirestore.instance.collection('players').get();
   
-  // 2. Fetch all matches to calculate statistics from live events
+  // 2. Hent alle kamper for å regne ut statistikk fra hendelsene
   final matchesSnapshot = await FirebaseFirestore.instance.collection('matches').get();
   
   Map<String, PlayerMatchStats> totalStatsMap = {};
@@ -48,7 +49,7 @@ Future<List<FantasyPlayer>> fetchFantasyPlayers() async {
     });
   }
 
-  // 3. Build FantasyPlayer models for all players in the database
+  // 3. Lag FantasyPlayer for alle spillerne i databasen
   List<FantasyPlayer> fantasyPlayers = [];
   
   for (var doc in playersSnapshot.docs) {
@@ -59,7 +60,7 @@ Future<List<FantasyPlayer>> fetchFantasyPlayers() async {
     final team = data['club'] ?? 'Ukjent Klubb';
     final imageUrl = data['image_url'] ?? '';
     
-    // Match against performance stats (case-insensitive and trimmed)
+    // Koble til statistikken (uavhengig av store/små bokstaver og mellomrom)
     final statsKey = name.toLowerCase();
     final stats = totalStatsMap[statsKey];
     
@@ -68,13 +69,13 @@ Future<List<FantasyPlayer>> fetchFantasyPlayers() async {
     final int aces = stats?.aces ?? 0;
     final int sets = stats?.setAssists ?? 0;
     
-    // Reasonable estimates for digs & receives if not tracked explicitly in events
+    // Anslag for forsvar og mottak når de ikke logges som egne hendelser
     final int digs = (blocks * 0.5 + kills * 0.2).round(); 
     final int receives = (aces * 0.8).round();
     
     final int totalPoints = kills + blocks + aces;
     
-    // Calculate a dynamic price: starts at $6.0m and increases with performance points
+    // Dynamisk pris: starter på 6,0 mill. og øker med prestasjonspoeng
     final double price = (6.0 + totalPoints * 0.15).clamp(5.0, 15.0);
     
     fantasyPlayers.add(
@@ -96,7 +97,7 @@ Future<List<FantasyPlayer>> fetchFantasyPlayers() async {
     );
   }
   
-  // Sort players by total points descending as the default order
+  // Sorter spillerne etter totalpoeng, høyest først
   fantasyPlayers.sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
   
   return fantasyPlayers;

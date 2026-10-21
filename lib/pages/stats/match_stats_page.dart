@@ -78,7 +78,7 @@ class MatchStatsPage extends StatelessWidget {
             int awayScore = 0;
             int currentSetNumber = 1;
             
-            // To show in the events tab (newest at top), we will store score with each event
+            // Hendelsesfanen viser nyeste øverst, så stillingen lagres med hver hendelse
             List<Map<String, dynamic>> enrichedEvents = [];
             for (var event in eventsList) {
               int eventSet = event['set_number'] ?? currentSetNumber;
@@ -113,7 +113,7 @@ class MatchStatsPage extends StatelessWidget {
               });
             }
             
-            // Reverse for the timeline tab (newest first)
+            // Snu rekkefølgen for tidslinjen (nyeste først)
             final reversedEvents = enrichedEvents.reversed.toList();
 
             final statsResult = calculateMatchStats(eventsList);
@@ -379,7 +379,7 @@ class MatchStatsPage extends StatelessWidget {
                 Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
                 const SizedBox(height: 12),
                 
-                // Full names stat list
+                // Statistikkliste med fulle navn
                 _buildFullStatRow('Totale Poeng', p.totalPoints.toString()),
                 _buildFullStatRow('Angrep (Kills / Feil)', '${p.kills} / ${p.attackErrors}'),
                 _buildFullStatRow('Sideout', '${p.sideoutPoints}'),
@@ -431,7 +431,7 @@ class MatchStatsPage extends StatelessWidget {
           );
         }
 
-        // Skip background actions that clutters the list
+        // Hopp over bakgrunnshandlinger som roter til listen
         if (action == 'Set Assist' || action == 'Set Attempt' || action == 'Blocked' || action == 'Serve In Play') {
           return const SizedBox.shrink();
         }

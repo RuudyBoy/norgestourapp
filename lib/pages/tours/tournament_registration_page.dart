@@ -193,7 +193,7 @@ class _TournamentRegistrationPageState
           ),
           child: Column(
             children: [
-              // Header
+              // Overskrift
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                 child: Column(

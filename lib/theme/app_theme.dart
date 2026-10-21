@@ -10,7 +10,7 @@ import 'package:norges_tour_app/theme/app_text_styles.dart';
 ///   MaterialApp(
 ///     theme: AppTheme.light,
 ///     darkTheme: AppTheme.dark,
-///     themeMode: ThemeMode.system, // or ThemeMode.light to always use light
+///     themeMode: ThemeMode.system, // eller ThemeMode.light for alltid lyst tema
 ///   )
 class AppTheme {
   AppTheme._();
@@ -78,7 +78,7 @@ class AppTheme {
         titleTextStyle: AppText.dispH2(20).copyWith(color: AppColors.ink),
       ),
 
-      // bottom nav
+      // bunnmeny
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.sand0.withValues(alpha: 0.86),
         selectedItemColor: AppColors.coral,
@@ -107,7 +107,7 @@ class AppTheme {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       ),
 
-      // elevated button (CTA)
+      // hevet knapp (CTA)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.coral,
@@ -119,7 +119,7 @@ class AppTheme {
         ),
       ),
 
-      // outlined button (ghost)
+      // omrisset knapp (ghost)
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.ink,
