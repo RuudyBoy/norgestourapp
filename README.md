@@ -62,3 +62,7 @@ flutter run
 Fungerende prototype, ikke publisert i App Store eller Google Play. Påmelding og kobling mellom bruker og spillerprofil er ikke ferdig, og Firestore-reglene må strammes inn før ekte brukere slippes inn. Neste steg er riktige sikkerhetsregler, forhåndsberegnet statistikk i Cloud Functions, betaling med Vipps og klargjøring for app-butikkene.
 
 Laget av Christian Jørgensen Ruud.
+
+---
+
+© 2026 Christian Jørgensen Ruud. All rights reserved.

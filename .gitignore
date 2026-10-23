@@ -51,3 +51,6 @@ GoogleService-Info.plist
 # Analyse-utskrift og lokale verktøy
 analyze.txt
 .claude/
+
+# Interne rapporter
+CLEANUP_REPORT*.md
