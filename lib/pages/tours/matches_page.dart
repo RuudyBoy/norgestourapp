@@ -114,7 +114,26 @@ class _MatchesPageState extends State<MatchesPage> {
     );
   }
 
+  // match_date er "dd.MM.yyyy" – gjør om til sorterbar nøkkel (yyyyMMdd)
+  static int _dateKey(Map<String, dynamic> d) {
+    final p = (d['match_date'] as String? ?? '').split('.');
+    if (p.length != 3) return 99999999;
+    return (int.tryParse(p[2]) ?? 9999) * 10000 + (int.tryParse(p[1]) ?? 99) * 100 + (int.tryParse(p[0]) ?? 99);
+  }
+
+  static String _dayLabel(Map<String, dynamic> d) {
+    final s = d['match_date'] as String? ?? '';
+    final p = s.split('.');
+    if (p.length != 3) return s;
+    final dt = DateTime.tryParse('${p[2]}-${p[1].padLeft(2, '0')}-${p[0].padLeft(2, '0')}');
+    if (dt == null) return s;
+    const wd = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
+    return '${wd[dt.weekday - 1]} ${p[0].padLeft(2, '0')}.${p[1].padLeft(2, '0')}';
+  }
+
   static int _byTimeThenCourt(_Doc a, _Doc b) {
+    final dk = _dateKey(a.data()).compareTo(_dateKey(b.data()));
+    if (dk != 0) return dk;
     final t = ntMatchTime(a.data()).compareTo(ntMatchTime(b.data()));
     if (t != 0) return t;
     final ca = int.tryParse(ntCourtNumber(a.data()['court'])) ?? 99;
@@ -249,8 +268,18 @@ class _MatchesPageState extends State<MatchesPage> {
     if (showUpcoming && upcoming.isNotEmpty) {
       children.add(_pad(const NtSectionHeader(title: 'Kommende')));
       children.add(const SizedBox(height: 14));
+      final multipleDays = upcoming.map((m) => m.data()['match_date']).toSet().length > 1;
+      String? lastDay;
       String? lastTime;
       for (final m in upcoming) {
+        final day = m.data()['match_date'] as String? ?? '';
+        if (multipleDays && day != lastDay) {
+          lastDay = day;
+          lastTime = null;
+          children.add(_pad(Text(day.isEmpty ? 'Dato ikke satt' : _dayLabel(m.data()),
+              style: AppText.uiCta.copyWith(color: p.ink, fontSize: 16, fontWeight: FontWeight.w700))));
+          children.add(const SizedBox(height: 10));
+        }
         final t = ntMatchTime(m.data());
         if (t != lastTime) {
           lastTime = t;
