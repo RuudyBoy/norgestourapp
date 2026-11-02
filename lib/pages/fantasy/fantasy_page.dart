@@ -31,6 +31,9 @@ class _FantasyPageState extends State<FantasyPage> {
 
   late Future<List<FantasyPlayer>> _playersFuture;
   late Future<Map<String, double>> _ownershipFuture;
+  // Lages én gang: ny stream i build gjør at StreamBuilder går tilbake til
+  // «waiting» (spinner) ved hver setState, f.eks. når en spiller velges
+  late final Stream<User?> _authStateChanges;
   String? _linkedPlayerId;
 
   Future<List<dynamic>>? _combinedFuture;
@@ -49,6 +52,7 @@ class _FantasyPageState extends State<FantasyPage> {
   void initState() {
     super.initState();
     _playersFuture = fetchFantasyPlayers();
+    _authStateChanges = FirebaseAuth.instance.authStateChanges();
   }
 
   void _openPlayerSelection(String role, List<FantasyPlayer> players, Map<String, double> ownershipPercentages) {
@@ -140,6 +144,39 @@ class _FantasyPageState extends State<FantasyPage> {
     }
   }
 
+  Future<void> _editTeamName() async {
+    final controller = TextEditingController(text: _teamName);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Endre lagnavn', style: AppText.dispH2(20)),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'Lagnavn'),
+          onSubmitted: (value) => Navigator.pop(context, value.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Avbryt', style: AppText.uiCta.copyWith(color: AppColors.ink3)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: Text('Lagre', style: AppText.uiCta.copyWith(color: AppColors.coral)),
+          ),
+        ],
+      ),
+    );
+    if (name == null || name.isEmpty || name == _teamName) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'teamName': name});
+    if (!mounted) return;
+    setState(() => _teamName = name);
+  }
+
   Future<void> _loadUserData(String uid) async {
     final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
     if (doc.exists) {
@@ -165,7 +202,7 @@ class _FantasyPageState extends State<FantasyPage> {
                 const SizedBox(height: 24),
                 Text('Velg et lagnavn', style: AppText.dispH2(24), textAlign: TextAlign.center),
                 const SizedBox(height: 8),
-                Text('Du må velge et navn for Fantasy-laget ditt for å fortsette.\n\nMERK: Dette kan kun gjøres én gang!',
+                Text('Du må velge et navn for Fantasy-laget ditt for å fortsette.\n\nDu kan endre navnet senere.',
                     style: AppText.uiCaption, textAlign: TextAlign.center),
                 const SizedBox(height: 32),
                 TextField(
@@ -227,7 +264,7 @@ class _FantasyPageState extends State<FantasyPage> {
           ),
         ),
         body: StreamBuilder<User?>(
-          stream: FirebaseAuth.instance.authStateChanges(),
+          stream: _authStateChanges,
           builder: (context, authSnapshot) {
             if (authSnapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator(color: AppColors.coral));
@@ -326,6 +363,7 @@ class _FantasyPageState extends State<FantasyPage> {
                             onRoleTap: (role) => _openPlayerSelection(role, players, ownershipPercentages),
                             onCaptainChanged: (playerId) => setState(() => _captainId = playerId),
                             onConfirmSquad: _confirmSquad,
+                            onEditTeamName: _editTeamName,
                           ),
                           FantasyLeaguesView(players: players),
                         ],

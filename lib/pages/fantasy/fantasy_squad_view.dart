@@ -22,6 +22,7 @@ class FantasySquadView extends StatefulWidget {
   final int pendingChanges;
   final Function(String) onCaptainChanged;
   final VoidCallback onConfirmSquad;
+  final VoidCallback onEditTeamName;
 
   const FantasySquadView({
     super.key,
@@ -35,6 +36,7 @@ class FantasySquadView extends StatefulWidget {
     required this.pendingChanges,
     required this.onCaptainChanged,
     required this.onConfirmSquad,
+    required this.onEditTeamName,
   });
 
   @override
@@ -133,6 +135,8 @@ class _FantasySquadViewState extends State<FantasySquadView> {
                         backgroundColor: widget.pendingChanges > 2 ? AppColors.coral : const Color(0xFF36C87A),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        // Temaets Size.fromHeight gir uendelig bredde, som krasjer i en Row
+                        minimumSize: const Size(0, 40),
                         elevation: 0,
                       ),
                       onPressed: widget.onConfirmSquad,
@@ -234,10 +238,24 @@ class _FantasySquadViewState extends State<FantasySquadView> {
             padding: const EdgeInsets.only(top: 24),
             child: Column(
               children: [
-                Text(
-                  widget.teamName,
-                  style: AppText.dispH2(26).copyWith(color: Colors.white),
-                  textAlign: TextAlign.center,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        widget.teamName,
+                        style: AppText.dispH2(26).copyWith(color: Colors.white),
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Endre lagnavn
+                    GestureDetector(
+                      onTap: widget.onEditTeamName,
+                      child: Icon(Icons.edit_rounded, size: 18, color: Colors.white.withValues(alpha: 0.7)),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 10),
                 Container(
