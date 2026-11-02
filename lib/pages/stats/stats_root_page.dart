@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:norges_tour_app/logic/stats_logic.dart';
+import 'package:norges_tour_app/logic/stats_source.dart';
 import 'package:norges_tour_app/pages/stats/stats_details_page.dart';
 import 'package:norges_tour_app/pages/stats/players_list_page.dart';
 import 'package:norges_tour_app/widgets/season_hero_widget.dart';
@@ -25,13 +25,13 @@ class _StatsRootPageState extends State<StatsRootPage> {
     _statsFuture = _calculateAllTimeStats();
   }
 
-  Future<List<PlayerMatchStats>> _calculateAllTimeStats() async {
-    final matchesSnapshot = await FirebaseFirestore.instance.collection('matches').get();
+  Future<List<PlayerMatchStats>> _calculateAllTimeStats({bool forceRefresh = false}) async {
+    final allMatchEvents = await loadFinishedMatchEvents(forceRefresh: forceRefresh);
     Map<String, PlayerMatchStats> totalStatsMap = {};
 
-    final playersSnapshot = await FirebaseFirestore.instance.collection('players').get();
+    final playerDocs = await loadPlayerDocs(forceRefresh: forceRefresh);
     Map<String, String> playerImages = {};
-    for (var doc in playersSnapshot.docs) {
+    for (var doc in playerDocs) {
       final data = doc.data();
       final firstName = (data['first_name'] ?? '').toString();
       final lastName = (data['last_name'] ?? '').toString();
@@ -41,12 +41,8 @@ class _StatsRootPageState extends State<StatsRootPage> {
       }
     }
 
-    for (var matchDoc in matchesSnapshot.docs) {
-      final eventsSnapshot = await matchDoc.reference.collection('events').get();
-      if (eventsSnapshot.docs.isEmpty) continue;
-      final eventsList = eventsSnapshot.docs.map((d) => d.data()).toList();
-      final typedList = eventsList.cast<Map<String, dynamic>>();
-      final matchStats = calculateMatchStats(typedList);
+    for (var events in allMatchEvents) {
+      final matchStats = calculateMatchStats(events);
 
       matchStats.players.forEach((originalPlayerName, s) {
         String finalPlayerName = originalPlayerName;
@@ -92,7 +88,7 @@ class _StatsRootPageState extends State<StatsRootPage> {
   }
 
   Future<void> _refreshStats() async {
-    setState(() { _statsFuture = _calculateAllTimeStats(); });
+    setState(() { _statsFuture = _calculateAllTimeStats(forceRefresh: true); });
     await _statsFuture;
   }
 

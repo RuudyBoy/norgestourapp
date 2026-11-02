@@ -1,27 +1,20 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:norges_tour_app/logic/stats_logic.dart';
+import 'package:norges_tour_app/logic/stats_source.dart';
 import 'package:norges_tour_app/pages/fantasy/models.dart';
 
 // Henter alle spillere fra Firestore og regner ut fantasy-statistikken deres
-// fra hendelsene i alle kamper (samme utregning som statistikksidene).
-Future<List<FantasyPlayer>> fetchFantasyPlayers() async {
+// fra hendelsene i ferdige kamper (samme utregning som statistikksidene).
+Future<List<FantasyPlayer>> fetchFantasyPlayers({bool forceRefresh = false}) async {
   // 1. Hent registrerte spillere fra Firestore
-  final playersSnapshot = await FirebaseFirestore.instance.collection('players').get();
-  
-  // 2. Hent alle kamper for å regne ut statistikk fra hendelsene
-  final matchesSnapshot = await FirebaseFirestore.instance.collection('matches').get();
-  
+  final playerDocs = await loadPlayerDocs(forceRefresh: forceRefresh);
+
+  // 2. Hent hendelsene i ferdige kamper for å regne ut statistikk
+  final allMatchEvents = await loadFinishedMatchEvents(forceRefresh: forceRefresh);
+
   Map<String, PlayerMatchStats> totalStatsMap = {};
 
-  final allEventSnapshots = await Future.wait(
-    matchesSnapshot.docs.map((m) => m.reference.collection('events').get()),
-  );
-
-  for (final eventsSnapshot in allEventSnapshots) {
-    if (eventsSnapshot.docs.isEmpty) continue;
-
-    final typedList = eventsSnapshot.docs.map((d) => d.data()).toList();
-    final matchStats = calculateMatchStats(typedList);
+  for (final events in allMatchEvents) {
+    final matchStats = calculateMatchStats(events);
 
     matchStats.players.forEach((playerName, s) {
       final key = playerName.trim().toLowerCase();
@@ -52,7 +45,7 @@ Future<List<FantasyPlayer>> fetchFantasyPlayers() async {
   // 3. Lag FantasyPlayer for alle spillerne i databasen
   List<FantasyPlayer> fantasyPlayers = [];
   
-  for (var doc in playersSnapshot.docs) {
+  for (var doc in playerDocs) {
     final data = doc.data();
     final firstName = data['first_name'] ?? '';
     final lastName = data['last_name'] ?? '';

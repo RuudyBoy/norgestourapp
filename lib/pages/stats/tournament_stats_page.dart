@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:norges_tour_app/logic/stats_logic.dart';
+import 'package:norges_tour_app/logic/stats_source.dart';
 import 'package:norges_tour_app/pages/stats/stats_details_page.dart';
 import 'package:norges_tour_app/theme/app_colors.dart';
 import 'package:norges_tour_app/widgets/stats_category_card.dart';
@@ -32,19 +32,18 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
     _statsFuture = _calculateTournamentStats();
   }
 
-  // Henter alle kampene i turneringen og slår sammen statistikken per spiller.
-  Future<List<PlayerMatchStats>> _calculateTournamentStats() async {
-    Query query = FirebaseFirestore.instance.collection('matches');
-    
-    if (widget.tournamentId != 'all' && widget.tournamentId != 'nt-season') {
-      query = query.where('tournament_id', isEqualTo: widget.tournamentId);
-    }
-    
-    final matchesSnapshot = await query.get();
+  // Henter de ferdige kampene i turneringen og slår sammen statistikken per spiller.
+  // 'all' og 'nt-season' betyr hele sesongen, ellers filtreres det på tournament_id.
+  Future<List<PlayerMatchStats>> _calculateTournamentStats({bool forceRefresh = false}) async {
+    final isSeason = widget.tournamentId == 'all' || widget.tournamentId == 'nt-season';
+    final allMatchEvents = await loadFinishedMatchEvents(
+      tournamentId: isSeason ? null : widget.tournamentId,
+      forceRefresh: forceRefresh,
+    );
 
-    final playersSnapshot = await FirebaseFirestore.instance.collection('players').get();
+    final playerDocs = await loadPlayerDocs(forceRefresh: forceRefresh);
     Map<String, String> playerImages = {};
-    for (var doc in playersSnapshot.docs) {
+    for (var doc in playerDocs) {
       final data = doc.data();
       final firstName = (data['first_name'] ?? '').toString();
       final lastName = (data['last_name'] ?? '').toString();
@@ -56,13 +55,8 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
 
     Map<String, PlayerMatchStats> totalStatsMap = {};
 
-    for (var matchDoc in matchesSnapshot.docs) {
-      final eventsSnapshot = await matchDoc.reference.collection('events').get();
-      if (eventsSnapshot.docs.isEmpty) continue;
-
-      final eventsList = eventsSnapshot.docs.map((d) => d.data()).toList();
-      final typedList = eventsList.cast<Map<String, dynamic>>();
-      final matchStats = calculateMatchStats(typedList);
+    for (var events in allMatchEvents) {
+      final matchStats = calculateMatchStats(events);
 
       matchStats.players.forEach((originalPlayerName, s) {
         String finalPlayerName = originalPlayerName;
@@ -262,7 +256,7 @@ class _TournamentStatsPageState extends State<TournamentStatsPage> {
   Future<void> _refreshStats() async {
     setState(() {
       // Dette trigger en ny henting av data
-      _statsFuture = _calculateTournamentStats();
+      _statsFuture = _calculateTournamentStats(forceRefresh: true);
     });
     // Vi venter på at den skal bli ferdig
     await _statsFuture;
