@@ -61,6 +61,8 @@ flutter run
 
 Fungerende prototype, ikke publisert i App Store eller Google Play. Påmelding og kobling mellom bruker og spillerprofil er ikke ferdig, og Firestore-reglene må strammes inn før ekte brukere slippes inn. Neste steg er riktige sikkerhetsregler, forhåndsberegnet statistikk i Cloud Functions, betaling med Vipps og klargjøring for app-butikkene.
 
+**TODO – statistikk:** Statistikk- og fantasysidene leser i dag events for alle ferdige kamper (cachet i 10 minutter per økt, se `lib/logic/stats_source.dart`). Dette bør erstattes med en Cloud Function som aggregerer statistikken per kamp når den settes til `finished`, slik at appen bare leser ferdige summer.
+
 Laget av Christian Jørgensen Ruud.
 
 ---
